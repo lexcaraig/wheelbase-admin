@@ -1,1 +1,27 @@
 /* You can add global styles to this file, and also import other style files */
+
+// Tailwind CSS
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// NOTE: PrimeNG styles will be added when implementing components
+// For now, focusing on getting the basic build working
+
+// Custom Global Styles
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+  background-color: #1E2329;
+  color: #E8E8E8;
+}

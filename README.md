@@ -1,59 +1,199 @@
-# WheelbaseAdmin
+# Wheelbase Admin Panel
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.1.4.
+Modern admin panel for Wheelbase - motorcycle riding community platform. Built with Angular 20, PrimeNG, and Supabase.
 
-## Development server
+## Overview
 
-To start a local development server, run:
+**Production URL**: https://admin.ridewheelbase.app
+**Tech Stack**: Angular 20 (Standalone) + PrimeNG 20 + Supabase + TailwindCSS + Chart.js
+**Generated with**: Angular CLI 20.1.4
+
+**Features**:
+- User management (view, search, ban/unban)
+- Content moderation queue
+- Analytics dashboard (DAU, MAU, ride stats)
+- Google OAuth + Email/Password authentication
+- Role-based access control (super_admin, admin, moderator, support)
+- Comprehensive audit logging
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js 18+ and npm
+- Angular CLI 20+
+- Supabase account (already configured)
+
+### Installation
 
 ```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm start
+# or
 ng serve
+
+# Open http://localhost:4200
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+### Build
 
 ```bash
-ng generate component component-name
+# Development build
+npm run build
+
+# Production build
+npm run build --configuration production
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+---
 
-```bash
-ng generate --help
+## Project Structure
+
+```
+wheelbase-admin/
+├── src/
+│   ├── app/
+│   │   ├── core/                    # Singleton services (TO BE CREATED)
+│   │   │   ├── auth/
+│   │   │   ├── services/
+│   │   │   └── models/
+│   │   ├── features/                # Feature modules (TO BE CREATED)
+│   │   ├── shared/                  # Shared components (TO BE CREATED)
+│   │   ├── layout/                  # Layout components (TO BE CREATED)
+│   │   ├── app.routes.ts
+│   │   └── app.config.ts
+│   │
+│   ├── environments/                # ✅ CONFIGURED
+│   │   ├── environment.ts
+│   │   └── environment.development.ts
+│   └── styles.scss                  # ✅ CONFIGURED (TailwindCSS + PrimeNG)
+│
+├── vercel.json                      # ✅ CONFIGURED
+├── tailwind.config.js               # ✅ CONFIGURED
+└── package.json                     # ✅ CONFIGURED
 ```
 
-## Building
+---
 
-To build the project run:
+## Environment Configuration
 
-```bash
-ng build
+### Development (`environment.development.ts`)
+
+```typescript
+export const environment = {
+  production: false,
+  supabaseUrl: 'https://hvwpdiyrqonuaomwkuxk.supabase.co',
+  supabaseAnonKey: '<anon-key>',
+  redirectUrl: 'http://localhost:4200/auth/callback',
+};
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+### Production (`environment.ts`)
 
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
+```typescript
+export const environment = {
+  production: true,
+  supabaseUrl: 'https://hvwpdiyrqonuaomwkuxk.supabase.co',
+  supabaseAnonKey: '<anon-key>',
+  redirectUrl: 'https://admin.ridewheelbase.app/auth/callback',
+};
 ```
 
-## Running end-to-end tests
+---
 
-For end-to-end (e2e) testing, run:
+## Deployment
 
-```bash
-ng e2e
-```
+### Vercel Deployment
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+1. **Connect Repository**:
+   - Go to [Vercel Dashboard](https://vercel.com/dashboard)
+   - Import `wheelbase-admin` Git repository
+   - Framework: Angular (auto-detected)
 
-## Additional Resources
+2. **Configure Domain**:
+   - Add custom domain: `admin.ridewheelbase.app`
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+3. **Deploy**:
+   - Push to `main` branch triggers auto-deployment
+
+### Security Headers
+
+Configured in `vercel.json`:
+- ✅ X-Frame-Options: DENY
+- ✅ X-Content-Type-Options: nosniff
+- ✅ Strict-Transport-Security
+- ✅ Content-Security-Policy
+
+---
+
+## Backend Integration
+
+### Supabase Edge Functions
+
+All Edge Functions deployed at: `https://hvwpdiyrqonuaomwkuxk.supabase.co/functions/v1/`
+
+**Admin Functions**:
+1. `admin-login` - Email/password authentication
+2. `admin-verify-session` - Validate JWT
+3. `admin-get-users` - Paginated user list
+4. `admin-get-user-detail` - User profile details
+5. `admin-ban-user` - Ban user with reason
+6. `admin-unban-user` - Restore user access
+7. `admin-analytics-dashboard` - Dashboard metrics
+8. `admin-get-flagged-content` - Moderation queue
+9. `admin-moderate-content` - Approve/remove content
+
+---
+
+## Admin Roles & Permissions
+
+| Role | Description |
+|------|-------------|
+| `super_admin` | Full access to all features |
+| `admin` | User management, content moderation |
+| `moderator` | Content moderation only |
+| `support` | View-only access |
+
+---
+
+## Development Status
+
+### Completed ✅
+- [x] Angular 20 project setup
+- [x] Dependencies installed (PrimeNG 20, Supabase, Chart.js, TailwindCSS)
+- [x] TailwindCSS configured
+- [x] Environment files configured
+- [x] Vercel deployment configuration
+- [x] Backend Edge Functions deployed
+- [x] Google OAuth configured
+- [x] Super admin user created
+
+### In Progress 🔄
+- [ ] Core services (Supabase, Auth)
+- [ ] Route guards (auth, admin-role)
+
+### Pending ⏳
+- [ ] Authentication features (login page)
+- [ ] Dashboard with analytics
+- [ ] User management (list, detail, ban/unban)
+- [ ] Content moderation queue
+- [ ] Layouts (main, auth)
+
+---
+
+## Support
+
+For issues or questions:
+- **Technical**: lexphicableme@gmail.com
+- **Documentation**: See `FLUTTER_APP/supabase/ADMIN_GOOGLE_OAUTH_SETUP.md`
+
+---
+
+## License
+
+Proprietary - Co+Lab Digital Solutions
