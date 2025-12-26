@@ -1,96 +1,114 @@
-<div class="relative w-full h-screen flex items-center justify-center overflow-hidden bg-black">
-  <!-- Login Card -->
-  <div class="relative z-10 w-full max-w-md mx-4">
-    <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 shadow-2xl">
-      <!-- Logo / Header -->
-      <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-white mb-2">Wheelbase Admin</h1>
-        <p class="text-white/60">Sign in to access the admin panel</p>
+<div class="login-container">
+  <!-- Left Panel - Login Form -->
+  <div class="left-panel">
+    <div class="form-wrapper">
+      <!-- Logo -->
+      <div class="logo">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 0L40 20L20 40L0 20L20 0Z" fill="#000000"/>
+          <path d="M20 10L30 20L20 30L10 20L20 10Z" fill="#FFFFFF"/>
+        </svg>
+        <span class="logo-text">Wheelbase</span>
       </div>
+
+      <!-- Heading -->
+      <h1 class="heading">{{ step() === 'email' ? 'Sign in' : step() === 'code' ? 'Enter Code' : 'Success!' }}</h1>
 
       <!-- Error Message -->
       @if (errorMessage()) {
-        <div class="mb-6 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200 text-sm">
-          {{ errorMessage() }}
+        <div class="error-banner">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+          <span>{{ errorMessage() }}</span>
         </div>
       }
 
       <!-- Email Step -->
       @if (step() === 'email') {
-        <form (submit)="handleEmailSubmit($event)" class="space-y-6">
-          <div>
-            <label for="email" class="block text-sm font-medium text-white/80 mb-2">
-              Email Address
-            </label>
-            <input
-              #emailInput
-              type="email"
-              id="email"
-              [ngModel]="email()"
-              (ngModelChange)="email.set($event)"
-              name="email"
-              placeholder="admin@wheelbase.com"
-              class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              autocomplete="email"
-              required
-            />
+        <form (submit)="handleEmailSubmit($event)" class="form">
+          <div class="form-group">
+            <label for="email" class="label">Email Address</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+              </svg>
+              <input
+                #emailInput
+                type="email"
+                id="email"
+                [ngModel]="email()"
+                (ngModelChange)="email.set($event)"
+                name="email"
+                placeholder="admin@wheelbase.com"
+                class="input"
+                autocomplete="email"
+                required
+              />
+            </div>
           </div>
 
-          <button
-            type="submit"
-            class="w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-black transition-all"
-          >
+          <button type="submit" class="btn-primary">
             Continue
           </button>
+
+          <div class="divider">
+            <span>or</span>
+          </div>
+
+          <button type="button" (click)="handleGoogleLogin()" class="btn-google" [disabled]="isLoading()">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M19.6 10.227c0-.709-.064-1.39-.182-2.045H10v3.868h5.382a4.6 4.6 0 01-1.996 3.018v2.51h3.232c1.891-1.742 2.982-4.305 2.982-7.35z" fill="#4285F4"/>
+              <path d="M10 20c2.7 0 4.964-.895 6.618-2.423l-3.232-2.509c-.895.6-2.04.955-3.386.955-2.605 0-4.81-1.76-5.595-4.123H1.064v2.59A9.996 9.996 0 0010 20z" fill="#34A853"/>
+              <path d="M4.405 11.9c-.2-.6-.314-1.24-.314-1.9 0-.66.114-1.3.314-1.9V5.51H1.064A9.996 9.996 0 000 10c0 1.614.386 3.14 1.064 4.49l3.34-2.59z" fill="#FBBC05"/>
+              <path d="M10 3.977c1.468 0 2.786.505 3.823 1.496l2.868-2.868C14.959.99 12.695 0 10 0 6.09 0 2.71 2.24 1.064 5.51l3.34 2.59C5.19 5.736 7.395 3.977 10 3.977z" fill="#EA4335"/>
+            </svg>
+            Sign in with Google
+          </button>
+
+          <p class="helper-text">
+            A 6-digit verification code will be sent to your email
+          </p>
         </form>
       }
 
       <!-- Code Step -->
       @if (step() === 'code') {
-        <div class="space-y-6">
-          <div>
-            <div class="flex items-center justify-between mb-4">
-              <button
-                type="button"
-                (click)="handleBack()"
-                class="text-white/60 hover:text-white transition-colors flex items-center gap-1"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                </svg>
-                Back
-              </button>
-              <span class="text-sm text-white/60">{{ email() }}</span>
-            </div>
+        <div class="form">
+          <button type="button" (click)="handleBack()" class="back-button">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
+            </svg>
+            Back to email
+          </button>
 
-            <label class="block text-sm font-medium text-white/80 mb-2">
-              Verification Code
-            </label>
-            <p class="text-sm text-white/60 mb-4">
-              Enter the 6-digit code sent to your email
-            </p>
+          <div class="form-group">
+            <label class="label">Verification Code</label>
+            <p class="sublabel">Enter the 6-digit code sent to {{ email() }}</p>
 
-            <div class="flex gap-2 justify-center">
+            <div class="code-inputs">
               @for (digit of code; track $index) {
                 <input
                   [id]="'code-input-' + $index"
-                  #codeInput0
                   type="text"
                   inputmode="numeric"
                   maxlength="1"
                   [(ngModel)]="code[$index]"
                   (input)="handleCodeChange($index, code[$index], $any($event.target))"
                   (keydown)="handleCodeKeyDown($event, $index)"
-                  class="w-12 h-14 text-center text-2xl font-bold bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  class="code-input"
                   [disabled]="isLoading()"
+                  [class.filled]="code[$index]"
                 />
               }
             </div>
           </div>
 
           @if (isLoading()) {
-            <div class="flex items-center justify-center">
-              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+            <div class="loading-spinner">
+              <div class="spinner"></div>
+              <span>Verifying...</span>
             </div>
           }
         </div>
@@ -98,23 +116,85 @@
 
       <!-- Success Step -->
       @if (step() === 'success') {
-        <div class="text-center py-8">
-          <div class="mb-4 flex justify-center">
-            <div class="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center">
-              <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
+        <div class="success-state">
+          <div class="success-icon">
+            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+              <circle cx="32" cy="32" r="32" fill="#10B981" opacity="0.1"/>
+              <circle cx="32" cy="32" r="24" fill="#10B981" opacity="0.2"/>
+              <path d="M20 32L28 40L44 24" stroke="#10B981" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </div>
-          <h3 class="text-2xl font-bold text-white mb-2">Welcome Back!</h3>
-          <p class="text-white/60">Redirecting to dashboard...</p>
+          <h2 class="success-title">Welcome Back!</h2>
+          <p class="success-text">Redirecting to dashboard...</p>
         </div>
       }
-    </div>
 
-    <!-- Footer -->
-    <p class="text-center text-sm text-white/40 mt-6">
-      Admin access only. Unauthorized access is prohibited.
-    </p>
+      <!-- Footer -->
+      <div class="footer">
+        <p class="footer-text">Admin access only • Wheelbase © 2024</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel - Branding -->
+  <div class="right-panel">
+    <div class="brand-content">
+      <!-- Large Logo -->
+      <div class="brand-logo">
+        <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M60 0L120 60L60 120L0 60L60 0Z" fill="url(#gradient1)" opacity="0.3"/>
+          <path d="M60 20L100 60L60 100L20 60L60 20Z" fill="url(#gradient2)" opacity="0.5"/>
+          <path d="M60 35L85 60L60 85L35 60L60 35Z" fill="#FFFFFF"/>
+          <defs>
+            <linearGradient id="gradient1" x1="0" y1="0" x2="120" y2="120">
+              <stop offset="0%" style="stop-color:#FFD535;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:1" />
+            </linearGradient>
+            <linearGradient id="gradient2" x1="20" y1="20" x2="100" y2="100">
+              <stop offset="0%" style="stop-color:#FFD535;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+      <h2 class="brand-name">Wheelbase</h2>
+
+      <div class="brand-section">
+        <h3 class="brand-title">Welcome to Wheelbase Admin</h3>
+        <p class="brand-description">
+          Manage your motorcycle community platform with powerful admin tools.
+          Monitor users, moderate content, and oversee platform operations.
+        </p>
+        <p class="brand-stat">
+          Trusted by 95+ million motorcyclists across Southeast Asia
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <h4 class="feature-title">Comprehensive Admin Control</h4>
+        <p class="feature-description">
+          Access real-time analytics, user management, content moderation,
+          and safety monitoring all in one place.
+        </p>
+        <div class="feature-icons">
+          <div class="icon-badge">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+          </div>
+          <div class="icon-badge">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+          </div>
+          <div class="icon-badge">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

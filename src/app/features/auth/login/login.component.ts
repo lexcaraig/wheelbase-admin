@@ -124,4 +124,18 @@ export class LoginComponent implements OnInit {
       }, 100);
     }
   }
+
+  async handleGoogleLogin() {
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
+
+    try {
+      await this.authService.loginWithGoogle();
+      // OAuth will redirect to callback URL
+      // No need to navigate manually
+    } catch (error: any) {
+      this.isLoading.set(false);
+      this.errorMessage.set(error.message || 'Google login failed. Please try again.');
+    }
+  }
 }
