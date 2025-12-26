@@ -3,6 +3,8 @@
 // Using official Wheelbase color palette
 // ============================================
 
+@use 'sass:color';
+
 // Flutter App Colors
 $shark: #1E2329;              // Main background
 $brand-yellow: #FFD535;       // Brand color
@@ -211,7 +213,7 @@ $success-green: #6CDB8C;      // Success messages
   transition: all 0.2s;
 
   &:hover {
-    background: darken($brand-yellow, 5%);
+    background: color.adjust($brand-yellow, $lightness: -5%);
     transform: translateY(-1px);
   }
 
@@ -385,7 +387,7 @@ $success-green: #6CDB8C;      // Success messages
 .right-panel {
   flex: 1;
   max-width: 50%;
-  background: linear-gradient(135deg, lighten($shark, 5%) 0%, $shark 100%);
+  background: linear-gradient(135deg, color.adjust($shark, $lightness: 5%) 0%, $shark 100%);
   display: flex;
   align-items: center;
   justify-content: center;
