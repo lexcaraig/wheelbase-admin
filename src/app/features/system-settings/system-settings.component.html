@@ -1,0 +1,223 @@
+<p-toast></p-toast>
+
+<div class="p-4">
+  <!-- Header -->
+  <div class="mb-4">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">System Settings</h1>
+    <p class="text-gray-600">Configure application-wide settings and parameters</p>
+  </div>
+
+  <!-- Settings by Category -->
+  @for (category of categories; track category) {
+    <p-card class="mb-4">
+      <ng-template pTemplate="header">
+        <div class="p-4">
+          <div class="flex items-center gap-3">
+            <p-tag
+              [value]="category"
+              [severity]="getCategoryColor(category)"
+              [rounded]="true"
+            ></p-tag>
+            <span class="font-semibold text-gray-700">
+              {{ groupedSettings().get(category)?.length || 0 }} settings
+            </span>
+          </div>
+        </div>
+      </ng-template>
+
+      <p-table
+        [value]="groupedSettings().get(category) || []"
+        [loading]="isLoading()"
+        styleClass="p-datatable-striped"
+        [tableStyle]="{ 'min-width': '60rem' }"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 25%">Setting</th>
+            <th style="width: 10%">Type</th>
+            <th style="width: 30%">Current Value</th>
+            <th style="width: 25%">Description</th>
+            <th style="width: 10%">Actions</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-setting>
+          <tr>
+            <!-- Setting Key -->
+            <td>
+              <div class="flex items-center gap-2">
+                <i [class]="'pi ' + getTypeIcon(setting.value_type) + ' text-gray-500'"></i>
+                <span class="font-semibold text-gray-900">{{ setting.key }}</span>
+              </div>
+            </td>
+
+            <!-- Type -->
+            <td>
+              <p-tag
+                [value]="setting.value_type.toUpperCase()"
+                severity="secondary"
+                [rounded]="true"
+              ></p-tag>
+            </td>
+
+            <!-- Value -->
+            <td>
+              @if (setting.value_type === 'boolean') {
+                <p-tag
+                  [value]="formatValue(setting.value, setting.value_type)"
+                  [severity]="setting.value ? 'success' : 'danger'"
+                  [rounded]="true"
+                ></p-tag>
+              } @else if (setting.value_type === 'json') {
+                <code class="text-xs bg-gray-100 p-1 rounded">{{ formatValue(setting.value, setting.value_type) }}</code>
+              } @else {
+                <span class="text-gray-700">{{ formatValue(setting.value, setting.value_type) }}</span>
+              }
+            </td>
+
+            <!-- Description -->
+            <td>
+              <span class="text-sm text-gray-600">{{ setting.description }}</span>
+            </td>
+
+            <!-- Actions -->
+            <td>
+              <p-button
+                icon="pi pi-pencil"
+                [rounded]="true"
+                [text]="true"
+                severity="secondary"
+                (onClick)="openEditDialog(setting)"
+                pTooltip="Edit Setting"
+                tooltipPosition="top"
+              />
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="5" class="text-center py-8">
+              <div class="text-gray-500">No settings in this category</div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-card>
+  }
+
+  @if (categories.length === 0 && !isLoading()) {
+    <p-card>
+      <div class="text-center py-12">
+        <i class="pi pi-cog text-gray-400 text-6xl mb-4"></i>
+        <div class="text-gray-500 text-lg">No system settings found</div>
+      </div>
+    </p-card>
+  }
+</div>
+
+<!-- Edit Setting Dialog -->
+<p-dialog
+  [(visible)]="showEditDialog"
+  [modal]="true"
+  [closable]="true"
+  [style]="{ width: '500px' }"
+  header="Edit Setting"
+  [draggable]="false"
+  [resizable]="false"
+>
+  @if (selectedSetting(); as setting) {
+    <div class="space-y-4">
+      <!-- Setting Info -->
+      <div class="p-4 bg-gray-50 rounded-lg">
+        <div class="flex items-center gap-2 mb-2">
+          <i [class]="'pi ' + getTypeIcon(setting.value_type) + ' text-gray-600'"></i>
+          <span class="font-semibold text-gray-900">{{ setting.key }}</span>
+        </div>
+        <div class="text-sm text-gray-600">{{ setting.description }}</div>
+        <div class="flex items-center gap-2 mt-2">
+          <p-tag [value]="setting.category" severity="secondary" [rounded]="true"></p-tag>
+          <p-tag [value]="setting.value_type.toUpperCase()" severity="info" [rounded]="true"></p-tag>
+        </div>
+      </div>
+
+      <!-- Value Input -->
+      <div class="flex flex-col gap-2">
+        <label class="font-semibold text-gray-700">
+          New Value <span class="text-red-500">*</span>
+        </label>
+
+        <!-- Boolean Input -->
+        @if (setting.value_type === 'boolean') {
+          <div class="flex items-center gap-3">
+            <p-toggleSwitch [(ngModel)]="editValue" />
+            <span class="text-gray-700">
+              {{ editValue ? 'Enabled' : 'Disabled' }}
+            </span>
+          </div>
+        }
+
+        <!-- Number Input -->
+        @else if (setting.value_type === 'number') {
+          <p-inputNumber
+            [(ngModel)]="editValue"
+            [showButtons]="true"
+            styleClass="w-full"
+          />
+        }
+
+        <!-- String Input -->
+        @else if (setting.value_type === 'string') {
+          <input
+            pInputText
+            [(ngModel)]="editValue"
+            type="text"
+            class="w-full"
+          />
+        }
+
+        <!-- JSON Input -->
+        @else if (setting.value_type === 'json') {
+          <textarea
+            pTextarea
+            [(ngModel)]="editValue"
+            rows="6"
+            class="w-full font-mono text-sm"
+            placeholder="Enter valid JSON..."
+          ></textarea>
+          <small class="text-gray-500">
+            Must be valid JSON format
+          </small>
+        }
+      </div>
+
+      <!-- Warning for Critical Settings -->
+      @if (setting.category === 'Security' || setting.category === 'Payment') {
+        <div class="flex items-start gap-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <i class="pi pi-exclamation-triangle text-yellow-600 text-xl mt-1"></i>
+          <div class="text-sm text-yellow-800">
+            This is a critical setting. Changes may affect system security or functionality.
+          </div>
+        </div>
+      }
+
+      <!-- Actions -->
+      <div class="flex justify-end gap-2 pt-4">
+        <p-button
+          label="Cancel"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="showEditDialog.set(false)"
+          [disabled]="isProcessing()"
+        />
+        <p-button
+          label="Update Setting"
+          severity="primary"
+          icon="pi pi-check"
+          (onClick)="updateSetting()"
+          [loading]="isProcessing()"
+        />
+      </div>
+    </div>
+  }
+</p-dialog>

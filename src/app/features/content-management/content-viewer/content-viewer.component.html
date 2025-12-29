@@ -1,0 +1,73 @@
+<div class="content-viewer-container">
+  <!-- Header -->
+  <div class="viewer-header">
+    <button class="btn btn-secondary" (click)="goBack()">
+      <i class="icon-arrow-left"></i> Back to List
+    </button>
+    <div class="header-actions" *ngIf="content">
+      <button class="btn btn-primary" (click)="editContent()">
+        <i class="icon-edit"></i> Edit Content
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading content...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <div class="error-icon">⚠️</div>
+    <p class="error-message">{{ error }}</p>
+    <button class="btn btn-secondary" (click)="loadContent()">Try Again</button>
+  </div>
+
+  <!-- Content Preview -->
+  <div *ngIf="!loading && !error && content" class="content-preview">
+    <!-- Meta Information -->
+    <div class="content-meta">
+      <div class="meta-row">
+        <span class="meta-label">Status:</span>
+        <span class="badge" [ngClass]="getStatusBadgeClass(content.status)">
+          {{ content.status }}
+        </span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Category:</span>
+        <span>{{ content.category | titlecase }}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Version:</span>
+        <span>v{{ content.version }}</span>
+      </div>
+      <div class="meta-row" *ngIf="content.publishedAt">
+        <span class="meta-label">Published:</span>
+        <span>{{ formatDate(content.publishedAt) }}</span>
+      </div>
+      <div class="meta-row" *ngIf="content.effectiveDate">
+        <span class="meta-label">Effective Date:</span>
+        <span>{{ formatDate(content.effectiveDate) }}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Last Updated:</span>
+        <span>{{ formatDate(content.updatedAt) }}</span>
+      </div>
+    </div>
+
+    <!-- Rendered Content -->
+    <div class="rendered-content">
+      <h1 class="content-title">{{ content.title }}</h1>
+      <p class="content-excerpt" *ngIf="content.excerpt">{{ content.excerpt }}</p>
+      <hr>
+      <div *ngIf="isTimelineFormat" class="relative pl-10">
+        <!-- Vertical Timeline Line -->
+        <div class="absolute left-5 top-0 bottom-0 w-0.5 bg-blue-600"></div>
+        <!-- Markdown Content with Timeline Styling -->
+        <div class="timeline-content" [innerHTML]="renderedContent"></div>
+      </div>
+      <div *ngIf="!isTimelineFormat" class="markdown-content" [innerHTML]="renderedContent"></div>
+    </div>
+  </div>
+</div>

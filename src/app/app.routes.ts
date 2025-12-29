@@ -14,6 +14,7 @@ import { AuditLogsComponent } from './features/audit-logs/audit-logs.component';
 import { SystemSettingsComponent } from './features/system-settings/system-settings.component';
 import { ContentListComponent } from './features/content-management/content-list/content-list.component';
 import { ContentEditorComponent } from './features/content-management/content-editor/content-editor.component';
+import { ContentViewerComponent } from './features/content-management/content-viewer/content-viewer.component';
 
 export const routes: Routes = [
   // Root redirect to dashboard (will trigger AuthGuard if not authenticated)
@@ -96,6 +97,12 @@ export const routes: Routes = [
       {
         path: 'content/new',
         component: ContentEditorComponent,
+        canActivate: [AdminRoleGuard],
+        data: { permission: 'content.moderate' }
+      },
+      {
+        path: 'content/view/:id',
+        component: ContentViewerComponent,
         canActivate: [AdminRoleGuard],
         data: { permission: 'content.moderate' }
       },

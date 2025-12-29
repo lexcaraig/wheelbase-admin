@@ -1,0 +1,428 @@
+<p-toast></p-toast>
+
+<div class="p-4">
+  <!-- Header -->
+  <div class="mb-4">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">User Management</h1>
+    <p class="text-gray-600">View, search, and manage platform users</p>
+  </div>
+
+  <!-- Filters Card -->
+  <p-card class="mb-4">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+      <!-- Search -->
+      <div class="md:col-span-8">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Search Users</label>
+        <p-iconfield iconPosition="left" class="w-full">
+          <p-inputicon styleClass="pi pi-search" />
+          <input
+            pInputText
+            type="text"
+            [(ngModel)]="searchQuery"
+            (keyup.enter)="onSearch()"
+            placeholder="Search by email, username, or display name..."
+            class="w-full"
+          />
+        </p-iconfield>
+      </div>
+
+      <!-- Status Filter -->
+      <div class="md:col-span-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Status Filter</label>
+        <p-select
+          [(ngModel)]="statusFilter"
+          [options]="statusOptions"
+          (onChange)="onStatusFilterChange()"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Select Status"
+          styleClass="w-full"
+        />
+      </div>
+    </div>
+  </p-card>
+
+  <!-- Users Table Card -->
+  <p-card>
+    <!-- Bulk Actions Toolbar -->
+    @if (selectedUsers().length > 0) {
+      <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i class="pi pi-check-circle text-blue-600"></i>
+          <span class="font-semibold text-blue-900">
+            {{ selectedUsers().length }} user(s) selected
+          </span>
+        </div>
+        <div class="flex gap-2">
+          <p-button
+            label="Export Selected"
+            icon="pi pi-download"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="exportSelectedUsers()"
+          />
+          <p-button
+            label="Ban Selected"
+            icon="pi pi-ban"
+            severity="danger"
+            (onClick)="openBulkBanDialog()"
+          />
+        </div>
+      </div>
+    }
+
+    <p-table
+      [value]="users()"
+      [(selection)]="selectedUsers"
+      (onSelectionChange)="onSelectionChange($event)"
+      [loading]="isLoading()"
+      [paginator]="true"
+      [rows]="pageSize"
+      [totalRecords]="totalRecords()"
+      [lazy]="true"
+      (onLazyLoad)="onPageChange($event)"
+      [rowHover]="true"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} users"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      styleClass="p-datatable-striped"
+      [tableStyle]="{ 'min-width': '60rem' }"
+      dataKey="id"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 3%">
+            <p-tableHeaderCheckbox />
+          </th>
+          <th pSortableColumn="username" style="width: 18%">
+            User
+            <p-sortIcon field="username" />
+          </th>
+          <th pSortableColumn="email" style="width: 20%">
+            Email
+            <p-sortIcon field="email" />
+          </th>
+          <th style="width: 8%">Country</th>
+          <th style="width: 12%">Subscription</th>
+          <th style="width: 12%">Verification</th>
+          <th style="width: 10%">Status</th>
+          <th pSortableColumn="created_at" style="width: 12%">
+            Joined
+            <p-sortIcon field="created_at" />
+          </th>
+          <th class="text-center" style="width: 6%">Actions</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-user>
+        <tr>
+          <!-- Selection Checkbox -->
+          <td>
+            <p-tableCheckbox [value]="user" />
+          </td>
+
+          <!-- User -->
+          <td>
+            <div class="flex items-center gap-3">
+              @if (user.avatar_url) {
+                <p-avatar
+                  [image]="user.avatar_url"
+                  shape="circle"
+                  size="large"
+                ></p-avatar>
+              } @else {
+                <p-avatar
+                  [label]="user.username?.charAt(0)?.toUpperCase() || '?'"
+                  shape="circle"
+                  size="large"
+                  styleClass="bg-primary text-white"
+                ></p-avatar>
+              }
+              <div>
+                <div class="font-semibold text-gray-900">{{ user.username }}</div>
+                @if (user.display_name) {
+                  <div class="text-sm text-gray-500">{{ user.display_name }}</div>
+                }
+              </div>
+            </div>
+          </td>
+
+          <!-- Email -->
+          <td>
+            <span class="text-gray-700">{{ user.email }}</span>
+          </td>
+
+          <!-- Country -->
+          <td>
+            <p-tag
+              [value]="user.country_code || 'N/A'"
+              severity="secondary"
+              [rounded]="true"
+            ></p-tag>
+          </td>
+
+          <!-- Subscription -->
+          <td>
+            <p-tag
+              [value]="user.subscription_tier.toUpperCase()"
+              [severity]="getSeverity(user.subscription_tier)"
+              [rounded]="true"
+            ></p-tag>
+          </td>
+
+          <!-- Verification -->
+          <td>
+            <div class="flex items-center gap-2">
+              @if (user.identity_verified) {
+                <i
+                  class="pi pi-verified text-blue-600 text-lg"
+                  pTooltip="Identity Verified"
+                  tooltipPosition="top"
+                ></i>
+              }
+              @if (user.email_verified) {
+                <i
+                  class="pi pi-envelope text-green-600"
+                  pTooltip="Email Verified"
+                  tooltipPosition="top"
+                ></i>
+              }
+              @if (user.phone_verified) {
+                <i
+                  class="pi pi-phone text-green-600"
+                  pTooltip="Phone Verified"
+                  tooltipPosition="top"
+                ></i>
+              }
+              @if (!user.email_verified && !user.phone_verified && !user.identity_verified) {
+                <span class="text-gray-400 text-sm">Not verified</span>
+              }
+            </div>
+          </td>
+
+          <!-- Status -->
+          <td>
+            @if (user.is_banned) {
+              <p-tag value="BANNED" severity="danger" [rounded]="true"></p-tag>
+            } @else {
+              <p-tag value="ACTIVE" severity="success" [rounded]="true"></p-tag>
+            }
+          </td>
+
+          <!-- Created -->
+          <td>
+            <span class="text-gray-700 text-sm">
+              {{ user.created_at | relativeTime }}
+            </span>
+          </td>
+
+          <!-- Actions -->
+          <td class="text-center">
+            <div class="flex items-center justify-center gap-1">
+              <p-button
+                icon="pi pi-eye"
+                [rounded]="true"
+                [text]="true"
+                severity="secondary"
+                (onClick)="viewUserDetail(user)"
+                pTooltip="View Details"
+                tooltipPosition="top"
+              />
+
+              @if (!user.is_banned) {
+                <p-button
+                  icon="pi pi-ban"
+                  [rounded]="true"
+                  [text]="true"
+                  severity="danger"
+                  (onClick)="openBanDialog(user)"
+                  pTooltip="Ban User"
+                  tooltipPosition="top"
+                />
+              } @else {
+                <p-button
+                  icon="pi pi-check-circle"
+                  [rounded]="true"
+                  [text]="true"
+                  severity="success"
+                  (onClick)="unbanUser(user)"
+                  pTooltip="Unban User"
+                  tooltipPosition="top"
+                />
+              }
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="9" class="text-center py-12">
+            <div class="flex flex-col items-center gap-3">
+              <i class="pi pi-users text-gray-400 text-6xl"></i>
+              <div class="text-gray-500 text-lg">No users found</div>
+              <p class="text-gray-400 text-sm">Try adjusting your search or filter criteria</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>
+
+<!-- Ban User Dialog -->
+<p-dialog
+  [(visible)]="showBanDialog"
+  [modal]="true"
+  [closable]="true"
+  [style]="{ width: '500px' }"
+  [header]="'Ban User'"
+  [draggable]="false"
+  [resizable]="false"
+>
+  @if (selectedUser(); as user) {
+    <div class="space-y-4">
+      <!-- User Info -->
+      <div class="p-4 bg-gray-50 rounded-lg">
+        <div class="flex items-center gap-3">
+          @if (user.avatar_url) {
+            <p-avatar
+              [image]="user.avatar_url"
+              shape="circle"
+              size="large"
+            ></p-avatar>
+          } @else {
+            <p-avatar
+              [label]="user.username.charAt(0).toUpperCase() || '?'"
+              shape="circle"
+              size="large"
+              styleClass="bg-primary text-white"
+            ></p-avatar>
+          }
+          <div>
+            <div class="font-semibold text-gray-900">{{ user.username }}</div>
+            <div class="text-sm text-gray-500">{{ user.email }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Warning Message -->
+      <div class="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+        <i class="pi pi-exclamation-triangle text-red-600 text-xl mt-1"></i>
+        <div class="text-sm text-red-800">
+          This user will be immediately banned from accessing the platform. This action can be reversed later.
+        </div>
+      </div>
+
+      <!-- Ban Reason -->
+      <div class="flex flex-col gap-2">
+        <label for="banReason" class="font-semibold text-gray-700">
+          Reason for Ban <span class="text-red-500">*</span>
+        </label>
+        <textarea
+          pTextarea
+          id="banReason"
+          [(ngModel)]="banReason"
+          rows="4"
+          placeholder="Enter the reason for banning this user (minimum 10 characters)..."
+          class="w-full"
+        ></textarea>
+        <small class="text-gray-500">
+          This reason will be stored in the audit log.
+        </small>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex justify-end gap-2 pt-4">
+        <p-button
+          label="Cancel"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="showBanDialog.set(false)"
+          [disabled]="isBanning()"
+        />
+        <p-button
+          label="Ban User"
+          severity="danger"
+          icon="pi pi-ban"
+          (onClick)="banUser()"
+          [loading]="isBanning()"
+          [disabled]="!banReason.trim() || banReason.trim().length < 10"
+        />
+      </div>
+    </div>
+  }
+</p-dialog>
+
+<!-- Bulk Ban Users Dialog -->
+<p-dialog
+  [(visible)]="showBulkBanDialog"
+  [modal]="true"
+  [closable]="true"
+  [style]="{ width: '600px' }"
+  [header]="'Bulk Ban Users'"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <div class="space-y-4">
+    <!-- Selected Users Summary -->
+    <div class="p-4 bg-gray-50 rounded-lg">
+      <div class="font-semibold text-gray-900 mb-2">
+        Selected Users ({{ selectedUsers().length }})
+      </div>
+      <div class="max-h-32 overflow-y-auto space-y-1">
+        @for (user of selectedUsers(); track user.id) {
+          <div class="text-sm text-gray-700 flex items-center gap-2">
+            <i class="pi pi-user text-xs"></i>
+            <span>{{ user.username }} ({{ user.email }})</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Warning Message -->
+    <div class="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+      <i class="pi pi-exclamation-triangle text-red-600 text-xl mt-1"></i>
+      <div class="text-sm text-red-800">
+        All selected users will be immediately banned from accessing the platform. This action can be reversed later.
+      </div>
+    </div>
+
+    <!-- Ban Reason -->
+    <div class="flex flex-col gap-2">
+      <label for="bulkBanReason" class="font-semibold text-gray-700">
+        Reason for Ban <span class="text-red-500">*</span>
+      </label>
+      <textarea
+        pTextarea
+        id="bulkBanReason"
+        [(ngModel)]="bulkBanReason"
+        rows="4"
+        placeholder="Enter the reason for banning these users (minimum 10 characters)..."
+        class="w-full"
+      ></textarea>
+      <small class="text-gray-500">
+        This reason will be applied to all selected users and stored in the audit log.
+      </small>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex justify-end gap-2 pt-4">
+      <p-button
+        label="Cancel"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="showBulkBanDialog.set(false)"
+        [disabled]="isBulkBanning()"
+      />
+      <p-button
+        [label]="'Ban ' + selectedUsers().length + ' User(s)'"
+        severity="danger"
+        icon="pi pi-ban"
+        (onClick)="bulkBanUsers()"
+        [loading]="isBulkBanning()"
+        [disabled]="!bulkBanReason.trim() || bulkBanReason.trim().length < 10"
+      />
+    </div>
+  </div>
+</p-dialog>

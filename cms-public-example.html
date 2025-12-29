@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wheelbase CMS Public API Example</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: #f5f5f5;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      color: #1976d2;
+      margin-bottom: 10px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      background: #1976d2;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #1565c0;
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .content-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .content-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .content-card h3 {
+      color: #1976d2;
+      margin-bottom: 8px;
+    }
+
+    .content-card .meta {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    .content-card .excerpt {
+      color: #555;
+      font-size: 14px;
+    }
+
+    .full-content {
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .back-button {
+      background: #666;
+      margin-bottom: 20px;
+    }
+
+    .back-button:hover {
+      background: #555;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      border: 1px solid #f5c6cb;
+    }
+
+    /* Markdown content styling */
+    .markdown-content {
+      line-height: 1.8;
+    }
+
+    .markdown-content h1 {
+      font-size: 28px;
+      margin-top: 24px;
+      margin-bottom: 16px;
+      color: #212121;
+    }
+
+    .markdown-content h2 {
+      font-size: 24px;
+      margin-top: 20px;
+      margin-bottom: 12px;
+      color: #212121;
+    }
+
+    .markdown-content h3 {
+      font-size: 20px;
+      margin-top: 16px;
+      margin-bottom: 8px;
+      color: #212121;
+    }
+
+    .markdown-content p {
+      margin-bottom: 16px;
+    }
+
+    .markdown-content ul,
+    .markdown-content ol {
+      margin-bottom: 16px;
+      padding-left: 24px;
+    }
+
+    .markdown-content li {
+      margin-bottom: 8px;
+    }
+
+    .markdown-content strong {
+      font-weight: 700;
+    }
+
+    .markdown-content code {
+      background: #f5f5f5;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      color: #d63384;
+    }
+
+    .markdown-content pre {
+      background: #f5f5f5;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin-bottom: 16px;
+    }
+
+    .markdown-content pre code {
+      background: none;
+      padding: 0;
+      color: #333;
+    }
+
+    .markdown-content a {
+      color: #1976d2;
+      text-decoration: none;
+    }
+
+    .markdown-content a:hover {
+      text-decoration: underline;
+    }
+
+    .markdown-content hr {
+      border: none;
+      border-top: 1px solid #e0e0e0;
+      margin: 24px 0;
+    }
+
+    .markdown-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+    }
+
+    .markdown-content th,
+    .markdown-content td {
+      padding: 12px;
+      text-align: left;
+      border: 1px solid #e0e0e0;
+    }
+
+    .markdown-content th {
+      background: #f5f5f5;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Wheelbase CMS Public API Demo</h1>
+      <p>Demonstrating public content fetching from Wheelbase CMS</p>
+      <div class="controls">
+        <button onclick="loadLegalContent()">Load Legal Documents</button>
+        <button onclick="loadAllContent()">Load All Content</button>
+        <button onclick="loadSpecificContent('terms-of-service')">Load Terms of Service</button>
+        <button onclick="loadSpecificContent('privacy-policy')">Load Privacy Policy</button>
+        <button onclick="loadSpecificContent('community-guidelines')">Load Community Guidelines</button>
+      </div>
+    </header>
+
+    <div id="error"></div>
+    <div id="content"></div>
+  </div>
+
+  <script>
+    const CMS_BASE_URL = 'https://hvwpdiyrqonuaomwkuxk.supabase.co/functions/v1';
+    let currentView = 'list';
+
+    /**
+     * Fetch content list from CMS
+     */
+    async function fetchContentList(params = {}) {
+      const response = await fetch(`${CMS_BASE_URL}/get-content-list`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...params,
+          status: 'published', // Always published for public
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return response.json();
+    }
+
+    /**
+     * Fetch single content by slug
+     */
+    async function fetchContent(slug) {
+      const response = await fetch(`${CMS_BASE_URL}/get-content`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ slug }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return response.json();
+    }
+
+    /**
+     * Show loading state
+     */
+    function showLoading() {
+      document.getElementById('content').innerHTML = '<div class="loading">Loading...</div>';
+      document.getElementById('error').innerHTML = '';
+    }
+
+    /**
+     * Show error
+     */
+    function showError(message) {
+      document.getElementById('error').innerHTML = `
+        <div class="error">
+          <strong>Error:</strong> ${message}
+        </div>
+      `;
+    }
+
+    /**
+     * Render content list
+     */
+    function renderContentList(data) {
+      const contentDiv = document.getElementById('content');
+
+      if (data.length === 0) {
+        contentDiv.innerHTML = '<p class="loading">No content found</p>';
+        return;
+      }
+
+      const html = `
+        <div class="content-grid">
+          ${data.map(item => `
+            <div class="content-card" onclick="loadSpecificContent('${item.slug}')">
+              <h3>${item.title}</h3>
+              <div class="meta">
+                ${item.category} •
+                Published: ${new Date(item.publishedAt).toLocaleDateString()}
+              </div>
+              ${item.excerpt ? `<p class="excerpt">${item.excerpt}</p>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      contentDiv.innerHTML = html;
+      currentView = 'list';
+    }
+
+    /**
+     * Render full content
+     */
+    function renderFullContent(content) {
+      const contentDiv = document.getElementById('content');
+
+      // Parse markdown to HTML
+      const htmlContent = marked.parse(content.content);
+
+      const html = `
+        <div class="full-content">
+          <button class="back-button" onclick="goBack()">← Back to List</button>
+          <h1>${content.title}</h1>
+          ${content.excerpt ? `<p class="excerpt" style="font-size: 18px; color: #666; font-style: italic; margin-bottom: 20px;">${content.excerpt}</p>` : ''}
+          <div style="font-size: 12px; color: #999; margin-bottom: 30px;">
+            Last Updated: ${new Date(content.updatedAt).toLocaleDateString()} •
+            Version: ${content.version}
+          </div>
+          <hr>
+          <div class="markdown-content">
+            ${htmlContent}
+          </div>
+        </div>
+      `;
+
+      contentDiv.innerHTML = html;
+      currentView = 'detail';
+    }
+
+    /**
+     * Load legal content
+     */
+    async function loadLegalContent() {
+      showLoading();
+      try {
+        const result = await fetchContentList({ category: 'legal' });
+
+        if (!result.success) {
+          throw new Error(result.error?.message || 'Failed to load content');
+        }
+
+        renderContentList(result.data);
+      } catch (error) {
+        console.error('Error loading legal content:', error);
+        showError(error.message);
+      }
+    }
+
+    /**
+     * Load all content
+     */
+    async function loadAllContent() {
+      showLoading();
+      try {
+        const result = await fetchContentList({ limit: 50 });
+
+        if (!result.success) {
+          throw new Error(result.error?.message || 'Failed to load content');
+        }
+
+        renderContentList(result.data);
+      } catch (error) {
+        console.error('Error loading content:', error);
+        showError(error.message);
+      }
+    }
+
+    /**
+     * Load specific content by slug
+     */
+    async function loadSpecificContent(slug) {
+      showLoading();
+      try {
+        const result = await fetchContent(slug);
+
+        if (!result.success) {
+          throw new Error(result.error?.message || 'Failed to load content');
+        }
+
+        renderFullContent(result.data);
+
+        // Update SEO (in a real app)
+        document.title = result.data.metadata?.seo?.title || result.data.title;
+      } catch (error) {
+        console.error('Error loading content:', error);
+        showError(error.message);
+      }
+    }
+
+    /**
+     * Go back to list
+     */
+    function goBack() {
+      loadLegalContent();
+    }
+
+    // Load legal content on page load
+    window.addEventListener('DOMContentLoaded', loadLegalContent);
+  </script>
+</body>
+</html>

@@ -53,14 +53,19 @@ export class ContentListComponent implements OnInit {
       params.category = this.selectedCategory;
     }
 
+    if (this.selectedStatus) {
+      params.status = this.selectedStatus;
+    }
+
     if (this.searchTerm) {
       params.search = this.searchTerm;
     }
 
-    this.cmsService.getContentList(params).subscribe({
+    // Use admin endpoint to see all content (draft, published, archived)
+    this.cmsService.getAdminContentList(params).subscribe({
       next: (response) => {
         this.contents = response.data;
-        this.filteredContents = this.filterByStatus(response.data);
+        this.filteredContents = response.data; // No client-side filtering needed
         this.totalItems = response.pagination.total;
         this.hasMore = response.pagination.hasMore;
         this.loading = false;
@@ -70,13 +75,6 @@ export class ContentListComponent implements OnInit {
         this.loading = false;
       }
     });
-  }
-
-  filterByStatus(contents: ContentPage[]): ContentPage[] {
-    if (!this.selectedStatus) {
-      return contents;
-    }
-    return contents.filter(c => c.status === this.selectedStatus);
   }
 
   onSearch(): void {
@@ -90,7 +88,8 @@ export class ContentListComponent implements OnInit {
   }
 
   onStatusChange(): void {
-    this.filteredContents = this.filterByStatus(this.contents);
+    this.currentPage = 0;
+    this.loadContents(); // Reload from server with status filter
   }
 
   nextPage(): void {
@@ -109,6 +108,10 @@ export class ContentListComponent implements OnInit {
 
   createNew(): void {
     this.router.navigate(['/content/new']);
+  }
+
+  viewContent(content: ContentPage): void {
+    this.router.navigate(['/content/view', content.id]);
   }
 
   editContent(content: ContentPage): void {

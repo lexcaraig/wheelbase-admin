@@ -1,0 +1,9 @@
+:host {
+  display: block;
+}
+
+::ng-deep {
+  .p-tabview-panels {
+    padding: 1.5rem 0;
+  }
+}

@@ -152,7 +152,7 @@
       <!-- Preview (if enabled) -->
       <div *ngIf="showPreview" class="markdown-preview">
         <h3>Preview</h3>
-        <div class="preview-content" [innerHTML]="formData.content"></div>
+        <div class="preview-content markdown-content" [innerHTML]="renderedPreview"></div>
       </div>
     </div>
 

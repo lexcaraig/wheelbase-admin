@@ -5,8 +5,8 @@
 @tailwind components;
 @tailwind utilities;
 
-// NOTE: PrimeNG styles will be added when implementing components
-// For now, focusing on getting the basic build working
+// PrimeNG Icons
+@import 'primeicons/primeicons.css';
 
 // Custom Global Styles
 * {
@@ -18,10 +18,47 @@
 html,
 body {
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
 body {
-  background-color: #1E2329;
-  color: #E8E8E8;
+  background-color: #f3f4f6;
+  color: #1f2937;
+  overflow-x: hidden;
+}
+
+// Utility classes
+.space-y-6 > * + * {
+  margin-top: 1.5rem;
+}
+
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
+.space-y-3 > * + * {
+  margin-top: 0.75rem;
+}
+
+.space-y-2 > * + * {
+  margin-top: 0.5rem;
+}
+
+// Scrollbar styling
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }

@@ -1,0 +1,339 @@
+<p-toast></p-toast>
+
+<div class="dashboard-container">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+      <p class="text-gray-600 mt-1">Overview of Wheelbase platform metrics</p>
+    </div>
+    <div class="flex items-center gap-4">
+      <p-iconfield iconPosition="left">
+        <p-inputicon styleClass="pi pi-calendar" />
+        <input
+          pInputText
+          type="text"
+          placeholder="Select date range"
+          class="w-64"
+        />
+      </p-iconfield>
+      <p-button
+        icon="pi pi-refresh"
+        [rounded]="true"
+        [text]="true"
+        (onClick)="loadAnalytics()"
+      />
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading() && !analytics()) {
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    @for (i of [1,2,3,4]; track i) {
+    <p-card>
+      <p-skeleton width="100%" height="120px"></p-skeleton>
+    </p-card>
+    }
+  </div>
+  }
+
+  <!-- Main Content -->
+  @if (analytics(); as data) {
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left & Center Column -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- KPI Metrics Row -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <!-- Total Users -->
+        <p-card styleClass="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Total Users</span>
+            <i class="pi pi-users text-blue-600"></i>
+          </div>
+          <div class="metric-value">
+            {{ data.metrics.total_users | number }}
+          </div>
+          <div class="metric-trend positive">
+            <i class="pi pi-arrow-up"></i>
+            <span>+{{ data.metrics.new_users_today }}</span>
+          </div>
+          <div class="metric-sparkline">
+            <canvas [id]="'spark-users'"></canvas>
+          </div>
+        </p-card>
+
+        <!-- Total Posts -->
+        <p-card styleClass="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Total Posts</span>
+            <i class="pi pi-comment text-green-600"></i>
+          </div>
+          <div class="metric-value">
+            {{ data.metrics.posts_this_month | number }}
+          </div>
+          <div class="metric-trend positive">
+            <i class="pi pi-arrow-up"></i>
+            <span>+12.5%</span>
+          </div>
+          <div class="metric-sparkline">
+            <canvas [id]="'spark-posts'"></canvas>
+          </div>
+        </p-card>
+
+        <!-- Active Rides -->
+        <p-card styleClass="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Active Rides</span>
+            <i class="pi pi-map-marker text-purple-600"></i>
+          </div>
+          <div class="metric-value">
+            {{ data.metrics.rides_this_month | number }}
+          </div>
+          <div class="metric-trend positive">
+            <i class="pi pi-arrow-up"></i>
+            <span>+8.2%</span>
+          </div>
+          <div class="metric-sparkline">
+            <canvas [id]="'spark-rides'"></canvas>
+          </div>
+        </p-card>
+
+        <!-- Active Groups -->
+        <p-card styleClass="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Active Groups</span>
+            <i class="pi pi-users text-orange-600"></i>
+          </div>
+          <div class="metric-value">
+            {{ data.metrics.active_groups | number }}
+          </div>
+          <div class="metric-trend positive">
+            <i class="pi pi-arrow-up"></i>
+            <span>+5.1%</span>
+          </div>
+          <div class="metric-sparkline">
+            <canvas [id]="'spark-groups'"></canvas>
+          </div>
+        </p-card>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Subscription Distribution -->
+        <p-card>
+          <ng-template pTemplate="header">
+            <div class="card-header">
+              <h3 class="card-title">Subscription Tiers</h3>
+            </div>
+          </ng-template>
+          <div class="chart-container" style="height: 250px">
+            <canvas id="subscriptionChart"></canvas>
+          </div>
+        </p-card>
+
+        <!-- User Activity Chart -->
+        <p-card>
+          <ng-template pTemplate="header">
+            <div class="card-header">
+              <h3 class="card-title">User Activity (7 Days)</h3>
+            </div>
+          </ng-template>
+          <div class="chart-container" style="height: 250px">
+            <canvas id="activityChart"></canvas>
+          </div>
+        </p-card>
+      </div>
+
+      <!-- Recent Users Table -->
+      <p-card>
+        <ng-template pTemplate="header">
+          <div class="card-header space-between">
+            <h3 class="card-title">Recent Users</h3>
+            <div class="flex items-center gap-2">
+              <p-iconfield iconPosition="left">
+                <p-inputicon styleClass="pi pi-search" />
+                <input
+                  pInputText
+                  type="text"
+                  placeholder="Search users..."
+                  class="search-input"
+                />
+              </p-iconfield>
+              <p-button
+                icon="pi pi-chevron-left"
+                [rounded]="true"
+                [text]="true"
+                size="small"
+              />
+              <p-button
+                icon="pi pi-chevron-right"
+                [rounded]="true"
+                [text]="true"
+                size="small"
+              />
+            </div>
+          </div>
+        </ng-template>
+        <p-table [value]="recentUsers()" styleClass="dashboard-table">
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 80px">ID</th>
+              <th>User</th>
+              <th>Joined</th>
+              <th>Subscription</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-user let-rowIndex="rowIndex">
+            <tr>
+              <td>#{{ user.id.substring(0, 6) }}</td>
+              <td>
+                <div class="user-cell">
+                  @if (user.avatar_url) {
+                  <p-avatar
+                    [image]="user.avatar_url"
+                    shape="circle"
+                    size="normal"
+                  ></p-avatar>
+                  } @else {
+                  <p-avatar
+                    [label]="user.username?.charAt(0)?.toUpperCase() || '?'"
+                    shape="circle"
+                    size="normal"
+                    styleClass="bg-primary text-white"
+                  ></p-avatar>
+                  }
+                  <div class="user-info">
+                    <div class="user-name">{{ user.username }}</div>
+                    <div class="user-email">{{ user.email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>{{ user.created_at | relativeTime }}</td>
+              <td>
+                <p-tag
+                  [value]="user.subscription_tier.toUpperCase()"
+                  [severity]="getSubscriptionSeverity(user.subscription_tier)"
+                  [rounded]="true"
+                />
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-card>
+    </div>
+
+    <!-- Right Column - Quick Stats -->
+    <div class="space-y-6">
+      <!-- Daily/Monthly Active Users -->
+      <p-card>
+        <ng-template pTemplate="header">
+          <div class="card-header">
+            <h3 class="card-title">Active Users</h3>
+          </div>
+        </ng-template>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-label">Daily Active</div>
+            <div class="stat-value">{{ data.metrics.dau | number }}</div>
+            <div class="stat-percentage">
+              {{
+                (data.metrics.dau / data.metrics.total_users) * 100
+                  | number : "1.1-1"
+              }}% of total
+            </div>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <div class="stat-label">Monthly Active</div>
+            <div class="stat-value">{{ data.metrics.mau | number }}</div>
+            <div class="stat-percentage">
+              {{
+                (data.metrics.mau / data.metrics.total_users) * 100
+                  | number : "1.1-1"
+              }}% of total
+            </div>
+          </div>
+        </div>
+      </p-card>
+
+      <!-- Top Countries -->
+      <p-card>
+        <ng-template pTemplate="header">
+          <div class="card-header">
+            <h3 class="card-title">Top Countries</h3>
+          </div>
+        </ng-template>
+        <div class="country-list">
+          @if (data.top_countries.length > 0) { @for (country of
+          data.top_countries; track country.country_code) {
+          <div class="country-item">
+            <div class="flex items-center gap-2">
+              <p-tag
+                [value]="country.country_code"
+                severity="secondary"
+                [rounded]="true"
+              />
+              <span class="country-name">{{
+                getCountryName(country.country_code)
+              }}</span>
+            </div>
+            <span class="country-count">{{ country.user_count | number }}</span>
+          </div>
+          } } @else {
+          <div class="text-center text-gray-500 py-4">
+            No country data available
+          </div>
+          }
+        </div>
+      </p-card>
+
+      <!-- Recent Activity -->
+      <p-card>
+        <ng-template pTemplate="header">
+          <div class="card-header">
+            <h3 class="card-title">Recent Activity</h3>
+          </div>
+        </ng-template>
+        <div class="activity-list">
+          <div class="activity-item">
+            <div class="activity-icon bg-blue-100">
+              <i class="pi pi-user-plus text-blue-600"></i>
+            </div>
+            <div class="activity-content">
+              <div class="activity-text">New user registered</div>
+              <div class="activity-time">2 minutes ago</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon bg-green-100">
+              <i class="pi pi-map-marker text-green-600"></i>
+            </div>
+            <div class="activity-content">
+              <div class="activity-text">Group ride created</div>
+              <div class="activity-time">15 minutes ago</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon bg-purple-100">
+              <i class="pi pi-comment text-purple-600"></i>
+            </div>
+            <div class="activity-content">
+              <div class="activity-text">New post published</div>
+              <div class="activity-time">32 minutes ago</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon bg-orange-100">
+              <i class="pi pi-users text-orange-600"></i>
+            </div>
+            <div class="activity-content">
+              <div class="activity-text">New group created</div>
+              <div class="activity-time">1 hour ago</div>
+            </div>
+          </div>
+        </div>
+      </p-card>
+    </div>
+  </div>
+  }
+</div>

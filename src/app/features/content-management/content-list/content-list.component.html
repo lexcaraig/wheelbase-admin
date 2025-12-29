@@ -81,6 +81,9 @@
           <td class="version-cell">v{{ content.version }}</td>
           <td class="date-cell">{{ formatDate(content.updatedAt) }}</td>
           <td class="actions-cell">
+            <button class="btn btn-sm btn-info" (click)="viewContent(content)" title="Preview content">
+              <i class="icon-eye"></i> View
+            </button>
             <button class="btn btn-sm btn-secondary" (click)="editContent(content)" title="Edit content">
               <i class="icon-edit"></i> Edit
             </button>

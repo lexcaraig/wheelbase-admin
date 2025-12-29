@@ -4,126 +4,179 @@
     <div class="form-wrapper">
       <!-- Logo -->
       <div class="logo">
-        <img src="logos/wheelbase-icon-dark.png" alt="Wheelbase" width="40" height="40">
-        <span class="logo-text">Wheelbase</span>
+        <img
+          src="logos/wheelbase-icon-dark.png"
+          alt="Wheelbase"
+          width="40"
+          height="40"
+        />
       </div>
 
       <!-- Heading -->
-      <h1 class="heading">{{ step() === 'email' ? 'Sign in' : step() === 'code' ? 'Enter Code' : 'Success!' }}</h1>
+      <h1 class="heading">
+        {{
+          step() === "email"
+            ? "Sign in"
+            : step() === "code"
+            ? "Enter Code"
+            : "Success!"
+        }}
+      </h1>
 
       <!-- Error Message -->
       @if (errorMessage()) {
-        <div class="error-banner">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-          </svg>
-          <span>{{ errorMessage() }}</span>
-        </div>
+      <div class="error-banner">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+          <path
+            fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
       }
 
       <!-- Email Step -->
       @if (step() === 'email') {
-        <form (submit)="handleEmailSubmit($event)" class="form">
-          <div class="form-group">
-            <label for="email" class="label">Email Address</label>
-            <div class="input-wrapper">
-              <svg class="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
-                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
-              </svg>
-              <input
-                #emailInput
-                type="email"
-                id="email"
-                [ngModel]="email()"
-                (ngModelChange)="email.set($event)"
-                name="email"
-                placeholder="admin@wheelbase.com"
-                class="input"
-                autocomplete="email"
-                required
+      <form (submit)="handleEmailSubmit($event)" class="form">
+        <div class="form-group">
+          <label for="email" class="label">Email Address</label>
+          <div class="input-wrapper">
+            <svg
+              class="input-icon"
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"
               />
-            </div>
-          </div>
-
-          <button type="submit" class="btn-primary">
-            Continue
-          </button>
-
-          <div class="divider">
-            <span>or</span>
-          </div>
-
-          <button type="button" (click)="handleGoogleLogin()" class="btn-google" [disabled]="isLoading()">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M19.6 10.227c0-.709-.064-1.39-.182-2.045H10v3.868h5.382a4.6 4.6 0 01-1.996 3.018v2.51h3.232c1.891-1.742 2.982-4.305 2.982-7.35z" fill="#4285F4"/>
-              <path d="M10 20c2.7 0 4.964-.895 6.618-2.423l-3.232-2.509c-.895.6-2.04.955-3.386.955-2.605 0-4.81-1.76-5.595-4.123H1.064v2.59A9.996 9.996 0 0010 20z" fill="#34A853"/>
-              <path d="M4.405 11.9c-.2-.6-.314-1.24-.314-1.9 0-.66.114-1.3.314-1.9V5.51H1.064A9.996 9.996 0 000 10c0 1.614.386 3.14 1.064 4.49l3.34-2.59z" fill="#FBBC05"/>
-              <path d="M10 3.977c1.468 0 2.786.505 3.823 1.496l2.868-2.868C14.959.99 12.695 0 10 0 6.09 0 2.71 2.24 1.064 5.51l3.34 2.59C5.19 5.736 7.395 3.977 10 3.977z" fill="#EA4335"/>
+              <path
+                d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"
+              />
             </svg>
-            Sign in with Google
-          </button>
+            <input
+              #emailInput
+              type="email"
+              id="email"
+              [ngModel]="email()"
+              (ngModelChange)="email.set($event)"
+              name="email"
+              placeholder="admin@wheelbase.com"
+              class="input"
+              autocomplete="email"
+              required
+            />
+          </div>
+        </div>
 
-          <p class="helper-text">
-            A 6-digit verification code will be sent to your email
-          </p>
-        </form>
+        <button type="submit" class="btn-primary">Continue</button>
+
+        <div class="divider">
+          <span>or</span>
+        </div>
+
+        <button
+          type="button"
+          (click)="handleGoogleLogin()"
+          class="btn-google"
+          [disabled]="isLoading()"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path
+              d="M19.6 10.227c0-.709-.064-1.39-.182-2.045H10v3.868h5.382a4.6 4.6 0 01-1.996 3.018v2.51h3.232c1.891-1.742 2.982-4.305 2.982-7.35z"
+              fill="#4285F4"
+            />
+            <path
+              d="M10 20c2.7 0 4.964-.895 6.618-2.423l-3.232-2.509c-.895.6-2.04.955-3.386.955-2.605 0-4.81-1.76-5.595-4.123H1.064v2.59A9.996 9.996 0 0010 20z"
+              fill="#34A853"
+            />
+            <path
+              d="M4.405 11.9c-.2-.6-.314-1.24-.314-1.9 0-.66.114-1.3.314-1.9V5.51H1.064A9.996 9.996 0 000 10c0 1.614.386 3.14 1.064 4.49l3.34-2.59z"
+              fill="#FBBC05"
+            />
+            <path
+              d="M10 3.977c1.468 0 2.786.505 3.823 1.496l2.868-2.868C14.959.99 12.695 0 10 0 6.09 0 2.71 2.24 1.064 5.51l3.34 2.59C5.19 5.736 7.395 3.977 10 3.977z"
+              fill="#EA4335"
+            />
+          </svg>
+          Sign in with Google
+        </button>
+
+        <p class="helper-text">
+          A 6-digit verification code will be sent to your email
+        </p>
+      </form>
       }
 
       <!-- Code Step -->
       @if (step() === 'code') {
-        <div class="form">
-          <button type="button" (click)="handleBack()" class="back-button">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
-            </svg>
-            Back to email
-          </button>
+      <div class="form">
+        <button type="button" (click)="handleBack()" class="back-button">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          Back to email
+        </button>
 
-          <div class="form-group">
-            <label class="label">Verification Code</label>
-            <p class="sublabel">Enter the 6-digit code sent to {{ email() }}</p>
+        <div class="form-group">
+          <label class="label">Verification Code</label>
+          <p class="sublabel">Enter the 6-digit code sent to {{ email() }}</p>
 
-            <div class="code-inputs">
-              @for (digit of code; track $index) {
-                <input
-                  [id]="'code-input-' + $index"
-                  type="text"
-                  inputmode="numeric"
-                  maxlength="1"
-                  [(ngModel)]="code[$index]"
-                  (input)="handleCodeChange($index, code[$index], $any($event.target))"
-                  (keydown)="handleCodeKeyDown($event, $index)"
-                  class="code-input"
-                  [disabled]="isLoading()"
-                  [class.filled]="code[$index]"
-                />
-              }
-            </div>
+          <div class="code-inputs">
+            @for (digit of code; track $index) {
+            <input
+              [id]="'code-input-' + $index"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              [(ngModel)]="code[$index]"
+              (input)="
+                handleCodeChange($index, code[$index], $any($event.target))
+              "
+              (keydown)="handleCodeKeyDown($event, $index)"
+              class="code-input"
+              [disabled]="isLoading()"
+              [class.filled]="code[$index]"
+            />
+            }
           </div>
-
-          @if (isLoading()) {
-            <div class="loading-spinner">
-              <div class="spinner"></div>
-              <span>Verifying...</span>
-            </div>
-          }
         </div>
+
+        @if (isLoading()) {
+        <div class="loading-spinner">
+          <div class="spinner"></div>
+          <span>Verifying...</span>
+        </div>
+        }
+      </div>
       }
 
       <!-- Success Step -->
       @if (step() === 'success') {
-        <div class="success-state">
-          <div class="success-icon">
-            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-              <circle cx="32" cy="32" r="32" fill="#10B981" opacity="0.1"/>
-              <circle cx="32" cy="32" r="24" fill="#10B981" opacity="0.2"/>
-              <path d="M20 32L28 40L44 24" stroke="#10B981" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <h2 class="success-title">Welcome Back!</h2>
-          <p class="success-text">Redirecting to dashboard...</p>
+      <div class="success-state">
+        <div class="success-icon">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+            <circle cx="32" cy="32" r="32" fill="#10B981" opacity="0.1" />
+            <circle cx="32" cy="32" r="24" fill="#10B981" opacity="0.2" />
+            <path
+              d="M20 32L28 40L44 24"
+              stroke="#10B981"
+              stroke-width="4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
         </div>
+        <h2 class="success-title">Welcome Back!</h2>
+        <p class="success-text">Redirecting to dashboard...</p>
+      </div>
       }
 
       <!-- Footer -->
@@ -138,7 +191,12 @@
     <div class="brand-content">
       <!-- Large Logo -->
       <div class="brand-logo">
-        <img src="logos/wheelbase-icon-yellow.png" alt="Wheelbase" width="120" height="120">
+        <img
+          src="logos/wheelbase-icon-yellow.png"
+          alt="Wheelbase"
+          width="120"
+          height="120"
+        />
       </div>
 
       <h2 class="brand-name">Wheelbase</h2>
@@ -157,23 +215,29 @@
       <div class="feature-card">
         <h4 class="feature-title">Comprehensive Admin Control</h4>
         <p class="feature-description">
-          Access real-time analytics, user management, content moderation,
-          and safety monitoring all in one place.
+          Access real-time analytics, user management, content moderation, and
+          safety monitoring all in one place.
         </p>
         <div class="feature-icons">
           <div class="icon-badge">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+              <path
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+              />
             </svg>
           </div>
           <div class="icon-badge">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+              <path
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
             </svg>
           </div>
           <div class="icon-badge">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              <path
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
             </svg>
           </div>
         </div>

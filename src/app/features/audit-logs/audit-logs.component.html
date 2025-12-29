@@ -1,0 +1,180 @@
+<p-toast></p-toast>
+
+<div class="p-4">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Audit Logs</h1>
+      <p class="text-gray-600">View administrator activity and system events</p>
+    </div>
+    <div class="flex gap-2">
+      <p-button
+        label="Export CSV"
+        icon="pi pi-download"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="exportToCSV()"
+        [disabled]="auditLogs().length === 0"
+      />
+      <p-button
+        label="Export PDF"
+        icon="pi pi-file-pdf"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="exportToPDF()"
+        [disabled]="auditLogs().length === 0"
+      />
+    </div>
+  </div>
+
+  <!-- Filters Card -->
+  <p-card class="mb-4">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+      <!-- Action Type Filter -->
+      <div class="md:col-span-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Action Type</label>
+        <p-select
+          [(ngModel)]="actionTypeFilter"
+          [options]="actionTypeOptions"
+          (onChange)="onActionTypeFilterChange()"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="All Actions"
+          styleClass="w-full"
+        />
+      </div>
+
+      <!-- Date Range Filter -->
+      <div class="md:col-span-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+        <p-datepicker
+          [(ngModel)]="dateRange"
+          selectionMode="range"
+          [readonlyInput]="true"
+          placeholder="Select date range"
+          dateFormat="yy-mm-dd"
+          (ngModelChange)="onDateRangeChange()"
+          [showIcon]="true"
+          styleClass="w-full"
+        ></p-datepicker>
+      </div>
+    </div>
+  </p-card>
+
+  <!-- Audit Logs Table -->
+  <p-card>
+    <p-table
+      [value]="auditLogs()"
+      [loading]="isLoading()"
+      [paginator]="true"
+      [rows]="pageSize"
+      [totalRecords]="totalRecords()"
+      [lazy]="true"
+      (onLazyLoad)="onPageChange($event)"
+      [rowHover]="true"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} logs"
+      [rowsPerPageOptions]="[25, 50, 100]"
+      styleClass="p-datatable-striped p-datatable-sm"
+      [tableStyle]="{ 'min-width': '70rem' }"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 15%">Timestamp</th>
+          <th style="width: 15%">Admin</th>
+          <th style="width: 15%">Action</th>
+          <th style="width: 10%">Target Type</th>
+          <th style="width: 15%">Target ID</th>
+          <th style="width: 20%">Details</th>
+          <th style="width: 10%">IP Address</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-log>
+        <tr>
+          <!-- Timestamp -->
+          <td>
+            <span class="text-gray-700 text-sm">
+              {{ log.created_at | date:'short' }}
+            </span>
+          </td>
+
+          <!-- Admin -->
+          <td>
+            <div class="flex flex-col">
+              <span class="font-medium text-gray-900 text-sm">{{ log.admin_users.email }}</span>
+              <span class="text-xs text-gray-500">{{ log.admin_users.role }}</span>
+            </div>
+          </td>
+
+          <!-- Action -->
+          <td>
+            <p-tag
+              [value]="log.action_type.replace('_', ' ').toUpperCase()"
+              [severity]="getActionSeverity(log.action_type)"
+              [rounded]="true"
+              styleClass="text-xs"
+            ></p-tag>
+          </td>
+
+          <!-- Target Type -->
+          <td>
+            @if (log.target_type) {
+              <p-tag
+                [value]="log.target_type.toUpperCase()"
+                [severity]="getTargetTypeSeverity(log.target_type)"
+                [rounded]="true"
+                styleClass="text-xs"
+              ></p-tag>
+            } @else {
+              <span class="text-gray-400 text-sm">-</span>
+            }
+          </td>
+
+          <!-- Target ID -->
+          <td>
+            @if (log.target_id) {
+              <span class="font-mono text-xs text-gray-600">{{ log.target_id | slice:0:8 }}...</span>
+            } @else {
+              <span class="text-gray-400 text-sm">-</span>
+            }
+          </td>
+
+          <!-- Details -->
+          <td>
+            @if (log.metadata && Object.keys(log.metadata).length > 0) {
+              <div class="text-xs text-gray-600">
+                @for (key of Object.keys(log.metadata); track key) {
+                  <div><strong>{{key}}:</strong> {{log.metadata[key]}}</div>
+                }
+              </div>
+            } @else {
+              <span class="text-gray-400 text-sm">No details</span>
+            }
+          </td>
+
+          <!-- IP Address -->
+          <td>
+            @if (log.ip_address) {
+              <span class="font-mono text-xs text-gray-600">{{ log.ip_address }}</span>
+            } @else {
+              <span class="text-gray-400 text-sm">-</span>
+            }
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7" class="text-center py-12">
+            <div class="flex flex-col items-center gap-3">
+              <i class="pi pi-list text-gray-400 text-6xl"></i>
+              <div class="text-gray-500 text-lg">No audit logs found</div>
+              <p class="text-gray-400 text-sm">Try adjusting your filters</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>

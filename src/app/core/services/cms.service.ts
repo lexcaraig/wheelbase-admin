@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { Observable, throwError, from } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { SupabaseService } from './supabase.service';
 
 export interface ContentPage {
   id: string;
@@ -61,10 +62,13 @@ export interface ApiResponse<T> {
 export class CmsService {
   private readonly baseUrl = `${environment.supabaseUrl}/functions/v1`;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private supabase: SupabaseService
+  ) {}
 
   /**
-   * Get content list with filters and pagination
+   * Get content list with filters and pagination (PUBLIC - published only)
    */
   getContentList(params: {
     category?: string;
@@ -76,6 +80,49 @@ export class CmsService {
       `${this.baseUrl}/get-content-list`,
       params
     ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Get content list for admin panel (all statuses)
+   */
+  getAdminContentList(params: {
+    category?: string;
+    status?: string;
+    limit?: number;
+    offset?: number;
+    search?: string;
+  } = {}): Observable<PaginatedResponse<ContentPage>> {
+    return from(
+      this.supabase.client.auth.getSession().then(({ data: { session } }) => {
+        console.log('Session exists:', !!session);
+        console.log('Access token exists:', !!session?.access_token);
+
+        if (!session) {
+          throw new Error('No active session. Please log in again.');
+        }
+
+        return this.supabase.client.functions.invoke('admin-get-content-list', {
+          body: params,
+          headers: {
+            Authorization: `Bearer ${session.access_token}`
+          }
+        });
+      })
+    ).pipe(
+      map(response => {
+        console.log('Response:', response);
+
+        if (response.error) {
+          console.error('Function error:', response.error);
+          throw new Error(response.error.message || 'Failed to load content list');
+        }
+        if (!response.data || !response.data.success) {
+          throw new Error(response.data?.error?.message || 'Failed to load content list');
+        }
+        return response.data as PaginatedResponse<ContentPage>;
+      }),
       catchError(this.handleError)
     );
   }
@@ -98,12 +145,28 @@ export class CmsService {
    * Used for editing - fetches any status (draft, published, archived)
    */
   getContentById(id: string): Observable<ContentPage> {
-    return this.http.post<ApiResponse<ContentPage>>(
-      `${this.baseUrl}/admin-get-content`,
-      { id },
-      { headers: this.getAuthHeaders() }
+    return from(
+      this.supabase.client.auth.getSession().then(({ data: { session } }) => {
+        if (!session) {
+          throw new Error('No active session');
+        }
+        return this.supabase.client.functions.invoke('admin-get-content', {
+          body: { id },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`
+          }
+        });
+      })
     ).pipe(
-      map(response => response.data),
+      map(response => {
+        if (response.error) {
+          throw new Error(response.error.message || 'Failed to load content');
+        }
+        if (!response.data || !response.data.success) {
+          throw new Error(response.data?.error?.message || 'Failed to load content');
+        }
+        return response.data.data as ContentPage;
+      }),
       catchError(this.handleError)
     );
   }
@@ -120,12 +183,20 @@ export class CmsService {
     effectiveDate?: string;
     metadata?: Record<string, any>;
   }): Observable<ContentPage> {
-    return this.http.post<ApiResponse<ContentPage>>(
-      `${this.baseUrl}/admin-create-content`,
-      data,
-      { headers: this.getAuthHeaders() }
+    return from(
+      this.supabase.client.functions.invoke('admin-create-content', {
+        body: data
+      })
     ).pipe(
-      map(response => response.data),
+      map(response => {
+        if (response.error) {
+          throw new Error(response.error.message || 'Failed to create content');
+        }
+        if (!response.data || !response.data.success) {
+          throw new Error(response.data?.error?.message || 'Failed to create content');
+        }
+        return response.data.data as ContentPage;
+      }),
       catchError(this.handleError)
     );
   }
@@ -144,12 +215,20 @@ export class CmsService {
     changeSummary?: string;
     changeType?: 'major' | 'minor' | 'patch';
   }): Observable<ContentPage> {
-    return this.http.post<ApiResponse<ContentPage>>(
-      `${this.baseUrl}/admin-create-content`,
-      { id, ...data },
-      { headers: this.getAuthHeaders() }
+    return from(
+      this.supabase.client.functions.invoke('admin-create-content', {
+        body: { id, ...data }
+      })
     ).pipe(
-      map(response => response.data),
+      map(response => {
+        if (response.error) {
+          throw new Error(response.error.message || 'Failed to update content');
+        }
+        if (!response.data || !response.data.success) {
+          throw new Error(response.data?.error?.message || 'Failed to update content');
+        }
+        return response.data.data as ContentPage;
+      }),
       catchError(this.handleError)
     );
   }
@@ -158,25 +237,22 @@ export class CmsService {
    * Publish content page (admin only)
    */
   publishContent(id: string, action: 'publish' | 'unpublish' | 'archive'): Observable<ContentPage> {
-    return this.http.post<ApiResponse<ContentPage>>(
-      `${this.baseUrl}/admin-publish-content`,
-      { id, action },
-      { headers: this.getAuthHeaders() }
+    return from(
+      this.supabase.client.functions.invoke('admin-publish-content', {
+        body: { id, action }
+      })
     ).pipe(
-      map(response => response.data),
+      map(response => {
+        if (response.error) {
+          throw new Error(response.error.message || 'Failed to publish content');
+        }
+        if (!response.data || !response.data.success) {
+          throw new Error(response.data?.error?.message || 'Failed to publish content');
+        }
+        return response.data.data as ContentPage;
+      }),
       catchError(this.handleError)
     );
-  }
-
-  /**
-   * Get auth headers with JWT token
-   */
-  private getAuthHeaders(): HttpHeaders {
-    const token = localStorage.getItem('supabase_access_token');
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    });
   }
 
   /**

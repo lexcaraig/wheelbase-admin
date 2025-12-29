@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CmsService, ContentPage } from '../../../core/services/cms.service';
+import * as marked from 'marked';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-content-editor',
@@ -18,6 +20,7 @@ export class ContentEditorComponent implements OnInit {
   saving = false;
   error: string | null = null;
   currentContent: ContentPage | null = null;
+  renderedPreview: SafeHtml = '';
 
   // Form data
   formData = {
@@ -58,8 +61,15 @@ export class ContentEditorComponent implements OnInit {
   constructor(
     private cmsService: CmsService,
     private route: ActivatedRoute,
-    private router: Router
-  ) {}
+    private router: Router,
+    private sanitizer: DomSanitizer
+  ) {
+    // Configure marked options for better markdown rendering
+    marked.marked.setOptions({
+      gfm: true, // GitHub Flavored Markdown
+      breaks: true // Convert \n to <br>
+    });
+  }
 
   ngOnInit(): void {
     this.contentId = this.route.snapshot.paramMap.get('id');
@@ -93,10 +103,10 @@ export class ContentEditorComponent implements OnInit {
           changeType: 'minor',
           metadata: {
             seo: {
-              title: content.metadata?.seo?.title || '',
-              description: content.metadata?.seo?.description || '',
+              title: content.metadata?.['seo']?.['title'] || '',
+              description: content.metadata?.['seo']?.['description'] || '',
             },
-            tags: content.metadata?.tags || [],
+            tags: content.metadata?.['tags'] || [],
           },
         };
         this.loading = false;
@@ -243,6 +253,29 @@ export class ContentEditorComponent implements OnInit {
 
   togglePreview(): void {
     this.showPreview = !this.showPreview;
+    if (this.showPreview) {
+      this.updatePreview();
+    }
+  }
+
+  updatePreview(): void {
+    try {
+      if (!this.formData.content || this.formData.content.trim() === '') {
+        this.renderedPreview = this.sanitizer.bypassSecurityTrustHtml('<p><em>No content to preview</em></p>');
+        return;
+      }
+
+      const html = marked.marked(this.formData.content) as string;
+      this.renderedPreview = this.sanitizer.bypassSecurityTrustHtml(html);
+    } catch (err) {
+      console.error('Failed to render preview:', err);
+      this.renderedPreview = this.sanitizer.bypassSecurityTrustHtml(
+        `<div style="color: red; padding: 20px; border: 1px solid red; border-radius: 8px;">
+          <h3>Preview Error</h3>
+          <p>Failed to render markdown: ${err instanceof Error ? err.message : 'Unknown error'}</p>
+        </div>`
+      );
+    }
   }
 
   // Markdown helper - insert template
