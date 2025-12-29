@@ -71,10 +71,53 @@ export class ContentEditorComponent implements OnInit {
   }
 
   loadContent(): void {
-    // For now, we'll need to load via slug or create a get-by-id endpoint
-    // Temporary: User will need to use slug-based loading
-    this.loading = false;
-    // TODO: Implement actual loading when get-by-id endpoint is available
+    if (!this.contentId) {
+      return;
+    }
+
+    this.loading = true;
+    this.error = null;
+
+    this.cmsService.getContentById(this.contentId).subscribe({
+      next: (content) => {
+        // Populate form with loaded content
+        this.currentContent = content;
+        this.formData = {
+          slug: content.slug,
+          category: content.category as any,
+          title: content.title,
+          content: content.content,
+          excerpt: content.excerpt || '',
+          effectiveDate: content.effectiveDate ? this.formatDateForInput(content.effectiveDate) : '',
+          changeSummary: '',
+          changeType: 'minor',
+          metadata: {
+            seo: {
+              title: content.metadata?.seo?.title || '',
+              description: content.metadata?.seo?.description || '',
+            },
+            tags: content.metadata?.tags || [],
+          },
+        };
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = `Failed to load content: ${err.message}`;
+        this.loading = false;
+      }
+    });
+  }
+
+  private formatDateForInput(dateStr: string): string {
+    try {
+      const date = new Date(dateStr);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    } catch (e) {
+      return '';
+    }
   }
 
   saveAsDraft(): void {

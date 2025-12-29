@@ -94,6 +94,21 @@ export class CmsService {
   }
 
   /**
+   * Get single content page by ID (admin only)
+   * Used for editing - fetches any status (draft, published, archived)
+   */
+  getContentById(id: string): Observable<ContentPage> {
+    return this.http.post<ApiResponse<ContentPage>>(
+      `${this.baseUrl}/admin-get-content`,
+      { id },
+      { headers: this.getAuthHeaders() }
+    ).pipe(
+      map(response => response.data),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
    * Create new content page (admin only)
    */
   createContent(data: {
