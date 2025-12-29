@@ -1,0 +1,150 @@
+<div class="content-list-container">
+  <div class="page-header">
+    <div>
+      <h1>Content Management</h1>
+      <p class="subtitle">Manage app updates, legal documents, help articles, and more</p>
+    </div>
+    <button class="btn btn-primary" (click)="createNew()">
+      <i class="icon-plus"></i> Create New Content
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="filter-group">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (keyup.enter)="onSearch()"
+        placeholder="Search by title or excerpt..."
+        class="form-control search-input"
+      />
+      <button class="btn btn-secondary" (click)="onSearch()">Search</button>
+    </div>
+
+    <div class="filter-group">
+      <select [(ngModel)]="selectedCategory" (change)="onCategoryChange()" class="form-select">
+        <option [ngValue]="null">All Categories</option>
+        <option *ngFor="let cat of categories" [value]="cat">{{ cat | titlecase }}</option>
+      </select>
+
+      <select [(ngModel)]="selectedStatus" (change)="onStatusChange()" class="form-select">
+        <option [ngValue]="null">All Statuses</option>
+        <option *ngFor="let status of statuses" [value]="status">{{ status | titlecase }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading content...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <div class="error-icon">⚠️</div>
+    <p class="error-message">{{ error }}</p>
+    <button class="btn btn-secondary" (click)="loadContents()">Try Again</button>
+  </div>
+
+  <!-- Content Table -->
+  <div *ngIf="!loading && !error" class="table-container">
+    <table class="content-table" *ngIf="filteredContents.length > 0">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Category</th>
+          <th>Status</th>
+          <th>Version</th>
+          <th>Last Updated</th>
+          <th class="actions-header">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let content of filteredContents">
+          <td>
+            <div class="content-title">{{ content.title }}</div>
+            <div class="content-slug">{{ content.slug }}</div>
+            <div class="content-excerpt" *ngIf="content.excerpt">{{ content.excerpt }}</div>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="getCategoryBadgeClass(content.category)">
+              {{ content.category }}
+            </span>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="getStatusBadgeClass(content.status)">
+              {{ content.status }}
+            </span>
+          </td>
+          <td class="version-cell">v{{ content.version }}</td>
+          <td class="date-cell">{{ formatDate(content.updatedAt) }}</td>
+          <td class="actions-cell">
+            <button class="btn btn-sm btn-secondary" (click)="editContent(content)" title="Edit content">
+              <i class="icon-edit"></i> Edit
+            </button>
+            <button
+              *ngIf="content.status === 'draft'"
+              class="btn btn-sm btn-success"
+              (click)="publishContent(content)"
+              title="Publish content"
+            >
+              <i class="icon-check"></i> Publish
+            </button>
+            <button
+              *ngIf="content.status === 'published'"
+              class="btn btn-sm btn-warning"
+              (click)="unpublishContent(content)"
+              title="Unpublish content"
+            >
+              <i class="icon-x"></i> Unpublish
+            </button>
+            <button
+              *ngIf="content.status !== 'archived'"
+              class="btn btn-sm btn-danger"
+              (click)="archiveContent(content)"
+              title="Archive content"
+            >
+              <i class="icon-archive"></i> Archive
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredContents.length === 0" class="empty-state">
+      <div class="empty-icon">📄</div>
+      <h3>No content found</h3>
+      <p *ngIf="searchTerm || selectedCategory || selectedStatus">
+        Try adjusting your filters or search terms
+      </p>
+      <p *ngIf="!searchTerm && !selectedCategory && !selectedStatus">
+        Get started by creating your first content page
+      </p>
+      <button class="btn btn-primary" (click)="createNew()">Create First Content</button>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-controls" *ngIf="filteredContents.length > 0">
+      <button
+        class="btn btn-secondary"
+        (click)="prevPage()"
+        [disabled]="currentPage === 0"
+      >
+        ← Previous
+      </button>
+      <span class="page-info">
+        Page {{ currentPage + 1 }} • {{ totalItems }} total items
+      </span>
+      <button
+        class="btn btn-secondary"
+        (click)="nextPage()"
+        [disabled]="!hasMore"
+      >
+        Next →
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,251 @@
+<div class="content-editor-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>{{ isEditMode ? 'Edit Content' : 'Create New Content' }}</h1>
+      <p class="subtitle">
+        {{ isEditMode ? 'Update existing content page' : 'Create a new content page for your app or website' }}
+      </p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="cancel()">
+        <i class="icon-x"></i> Cancel
+      </button>
+      <button class="btn btn-warning" (click)="saveAsDraft()" [disabled]="saving">
+        <i class="icon-save"></i> {{ saving ? 'Saving...' : 'Save as Draft' }}
+      </button>
+      <button class="btn btn-success" (click)="saveAndPublish()" [disabled]="saving">
+        <i class="icon-check"></i> {{ saving ? 'Publishing...' : 'Save & Publish' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Alert -->
+  <div *ngIf="error" class="alert alert-danger">
+    <strong>Error:</strong> {{ error }}
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading content...</p>
+  </div>
+
+  <!-- Editor Form -->
+  <div *ngIf="!loading" class="editor-form">
+    <!-- Basic Information Card -->
+    <div class="form-card">
+      <h2 class="card-title">Basic Information</h2>
+
+      <!-- Title -->
+      <div class="form-group">
+        <label for="title">Title <span class="required">*</span></label>
+        <input
+          id="title"
+          type="text"
+          [(ngModel)]="formData.title"
+          (blur)="generateSlug(); autoFillSEO()"
+          placeholder="Enter content title"
+          class="form-control"
+          maxlength="255"
+        />
+        <small class="form-help">Main heading displayed to users</small>
+      </div>
+
+      <!-- Slug -->
+      <div class="form-group">
+        <label for="slug">URL Slug <span class="required">*</span></label>
+        <div class="input-group">
+          <input
+            id="slug"
+            type="text"
+            [(ngModel)]="formData.slug"
+            placeholder="url-friendly-slug"
+            class="form-control"
+            maxlength="100"
+            pattern="[a-z0-9-]+"
+          />
+          <button class="btn btn-secondary" (click)="generateSlug()">
+            <i class="icon-refresh"></i> Auto-generate
+          </button>
+        </div>
+        <small class="form-help">Lowercase letters, numbers, and hyphens only (e.g., privacy-policy)</small>
+      </div>
+
+      <!-- Category -->
+      <div class="form-group">
+        <label for="category">Category <span class="required">*</span></label>
+        <select id="category" [(ngModel)]="formData.category" class="form-select">
+          <option *ngFor="let cat of categories" [value]="cat.value">
+            {{ cat.label }} — {{ cat.description }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Excerpt -->
+      <div class="form-group">
+        <label for="excerpt">Excerpt / Summary</label>
+        <textarea
+          id="excerpt"
+          [(ngModel)]="formData.excerpt"
+          (blur)="autoFillSEO()"
+          placeholder="Brief summary (shown in lists and search results)"
+          class="form-control"
+          rows="3"
+          maxlength="500"
+        ></textarea>
+        <small class="form-help">Optional. Used for list previews and SEO.</small>
+      </div>
+    </div>
+
+    <!-- Content Card -->
+    <div class="form-card">
+      <div class="card-header-row">
+        <h2 class="card-title">Content</h2>
+        <div class="content-actions">
+          <button class="btn btn-sm btn-secondary" (click)="insertMarkdownTemplate()">
+            <i class="icon-template"></i> Insert Template
+          </button>
+          <button class="btn btn-sm btn-secondary" (click)="togglePreview()">
+            <i class="icon-eye"></i> {{ showPreview ? 'Hide' : 'Show' }} Preview
+          </button>
+        </div>
+      </div>
+
+      <!-- Markdown Toolbar -->
+      <div class="markdown-toolbar">
+        <button type="button" class="toolbar-btn" (click)="insertMarkdown('bold')" title="Bold">
+          <strong>B</strong>
+        </button>
+        <button type="button" class="toolbar-btn" (click)="insertMarkdown('italic')" title="Italic">
+          <em>I</em>
+        </button>
+        <button type="button" class="toolbar-btn" (click)="insertMarkdown('heading')" title="Heading">
+          H
+        </button>
+        <button type="button" class="toolbar-btn" (click)="insertMarkdown('link')" title="Link">
+          🔗
+        </button>
+        <button type="button" class="toolbar-btn" (click)="insertMarkdown('list')" title="List">
+          ≡
+        </button>
+        <button type="button" class="toolbar-btn" (click)="insertMarkdown('code')" title="Inline Code">
+          &lt;/&gt;
+        </button>
+        <button type="button" class="toolbar-btn" (click)="insertMarkdown('codeblock')" title="Code Block">
+          { }
+        </button>
+      </div>
+
+      <!-- Content Textarea -->
+      <div class="form-group">
+        <textarea
+          id="content-textarea"
+          [(ngModel)]="formData.content"
+          placeholder="Write your content in Markdown format..."
+          class="form-control content-textarea"
+          rows="20"
+        ></textarea>
+        <small class="form-help character-count">{{ getCharacterCount() }}</small>
+      </div>
+
+      <!-- Preview (if enabled) -->
+      <div *ngIf="showPreview" class="markdown-preview">
+        <h3>Preview</h3>
+        <div class="preview-content" [innerHTML]="formData.content"></div>
+      </div>
+    </div>
+
+    <!-- Metadata Card -->
+    <div class="form-card">
+      <h2 class="card-title">Metadata & Version Control</h2>
+
+      <!-- Effective Date (for legal) -->
+      <div class="form-group" *ngIf="formData.category === 'legal'">
+        <label for="effectiveDate">Effective Date</label>
+        <input
+          id="effectiveDate"
+          type="date"
+          [(ngModel)]="formData.effectiveDate"
+          class="form-control"
+        />
+        <small class="form-help">When this legal document takes effect</small>
+      </div>
+
+      <!-- Change Summary -->
+      <div class="form-group">
+        <label for="changeSummary">Change Summary</label>
+        <textarea
+          id="changeSummary"
+          [(ngModel)]="formData.changeSummary"
+          placeholder="Describe what changed in this version"
+          class="form-control"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <!-- Change Type -->
+      <div class="form-group">
+        <label for="changeType">Change Type</label>
+        <select id="changeType" [(ngModel)]="formData.changeType" class="form-select">
+          <option *ngFor="let type of changeTypes" [value]="type.value">
+            {{ type.label }} — {{ type.description }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <!-- SEO Card -->
+    <div class="form-card">
+      <div class="card-header-row">
+        <h2 class="card-title">SEO & Social</h2>
+        <button class="btn btn-sm btn-secondary" (click)="autoFillSEO()">
+          <i class="icon-magic"></i> Auto-fill from Title/Excerpt
+        </button>
+      </div>
+
+      <!-- SEO Title -->
+      <div class="form-group">
+        <label for="seoTitle">SEO Title</label>
+        <input
+          id="seoTitle"
+          type="text"
+          [(ngModel)]="formData.metadata.seo.title"
+          placeholder="Title for search engines"
+          class="form-control"
+          maxlength="70"
+        />
+        <small class="form-help">Recommended: 50-60 characters</small>
+      </div>
+
+      <!-- SEO Description -->
+      <div class="form-group">
+        <label for="seoDescription">SEO Description</label>
+        <textarea
+          id="seoDescription"
+          [(ngModel)]="formData.metadata.seo.description"
+          placeholder="Description for search engines"
+          class="form-control"
+          rows="3"
+          maxlength="160"
+        ></textarea>
+        <small class="form-help">Recommended: 120-160 characters</small>
+      </div>
+    </div>
+
+    <!-- Action Buttons (Bottom) -->
+    <div class="form-actions-bottom">
+      <button class="btn btn-secondary" (click)="cancel()">
+        Cancel
+      </button>
+      <div class="action-group">
+        <button class="btn btn-warning" (click)="saveAsDraft()" [disabled]="saving">
+          {{ saving ? 'Saving...' : 'Save as Draft' }}
+        </button>
+        <button class="btn btn-success" (click)="saveAndPublish()" [disabled]="saving">
+          {{ saving ? 'Publishing...' : 'Save & Publish' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
