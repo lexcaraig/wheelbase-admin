@@ -9,6 +9,7 @@ import { AdvancedAnalyticsComponent } from './features/analytics/advanced-analyt
 import { UsersListComponent } from './features/users/users-list/users-list.component';
 import { UserDetailComponent } from './features/users/user-detail/user-detail.component';
 import { ContentQueueComponent } from './features/moderation/content-queue/content-queue.component';
+import { ReviewReportsComponent } from './features/moderation/review-reports/review-reports.component';
 import { AdminUsersListComponent } from './features/admin-users/admin-users-list.component';
 import { AuditLogsComponent } from './features/audit-logs/audit-logs.component';
 import { SystemSettingsComponent } from './features/system-settings/system-settings.component';
@@ -67,6 +68,12 @@ export const routes: Routes = [
       {
         path: 'moderation',
         component: ContentQueueComponent,
+        canActivate: [AdminRoleGuard],
+        data: { permission: 'content.moderate' }
+      },
+      {
+        path: 'moderation/reviews',
+        component: ReviewReportsComponent,
         canActivate: [AdminRoleGuard],
         data: { permission: 'content.moderate' }
       },

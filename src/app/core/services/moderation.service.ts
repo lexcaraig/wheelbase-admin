@@ -1,6 +1,11 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
-import { FlaggedContentResponse, ModerationRequest } from '../models/content.model';
+import {
+  FlaggedContentResponse,
+  ModerationRequest,
+  ReviewReportsResponse,
+  ReviewModerationRequest
+} from '../models/content.model';
 
 @Injectable({
   providedIn: 'root'
@@ -24,5 +29,23 @@ export class ModerationService {
    */
   async moderateContent(request: ModerationRequest): Promise<void> {
     await this.api.call('moderate-content', request);
+  }
+
+  /**
+   * Get service provider review reports queue
+   */
+  async getReviewReports(params: {
+    page?: number;
+    pageSize?: number;
+    status?: 'pending' | 'all';
+  }): Promise<ReviewReportsResponse> {
+    return await this.api.call<ReviewReportsResponse>('admin-get-review-reports', params);
+  }
+
+  /**
+   * Moderate review report (dismiss, hide review, or ban user)
+   */
+  async moderateReviewReport(request: ReviewModerationRequest): Promise<void> {
+    await this.api.call('admin-moderate-review-report', request);
   }
 }
