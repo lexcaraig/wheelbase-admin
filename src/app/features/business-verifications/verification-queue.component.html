@@ -1,0 +1,453 @@
+<div class="verification-queue-container">
+  <!-- Header -->
+  <div class="page-header">
+    <h1>Business Verification Queue</h1>
+    <div class="stats-badges">
+      <span class="stat-badge pending">
+        <i class="pi pi-clock"></i>
+        {{ pendingCount() }} Pending
+      </span>
+      <span class="stat-badge approved">
+        <i class="pi pi-check-circle"></i>
+        {{ approvedCount() }} Approved
+      </span>
+      <span class="stat-badge rejected">
+        <i class="pi pi-times-circle"></i>
+        {{ rejectedCount() }} Rejected
+      </span>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <p-select
+      [options]="statusOptions"
+      [(ngModel)]="statusFilter"
+      (onChange)="onStatusFilterChange()"
+      placeholder="Filter by Status"
+      styleClass="filter-dropdown">
+    </p-select>
+  </div>
+
+  <!-- Table -->
+  <p-table
+    [value]="requests()"
+    [loading]="isLoading()"
+    [paginator]="true"
+    [rows]="pageSize"
+    [totalRecords]="totalRecords()"
+    [lazy]="true"
+    (onLazyLoad)="onPageChange($event)"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    styleClass="p-datatable-sm"
+    responsiveLayout="scroll">
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Business Name</th>
+        <th>Owner</th>
+        <th>Contact</th>
+        <th>Location</th>
+        <th>Documents</th>
+        <th>Status</th>
+        <th>Submitted</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-request>
+      <tr>
+        <!-- Business Name -->
+        <td>
+          <div class="business-name-cell">
+            <strong>{{ request.business_name }}</strong>
+            <small class="text-muted">{{ request.service_provider?.category || 'N/A' }}</small>
+          </div>
+        </td>
+
+        <!-- Owner -->
+        <td>
+          <div class="owner-cell">
+            <div>{{ request.owner_name }}</div>
+            <small class="text-muted">{{ request.email }}</small>
+          </div>
+        </td>
+
+        <!-- Contact -->
+        <td>
+          <div>{{ request.contact_number }}</div>
+          @if (request.business_registration_number) {
+            <small class="text-muted">Reg: {{ request.business_registration_number }}</small>
+          }
+        </td>
+
+        <!-- Location -->
+        <td>
+          <div>{{ request.service_provider?.city || 'N/A' }}</div>
+          @if (request.service_provider?.state_province) {
+            <small class="text-muted">{{ request.service_provider.state_province }}</small>
+          }
+        </td>
+
+        <!-- Documents -->
+        <td>
+          <div class="documents-cell">
+            @if (hasDocuments(request)) {
+              <span class="document-count">
+                <i class="pi pi-file"></i> {{ getDocumentCount(request) }} docs
+              </span>
+            } @else {
+              <span class="text-muted">None</span>
+            }
+          </div>
+        </td>
+
+        <!-- Status -->
+        <td>
+          <p-tag
+            [value]="getStatusLabel(request.status)"
+            [severity]="getStatusSeverity(request.status)">
+          </p-tag>
+        </td>
+
+        <!-- Submitted -->
+        <td>
+          <div class="date-cell">
+            <div>{{ formatDate(request.submitted_at) }}</div>
+            @if (request.reviewed_at) {
+              <small class="text-muted">Reviewed: {{ formatDate(request.reviewed_at) }}</small>
+            }
+          </div>
+        </td>
+
+        <!-- Actions -->
+        <td>
+          <div class="action-buttons">
+            <p-button
+              icon="pi pi-eye"
+              label="Review"
+              size="small"
+              (onClick)="openReviewDialog(request)"
+              [disabled]="request.status !== 'pending'"
+              styleClass="p-button-sm">
+            </p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="8" class="text-center">
+          <div class="empty-state">
+            <i class="pi pi-inbox" style="font-size: 3rem; color: var(--text-color-secondary);"></i>
+            <p>No verification requests found</p>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <!-- Review Dialog -->
+  <p-dialog
+    [(visible)]="showReviewDialog"
+    [header]="'Review Claim - ' + (selectedRequest()?.business_name || '')"
+    [modal]="true"
+    [style]="{ width: '900px', maxWidth: '95vw' }"
+    [dismissableMask]="true"
+    styleClass="review-dialog">
+
+    @if (selectedRequest()) {
+      <div class="review-content">
+        <!-- Business Information -->
+        <div class="info-section">
+          <h3>Business Information</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Business Name</label>
+              <div>{{ selectedRequest()!.business_name }}</div>
+            </div>
+            <div class="info-item">
+              <label>Category</label>
+              <div>{{ selectedRequest()!.service_provider?.category || 'N/A' }}</div>
+            </div>
+            <div class="info-item">
+              <label>Address</label>
+              <div>{{ selectedRequest()!.service_provider?.address || 'N/A' }}</div>
+            </div>
+            <div class="info-item">
+              <label>City</label>
+              <div>{{ selectedRequest()!.service_provider?.city || 'N/A' }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Owner Information -->
+        <div class="info-section">
+          <h3>Owner Information</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Owner Name</label>
+              <div>{{ selectedRequest()!.owner_name }}</div>
+            </div>
+            <div class="info-item">
+              <label>Contact Number</label>
+              <div>{{ selectedRequest()!.contact_number }}</div>
+            </div>
+            <div class="info-item">
+              <label>Email</label>
+              <div>{{ selectedRequest()!.email }}</div>
+            </div>
+            <div class="info-item">
+              <label>Business Reg #</label>
+              <div>{{ selectedRequest()!.business_registration_number || 'Not provided' }}</div>
+            </div>
+            <div class="info-item">
+              <label>Tax ID</label>
+              <div>{{ selectedRequest()!.tax_id || 'Not provided' }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Verification Documents -->
+        <div class="info-section">
+          <h3>Verification Documents</h3>
+          <div class="documents-grid">
+            <!-- Business Permit -->
+            <div class="document-card">
+              <div class="document-header">
+                <i class="pi pi-file"></i>
+                <span>Business Permit</span>
+              </div>
+              @if (selectedRequest()!.business_permit_url) {
+                <p-button
+                  label="View Document"
+                  icon="pi pi-eye"
+                  size="small"
+                  (onClick)="viewDocument(selectedRequest()!.business_permit_url, 'Business Permit')"
+                  styleClass="p-button-sm p-button-outlined">
+                </p-button>
+                <div class="document-status uploaded">
+                  <i class="pi pi-check-circle"></i> Uploaded
+                </div>
+              } @else {
+                <div class="document-status not-uploaded">
+                  <i class="pi pi-times-circle"></i> Not uploaded
+                </div>
+              }
+            </div>
+
+            <!-- Tax ID Document -->
+            <div class="document-card">
+              <div class="document-header">
+                <i class="pi pi-file"></i>
+                <span>Tax ID Document</span>
+              </div>
+              @if (selectedRequest()!.tax_id_document_url) {
+                <p-button
+                  label="View Document"
+                  icon="pi pi-eye"
+                  size="small"
+                  (onClick)="viewDocument(selectedRequest()!.tax_id_document_url, 'Tax ID Document')"
+                  styleClass="p-button-sm p-button-outlined">
+                </p-button>
+                <div class="document-status uploaded">
+                  <i class="pi pi-check-circle"></i> Uploaded
+                </div>
+              } @else {
+                <div class="document-status not-uploaded">
+                  <i class="pi pi-times-circle"></i> Not uploaded
+                </div>
+              }
+            </div>
+
+            <!-- Proof of Ownership -->
+            <div class="document-card">
+              <div class="document-header">
+                <i class="pi pi-file"></i>
+                <span>Proof of Ownership</span>
+              </div>
+              @if (selectedRequest()!.proof_of_ownership_url) {
+                <p-button
+                  label="View Document"
+                  icon="pi pi-eye"
+                  size="small"
+                  (onClick)="viewDocument(selectedRequest()!.proof_of_ownership_url, 'Proof of Ownership')"
+                  styleClass="p-button-sm p-button-outlined">
+                </p-button>
+                <div class="document-status uploaded">
+                  <i class="pi pi-check-circle"></i> Uploaded
+                </div>
+              } @else {
+                <div class="document-status not-uploaded">
+                  <i class="pi pi-times-circle"></i> Not uploaded
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Review Section -->
+        @if (selectedRequest()!.status === 'pending') {
+          <div class="info-section">
+            <h3>Admin Review</h3>
+
+            <!-- Decision Radio Buttons -->
+            <div class="decision-section">
+              <label>Decision *</label>
+              <div class="radio-group">
+                <div class="radio-item">
+                  <p-radioButton
+                    name="reviewAction"
+                    value="approve"
+                    [(ngModel)]="reviewAction"
+                    inputId="approve">
+                  </p-radioButton>
+                  <label for="approve" class="approve-label">
+                    <i class="pi pi-check-circle"></i> Approve
+                  </label>
+                </div>
+                <div class="radio-item">
+                  <p-radioButton
+                    name="reviewAction"
+                    value="reject"
+                    [(ngModel)]="reviewAction"
+                    inputId="reject">
+                  </p-radioButton>
+                  <label for="reject" class="reject-label">
+                    <i class="pi pi-times-circle"></i> Reject
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Rejection Reason (shown only if reject is selected) -->
+            @if (reviewAction() === 'reject') {
+              <div class="form-field">
+                <label for="rejectionReason">Rejection Reason *</label>
+                <textarea
+                  pTextarea
+                  id="rejectionReason"
+                  [(ngModel)]="rejectionReason"
+                  rows="3"
+                  placeholder="e.g., Business permit image is unclear, please resubmit"
+                  class="full-width">
+                </textarea>
+                <small class="field-hint">This will be sent to the business owner</small>
+              </div>
+            }
+
+            <!-- Admin Notes (optional) -->
+            <div class="form-field">
+              <label for="adminNotes">Admin Notes (Internal)</label>
+              <textarea
+                pTextarea
+                id="adminNotes"
+                [(ngModel)]="adminNotes"
+                rows="2"
+                placeholder="e.g., Verified with DTI database"
+                class="full-width">
+              </textarea>
+              <small class="field-hint">Internal notes, not visible to user</small>
+            </div>
+          </div>
+        }
+
+        <!-- Already Reviewed Section -->
+        @if (selectedRequest()!.status !== 'pending') {
+          <div class="info-section">
+            <h3>Review Details</h3>
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Status</label>
+                <p-tag
+                  [value]="getStatusLabel(selectedRequest()!.status)"
+                  [severity]="getStatusSeverity(selectedRequest()!.status)">
+                </p-tag>
+              </div>
+              <div class="info-item">
+                <label>Reviewed At</label>
+                <div>{{ formatDate(selectedRequest()!.reviewed_at) }}</div>
+              </div>
+              @if (selectedRequest()!.rejection_reason) {
+                <div class="info-item full-width">
+                  <label>Rejection Reason</label>
+                  <div class="rejection-reason">{{ selectedRequest()!.rejection_reason }}</div>
+                </div>
+              }
+              @if (selectedRequest()!.admin_notes) {
+                <div class="info-item full-width">
+                  <label>Admin Notes</label>
+                  <div>{{ selectedRequest()!.admin_notes }}</div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Dialog Footer -->
+      <ng-template pTemplate="footer">
+        <div class="dialog-footer">
+          <p-button
+            label="Cancel"
+            icon="pi pi-times"
+            (onClick)="showReviewDialog.set(false)"
+            [disabled]="isProcessing()"
+            styleClass="p-button-text">
+          </p-button>
+          @if (selectedRequest()!.status === 'pending') {
+            <p-button
+              label="Submit Review"
+              icon="pi pi-check"
+              (onClick)="submitReview()"
+              [disabled]="!reviewAction() || isProcessing()"
+              [loading]="isProcessing()">
+            </p-button>
+          }
+        </div>
+      </ng-template>
+    }
+  </p-dialog>
+
+  <!-- Document Viewer Dialog -->
+  <p-dialog
+    [(visible)]="showDocumentViewer"
+    [header]="currentDocument()?.title || 'Document'"
+    [modal]="true"
+    [style]="{ width: '90vw', maxWidth: '1200px', height: '90vh' }"
+    [dismissableMask]="true"
+    styleClass="document-viewer-dialog">
+
+    @if (currentDocument()) {
+      <div class="document-viewer">
+        <img
+          [src]="currentDocument()!.url"
+          [alt]="currentDocument()!.title"
+          style="max-width: 100%; max-height: 80vh; object-fit: contain;"
+        />
+      </div>
+
+      <ng-template pTemplate="footer">
+        <p-button
+          label="Download"
+          icon="pi pi-download"
+          (onClick)="downloadDocument()"
+          styleClass="p-button-outlined">
+        </p-button>
+        <p-button
+          label="Close"
+          icon="pi pi-times"
+          (onClick)="showDocumentViewer.set(false)"
+          styleClass="p-button-text">
+        </p-button>
+      </ng-template>
+    }
+  </p-dialog>
+
+  <!-- Toast Messages -->
+  <p-toast></p-toast>
+
+  <!-- Confirmation Dialog -->
+  <p-confirmDialog></p-confirmDialog>
+</div>

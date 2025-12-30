@@ -62,6 +62,7 @@ export class SidebarComponent {
     { label: 'Advanced Analytics', icon: 'pi pi-chart-bar', route: '/analytics', permission: 'analytics.view' },
     { label: 'Users', icon: 'pi pi-users', route: '/users', permission: 'users.view' },
     { label: 'Content Management', icon: 'pi pi-file-edit', route: '/content', permission: 'content.moderate' },
+    { label: 'Business Verifications', icon: 'pi pi-verified', route: '/verifications', permission: 'content.moderate' },
     { label: 'Moderation', icon: 'pi pi-flag', route: '/moderation', permission: 'content.moderate' },
     { label: 'Admin Users', icon: 'pi pi-shield', route: '/admin-users', permission: 'users.view' },
     { label: 'Audit Logs', icon: 'pi pi-list', route: '/audit-logs', permission: 'users.view' },

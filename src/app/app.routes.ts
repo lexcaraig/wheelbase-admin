@@ -16,6 +16,7 @@ import { SystemSettingsComponent } from './features/system-settings/system-setti
 import { ContentListComponent } from './features/content-management/content-list/content-list.component';
 import { ContentEditorComponent } from './features/content-management/content-editor/content-editor.component';
 import { ContentViewerComponent } from './features/content-management/content-viewer/content-viewer.component';
+import { VerificationQueueComponent } from './features/business-verifications/verification-queue.component';
 
 export const routes: Routes = [
   // Root redirect to dashboard (will trigger AuthGuard if not authenticated)
@@ -116,6 +117,12 @@ export const routes: Routes = [
       {
         path: 'content/edit/:id',
         component: ContentEditorComponent,
+        canActivate: [AdminRoleGuard],
+        data: { permission: 'content.moderate' }
+      },
+      {
+        path: 'verifications',
+        component: VerificationQueueComponent,
         canActivate: [AdminRoleGuard],
         data: { permission: 'content.moderate' }
       }
