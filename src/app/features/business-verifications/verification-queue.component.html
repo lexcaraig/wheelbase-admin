@@ -158,66 +158,66 @@
     styleClass="review-dialog">
 
     @if (selectedRequest()) {
-      <div class="review-content">
+      <div class="space-y-6 p-4">
         <!-- Business Information -->
-        <div class="info-section">
-          <h3>Business Information</h3>
-          <div class="info-grid">
-            <div class="info-item">
-              <label>Business Name</label>
-              <div>{{ selectedRequest()!.business_name }}</div>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Business Information</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-sm font-medium text-gray-600">Business Name</label>
+              <div class="text-gray-900 mt-1">{{ selectedRequest()!.business_name }}</div>
             </div>
-            <div class="info-item">
-              <label>Category</label>
-              <div>{{ selectedRequest()!.service_provider?.category || 'N/A' }}</div>
+            <div>
+              <label class="text-sm font-medium text-gray-600">Category</label>
+              <div class="text-gray-900 mt-1">{{ selectedRequest()!.service_provider?.category || 'N/A' }}</div>
             </div>
-            <div class="info-item">
-              <label>Address</label>
-              <div>{{ selectedRequest()!.service_provider?.address || 'N/A' }}</div>
+            <div>
+              <label class="text-sm font-medium text-gray-600">Address</label>
+              <div class="text-gray-900 mt-1">{{ selectedRequest()!.service_provider?.address || 'N/A' }}</div>
             </div>
-            <div class="info-item">
-              <label>City</label>
-              <div>{{ selectedRequest()!.service_provider?.city || 'N/A' }}</div>
+            <div>
+              <label class="text-sm font-medium text-gray-600">City</label>
+              <div class="text-gray-900 mt-1">{{ selectedRequest()!.service_provider?.city || 'N/A' }}</div>
             </div>
           </div>
         </div>
 
         <!-- Owner Information -->
-        <div class="info-section">
-          <h3>Owner Information</h3>
-          <div class="info-grid">
-            <div class="info-item">
-              <label>Owner Name</label>
-              <div>{{ selectedRequest()!.owner_name }}</div>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Owner Information</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-sm font-medium text-gray-600">Owner Name</label>
+              <div class="text-gray-900 mt-1">{{ selectedRequest()!.owner_name }}</div>
             </div>
-            <div class="info-item">
-              <label>Contact Number</label>
-              <div>{{ selectedRequest()!.contact_number }}</div>
+            <div>
+              <label class="text-sm font-medium text-gray-600">Contact Number</label>
+              <div class="text-gray-900 mt-1">{{ selectedRequest()!.contact_number }}</div>
             </div>
-            <div class="info-item">
-              <label>Email</label>
-              <div>{{ selectedRequest()!.email }}</div>
+            <div>
+              <label class="text-sm font-medium text-gray-600">Email</label>
+              <div class="text-gray-900 mt-1">{{ selectedRequest()!.email }}</div>
             </div>
-            <div class="info-item">
-              <label>Business Reg #</label>
-              <div>{{ selectedRequest()!.business_registration_number || 'Not provided' }}</div>
+            <div>
+              <label class="text-sm font-medium text-gray-600">Business Reg #</label>
+              <div class="text-gray-900 mt-1">{{ selectedRequest()!.business_registration_number || 'Not provided' }}</div>
             </div>
-            <div class="info-item">
-              <label>Tax ID</label>
-              <div>{{ selectedRequest()!.tax_id || 'Not provided' }}</div>
+            <div>
+              <label class="text-sm font-medium text-gray-600">Tax ID</label>
+              <div class="text-gray-900 mt-1">{{ selectedRequest()!.tax_id || 'Not provided' }}</div>
             </div>
           </div>
         </div>
 
         <!-- Verification Documents -->
-        <div class="info-section">
-          <h3>Verification Documents</h3>
-          <div class="documents-grid">
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Verification Documents</h3>
+          <div class="grid grid-cols-3 gap-4">
             <!-- Business Permit -->
-            <div class="document-card">
-              <div class="document-header">
-                <i class="pi pi-file"></i>
-                <span>Business Permit</span>
+            <div class="border border-gray-200 rounded-lg p-4 bg-white">
+              <div class="flex items-center gap-2 mb-3">
+                <i class="pi pi-file text-blue-600"></i>
+                <span class="font-medium text-gray-900">Business Permit</span>
               </div>
               @if (selectedRequest()!.business_permit_url) {
                 <p-button
@@ -225,23 +225,23 @@
                   icon="pi pi-eye"
                   size="small"
                   (onClick)="viewDocument(selectedRequest()!.business_permit_url, 'Business Permit')"
-                  styleClass="p-button-sm p-button-outlined">
+                  styleClass="p-button-sm p-button-outlined w-full mb-2">
                 </p-button>
-                <div class="document-status uploaded">
+                <div class="flex items-center gap-1 text-green-600 text-sm">
                   <i class="pi pi-check-circle"></i> Uploaded
                 </div>
               } @else {
-                <div class="document-status not-uploaded">
+                <div class="flex items-center gap-1 text-gray-400 text-sm">
                   <i class="pi pi-times-circle"></i> Not uploaded
                 </div>
               }
             </div>
 
             <!-- Tax ID Document -->
-            <div class="document-card">
-              <div class="document-header">
-                <i class="pi pi-file"></i>
-                <span>Tax ID Document</span>
+            <div class="border border-gray-200 rounded-lg p-4 bg-white">
+              <div class="flex items-center gap-2 mb-3">
+                <i class="pi pi-file text-blue-600"></i>
+                <span class="font-medium text-gray-900">Tax ID Document</span>
               </div>
               @if (selectedRequest()!.tax_id_document_url) {
                 <p-button
@@ -249,23 +249,23 @@
                   icon="pi pi-eye"
                   size="small"
                   (onClick)="viewDocument(selectedRequest()!.tax_id_document_url, 'Tax ID Document')"
-                  styleClass="p-button-sm p-button-outlined">
+                  styleClass="p-button-sm p-button-outlined w-full mb-2">
                 </p-button>
-                <div class="document-status uploaded">
+                <div class="flex items-center gap-1 text-green-600 text-sm">
                   <i class="pi pi-check-circle"></i> Uploaded
                 </div>
               } @else {
-                <div class="document-status not-uploaded">
+                <div class="flex items-center gap-1 text-gray-400 text-sm">
                   <i class="pi pi-times-circle"></i> Not uploaded
                 </div>
               }
             </div>
 
             <!-- Proof of Ownership -->
-            <div class="document-card">
-              <div class="document-header">
-                <i class="pi pi-file"></i>
-                <span>Proof of Ownership</span>
+            <div class="border border-gray-200 rounded-lg p-4 bg-white">
+              <div class="flex items-center gap-2 mb-3">
+                <i class="pi pi-file text-blue-600"></i>
+                <span class="font-medium text-gray-900">Proof of Ownership</span>
               </div>
               @if (selectedRequest()!.proof_of_ownership_url) {
                 <p-button
@@ -273,13 +273,13 @@
                   icon="pi pi-eye"
                   size="small"
                   (onClick)="viewDocument(selectedRequest()!.proof_of_ownership_url, 'Proof of Ownership')"
-                  styleClass="p-button-sm p-button-outlined">
+                  styleClass="p-button-sm p-button-outlined w-full mb-2">
                 </p-button>
-                <div class="document-status uploaded">
+                <div class="flex items-center gap-1 text-green-600 text-sm">
                   <i class="pi pi-check-circle"></i> Uploaded
                 </div>
               } @else {
-                <div class="document-status not-uploaded">
+                <div class="flex items-center gap-1 text-gray-400 text-sm">
                   <i class="pi pi-times-circle"></i> Not uploaded
                 </div>
               }
@@ -289,32 +289,32 @@
 
         <!-- Admin Review Section -->
         @if (selectedRequest()!.status === 'pending') {
-          <div class="info-section">
-            <h3>Admin Review</h3>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Admin Review</h3>
 
             <!-- Decision Radio Buttons -->
-            <div class="decision-section">
-              <label>Decision *</label>
-              <div class="radio-group">
-                <div class="radio-item">
+            <div class="mb-4">
+              <label class="text-sm font-medium text-gray-700 mb-2 block">Decision *</label>
+              <div class="flex gap-6">
+                <div class="flex items-center gap-2">
                   <p-radioButton
                     name="reviewAction"
                     value="approve"
                     [(ngModel)]="reviewAction"
                     inputId="approve">
                   </p-radioButton>
-                  <label for="approve" class="approve-label">
+                  <label for="approve" class="flex items-center gap-2 text-green-600 font-medium cursor-pointer">
                     <i class="pi pi-check-circle"></i> Approve
                   </label>
                 </div>
-                <div class="radio-item">
+                <div class="flex items-center gap-2">
                   <p-radioButton
                     name="reviewAction"
                     value="reject"
                     [(ngModel)]="reviewAction"
                     inputId="reject">
                   </p-radioButton>
-                  <label for="reject" class="reject-label">
+                  <label for="reject" class="flex items-center gap-2 text-red-600 font-medium cursor-pointer">
                     <i class="pi pi-times-circle"></i> Reject
                   </label>
                 </div>
@@ -323,62 +323,64 @@
 
             <!-- Rejection Reason (shown only if reject is selected) -->
             @if (reviewAction() === 'reject') {
-              <div class="form-field">
-                <label for="rejectionReason">Rejection Reason *</label>
+              <div class="mb-4">
+                <label for="rejectionReason" class="text-sm font-medium text-gray-700 mb-1 block">Rejection Reason *</label>
                 <textarea
                   pTextarea
                   id="rejectionReason"
                   [(ngModel)]="rejectionReason"
                   rows="3"
                   placeholder="e.g., Business permit image is unclear, please resubmit"
-                  class="full-width">
+                  class="w-full">
                 </textarea>
-                <small class="field-hint">This will be sent to the business owner</small>
+                <small class="text-xs text-gray-500 mt-1 block">This will be sent to the business owner</small>
               </div>
             }
 
             <!-- Admin Notes (optional) -->
-            <div class="form-field">
-              <label for="adminNotes">Admin Notes (Internal)</label>
+            <div class="mb-0">
+              <label for="adminNotes" class="text-sm font-medium text-gray-700 mb-1 block">Admin Notes (Internal)</label>
               <textarea
                 pTextarea
                 id="adminNotes"
                 [(ngModel)]="adminNotes"
                 rows="2"
                 placeholder="e.g., Verified with DTI database"
-                class="full-width">
+                class="w-full">
               </textarea>
-              <small class="field-hint">Internal notes, not visible to user</small>
+              <small class="text-xs text-gray-500 mt-1 block">Internal notes, not visible to user</small>
             </div>
           </div>
         }
 
         <!-- Already Reviewed Section -->
         @if (selectedRequest()!.status !== 'pending') {
-          <div class="info-section">
-            <h3>Review Details</h3>
-            <div class="info-grid">
-              <div class="info-item">
-                <label>Status</label>
-                <p-tag
-                  [value]="getStatusLabel(selectedRequest()!.status)"
-                  [severity]="getStatusSeverity(selectedRequest()!.status)">
-                </p-tag>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Review Details</h3>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-sm font-medium text-gray-600">Status</label>
+                <div class="mt-1">
+                  <p-tag
+                    [value]="getStatusLabel(selectedRequest()!.status)"
+                    [severity]="getStatusSeverity(selectedRequest()!.status)">
+                  </p-tag>
+                </div>
               </div>
-              <div class="info-item">
-                <label>Reviewed At</label>
-                <div>{{ formatDate(selectedRequest()!.reviewed_at) }}</div>
+              <div>
+                <label class="text-sm font-medium text-gray-600">Reviewed At</label>
+                <div class="text-gray-900 mt-1">{{ formatDate(selectedRequest()!.reviewed_at) }}</div>
               </div>
               @if (selectedRequest()!.rejection_reason) {
-                <div class="info-item full-width">
-                  <label>Rejection Reason</label>
-                  <div class="rejection-reason">{{ selectedRequest()!.rejection_reason }}</div>
+                <div class="col-span-2">
+                  <label class="text-sm font-medium text-gray-600">Rejection Reason</label>
+                  <div class="bg-red-50 border border-red-200 rounded p-3 text-red-900 mt-1">{{ selectedRequest()!.rejection_reason }}</div>
                 </div>
               }
               @if (selectedRequest()!.admin_notes) {
-                <div class="info-item full-width">
-                  <label>Admin Notes</label>
-                  <div>{{ selectedRequest()!.admin_notes }}</div>
+                <div class="col-span-2">
+                  <label class="text-sm font-medium text-gray-600">Admin Notes</label>
+                  <div class="text-gray-900 mt-1">{{ selectedRequest()!.admin_notes }}</div>
                 </div>
               }
             </div>
@@ -388,7 +390,7 @@
 
       <!-- Dialog Footer -->
       <ng-template pTemplate="footer">
-        <div class="dialog-footer">
+        <div class="flex justify-end gap-2">
           <p-button
             label="Cancel"
             icon="pi pi-times"
@@ -420,7 +422,7 @@
     styleClass="document-viewer-dialog">
 
     @if (currentDocument()) {
-      <div class="document-viewer">
+      <div class="flex items-center justify-center">
         <img
           [src]="currentDocument()!.url"
           [alt]="currentDocument()!.title"
@@ -429,18 +431,20 @@
       </div>
 
       <ng-template pTemplate="footer">
-        <p-button
-          label="Download"
-          icon="pi pi-download"
-          (onClick)="downloadDocument()"
-          styleClass="p-button-outlined">
-        </p-button>
-        <p-button
-          label="Close"
-          icon="pi pi-times"
-          (onClick)="showDocumentViewer.set(false)"
-          styleClass="p-button-text">
-        </p-button>
+        <div class="flex justify-end gap-2">
+          <p-button
+            label="Download"
+            icon="pi pi-download"
+            (onClick)="downloadDocument()"
+            styleClass="p-button-outlined">
+          </p-button>
+          <p-button
+            label="Close"
+            icon="pi pi-times"
+            (onClick)="showDocumentViewer.set(false)"
+            styleClass="p-button-text">
+          </p-button>
+        </div>
       </ng-template>
     }
   </p-dialog>

@@ -29,63 +29,37 @@ export class VerificationService {
     filters: VerificationQueueFilters
   ): Promise<VerificationQueueResponse> {
     try {
-      // Build query
-      let query = this.supabase
-        .from('provider_verification_requests')
-        .select(`
-          *,
-          service_provider:service_providers(
-            id,
-            business_name,
-            category,
-            address,
-            city,
-            state_province
-          )
-        `, { count: 'exact' });
+      console.log('🔵 Calling admin Edge Function...');
 
-      // Apply status filter
-      if (filters.status && filters.status !== 'all') {
-        query = query.eq('status', filters.status);
-      }
+      // Call Edge Function instead of direct database query
+      // This uses service role key server-side to bypass RLS
+      const { data, error } = await this.supabase.functions.invoke('admin-get-verifications', {
+        body: {
+          status: filters.status,
+          page: filters.page,
+          pageSize: filters.pageSize
+        }
+      });
 
-      // Apply pagination
-      const from = (filters.page - 1) * filters.pageSize;
-      const to = from + filters.pageSize - 1;
-      query = query.range(from, to);
-
-      // Order by submitted_at descending (newest first)
-      query = query.order('submitted_at', { ascending: false });
-
-      const { data, error, count } = await query;
+      console.log('🔵 Edge Function response:', { data, error });
 
       if (error) throw error;
+      if (!data || !data.success) {
+        throw new Error(data?.error?.message || 'Failed to fetch verification requests');
+      }
 
-      // Get counts by status
-      const { data: stats } = await this.supabase
-        .from('provider_verification_requests')
-        .select('status', { count: 'exact', head: true })
-        .eq('status', 'pending');
-
-      const { data: approvedStats } = await this.supabase
-        .from('provider_verification_requests')
-        .select('status', { count: 'exact', head: true })
-        .eq('status', 'approved');
-
-      const { data: rejectedStats } = await this.supabase
-        .from('provider_verification_requests')
-        .select('status', { count: 'exact', head: true })
-        .eq('status', 'rejected');
+      const result = data.data;
+      console.log('✅ Verification data:', result);
 
       return {
-        requests: (data as VerificationRequest[]) || [],
-        total: count || 0,
-        pending: (stats as any)?.count || 0,
-        approved: (approvedStats as any)?.count || 0,
-        rejected: (rejectedStats as any)?.count || 0
+        requests: result.requests || [],
+        total: result.total || 0,
+        pending: result.pending || 0,
+        approved: result.approved || 0,
+        rejected: result.rejected || 0
       };
     } catch (error: any) {
-      console.error('Error fetching verification queue:', error);
+      console.error('❌ Error fetching verification queue:', error);
       throw new Error(error.message || 'Failed to fetch verification requests');
     }
   }

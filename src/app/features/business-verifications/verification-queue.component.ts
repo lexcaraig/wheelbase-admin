@@ -77,11 +77,13 @@ export class VerificationQueueComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    console.log('🔵 VerificationQueueComponent initialized');
     this.loadVerificationQueue();
   }
 
   async loadVerificationQueue() {
     try {
+      console.log('🔵 Loading verification queue...');
       this.isLoading.set(true);
       const response = await this.verificationService.getVerificationQueue({
         status: this.statusFilter(),
@@ -89,12 +91,15 @@ export class VerificationQueueComponent implements OnInit {
         pageSize: this.pageSize
       });
 
+      console.log('✅ Got response:', response);
       this.requests.set(response.requests);
       this.totalRecords.set(response.total);
       this.pendingCount.set(response.pending);
       this.approvedCount.set(response.approved);
       this.rejectedCount.set(response.rejected);
+      console.log('✅ Requests loaded:', response.requests.length);
     } catch (error: any) {
+      console.error('❌ Error loading verification queue:', error);
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
