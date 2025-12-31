@@ -61,9 +61,9 @@ export class VerificationQueueComponent implements OnInit {
   // Review Dialog
   showReviewDialog = signal(false);
   selectedRequest = signal<VerificationRequest | null>(null);
-  reviewAction = signal<'approve' | 'reject' | null>(null);
-  rejectionReason = signal('');
-  adminNotes = signal('');
+  reviewAction: 'approve' | 'reject' | null = null;  // Regular property for ngModel
+  rejectionReason = '';  // Regular property for ngModel
+  adminNotes = '';  // Regular property for ngModel
   isProcessing = signal(false);
 
   // Document Viewer Dialog
@@ -122,9 +122,9 @@ export class VerificationQueueComponent implements OnInit {
 
   openReviewDialog(request: VerificationRequest) {
     this.selectedRequest.set(request);
-    this.reviewAction.set(null);
-    this.rejectionReason.set('');
-    this.adminNotes.set('');
+    this.reviewAction = null;
+    this.rejectionReason = '';
+    this.adminNotes = '';
     this.showReviewDialog.set(true);
   }
 
@@ -160,12 +160,12 @@ export class VerificationQueueComponent implements OnInit {
   }
 
   async submitReview() {
-    const action = this.reviewAction();
+    const action = this.reviewAction;
     const request = this.selectedRequest();
 
     if (!action || !request) return;
 
-    if (action === 'reject' && !this.rejectionReason().trim()) {
+    if (action === 'reject' && !this.rejectionReason.trim()) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Validation Error',
@@ -189,15 +189,15 @@ export class VerificationQueueComponent implements OnInit {
     try {
       this.isProcessing.set(true);
       const request = this.selectedRequest();
-      const action = this.reviewAction();
+      const action = this.reviewAction;
 
       if (!request || !action) return;
 
       await this.verificationService.reviewClaim({
         requestId: request.id,
         action,
-        rejectionReason: action === 'reject' ? this.rejectionReason() : undefined,
-        adminNotes: this.adminNotes() || undefined
+        rejectionReason: action === 'reject' ? this.rejectionReason : undefined,
+        adminNotes: this.adminNotes || undefined
       });
 
       this.messageService.add({

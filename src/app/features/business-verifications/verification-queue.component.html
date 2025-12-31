@@ -322,7 +322,7 @@
             </div>
 
             <!-- Rejection Reason (shown only if reject is selected) -->
-            @if (reviewAction() === 'reject') {
+            @if (reviewAction === 'reject') {
               <div class="mb-4">
                 <label for="rejectionReason" class="text-sm font-medium text-gray-700 mb-1 block">Rejection Reason *</label>
                 <textarea
@@ -403,8 +403,17 @@
               label="Submit Review"
               icon="pi pi-check"
               (onClick)="submitReview()"
-              [disabled]="!reviewAction() || isProcessing()"
-              [loading]="isProcessing()">
+              [disabled]="!reviewAction || isProcessing()"
+              [loading]="isProcessing()"
+              styleClass="p-button-success">
+            </p-button>
+          } @else {
+            <!-- Already reviewed - show read-only state -->
+            <p-button
+              label="Close"
+              icon="pi pi-times"
+              (onClick)="showReviewDialog.set(false)"
+              styleClass="p-button-secondary">
             </p-button>
           }
         </div>
