@@ -14,11 +14,19 @@ import {
 })
 export class VerificationService {
   private supabase: SupabaseClient;
+  private adminClient: SupabaseClient;
 
   constructor() {
     this.supabase = createClient(
       environment.supabaseUrl,
       environment.supabaseAnonKey
+    );
+
+    // ⚠️ Admin client with service role key - DEVELOPMENT ONLY
+    // TODO: Replace with proper authentication in production
+    this.adminClient = createClient(
+      environment.supabaseUrl,
+      (environment as any).supabaseServiceRoleKey || environment.supabaseAnonKey
     );
   }
 
@@ -97,10 +105,12 @@ export class VerificationService {
 
   /**
    * Review a claim (approve or reject) via Edge Function
+   * Uses admin client with service role key for authentication
    */
   async reviewClaim(request: ReviewClaimRequest): Promise<void> {
     try {
-      const { data, error } = await this.supabase.functions.invoke('review-claim', {
+      // Use admin client with service role key
+      const { data, error } = await this.adminClient.functions.invoke('review-claim', {
         body: {
           requestId: request.requestId,
           action: request.action,
