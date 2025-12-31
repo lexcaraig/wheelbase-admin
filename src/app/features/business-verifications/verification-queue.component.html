@@ -391,6 +391,7 @@
       <!-- Dialog Footer -->
       <ng-template pTemplate="footer">
         <div class="flex justify-end gap-2">
+          <!-- Debug: Status = {{ selectedRequest()!.status }} -->
           <p-button
             label="{{ selectedRequest()!.status === 'pending' ? 'Cancel' : 'Close' }}"
             icon="pi pi-times"
@@ -398,16 +399,15 @@
             [disabled]="isProcessing()"
             styleClass="p-button-text">
           </p-button>
-          @if (selectedRequest()!.status === 'pending') {
-            <p-button
-              label="Submit Review"
-              icon="pi pi-check"
-              (onClick)="submitReview()"
-              [disabled]="!reviewAction || isProcessing()"
-              [loading]="isProcessing()"
-              styleClass="p-button-success">
-            </p-button>
-          }
+          <p-button
+            label="Submit Review"
+            icon="pi pi-check"
+            (onClick)="submitReview()"
+            [disabled]="!reviewAction || isProcessing()"
+            [loading]="isProcessing()"
+            [style.display]="selectedRequest()!.status === 'pending' ? 'inline-flex' : 'none'"
+            styleClass="p-button-success">
+          </p-button>
         </div>
       </ng-template>
     }
