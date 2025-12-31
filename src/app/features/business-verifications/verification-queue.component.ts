@@ -121,6 +121,12 @@ export class VerificationQueueComponent implements OnInit {
   }
 
   openReviewDialog(request: VerificationRequest) {
+    console.log('🔵 Opening review dialog for request:', {
+      id: request.id,
+      business: request.business_name,
+      status: request.status,
+      submittedAt: request.submitted_at
+    });
     this.selectedRequest.set(request);
     this.reviewAction = null;
     this.rejectionReason = '';
@@ -163,7 +169,16 @@ export class VerificationQueueComponent implements OnInit {
     const action = this.reviewAction;
     const request = this.selectedRequest();
 
-    if (!action || !request) return;
+    console.log('🔵 submitReview called:', {
+      action,
+      requestStatus: request?.status,
+      hasRejectionReason: !!this.rejectionReason?.trim()
+    });
+
+    if (!action || !request) {
+      console.log('⚠️ Missing action or request');
+      return;
+    }
 
     if (action === 'reject' && !this.rejectionReason.trim()) {
       this.messageService.add({
