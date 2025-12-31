@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { environment } from '../../../environments/environment';
+import { SupabaseService } from './supabase.service';
 import {
   VerificationRequest,
   ReviewClaimRequest,
@@ -13,13 +12,10 @@ import {
   providedIn: 'root'
 })
 export class VerificationService {
-  private supabase: SupabaseClient;
+  constructor(private supabase: SupabaseService) {}
 
-  constructor() {
-    this.supabase = createClient(
-      environment.supabaseUrl,
-      environment.supabaseAnonKey
-    );
+  private get client() {
+    return this.supabase.client;
   }
 
   /**
@@ -33,7 +29,7 @@ export class VerificationService {
 
       // Call Edge Function instead of direct database query
       // This uses service role key server-side to bypass RLS
-      const { data, error } = await this.supabase.functions.invoke('admin-get-verifications', {
+      const { data, error } = await this.client.functions.invoke('admin-get-verifications', {
         body: {
           status: filters.status,
           page: filters.page,
@@ -69,7 +65,7 @@ export class VerificationService {
    */
   async getVerificationRequest(requestId: string): Promise<VerificationRequest> {
     try {
-      const { data, error } = await this.supabase
+      const { data, error } = await this.client
         .from('provider_verification_requests')
         .select(`
           *,
@@ -102,8 +98,8 @@ export class VerificationService {
   async reviewClaim(request: ReviewClaimRequest): Promise<void> {
     try {
       // Edge Function will verify admin authentication via JWT token
-      // The Supabase client automatically includes the session token from AuthService
-      const { data, error } = await this.supabase.functions.invoke('review-claim', {
+      // The Supabase client automatically includes the session token from SupabaseService
+      const { data, error } = await this.client.functions.invoke('review-claim', {
         body: {
           requestId: request.requestId,
           action: request.action,
@@ -136,7 +132,7 @@ export class VerificationService {
     }
 
     // Otherwise, construct the public URL
-    const { data } = this.supabase.storage
+    const { data } = this.client.storage
       .from('public')
       .getPublicUrl(documentUrl);
 
@@ -153,21 +149,21 @@ export class VerificationService {
     total: number;
   }> {
     try {
-      const { count: total } = await this.supabase
+      const { count: total } = await this.client
         .from('provider_verification_requests')
         .select('*', { count: 'exact', head: true });
 
-      const { count: pending } = await this.supabase
+      const { count: pending } = await this.client
         .from('provider_verification_requests')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending');
 
-      const { count: approved } = await this.supabase
+      const { count: approved } = await this.client
         .from('provider_verification_requests')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'approved');
 
-      const { count: rejected } = await this.supabase
+      const { count: rejected } = await this.client
         .from('provider_verification_requests')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'rejected');

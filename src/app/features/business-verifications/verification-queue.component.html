@@ -387,39 +387,39 @@
           </div>
         }
       </div>
+    }
 
-      <!-- Dialog Footer -->
-      <ng-template pTemplate="footer">
-        <div class="flex flex-col gap-2">
-          <!-- Debug Info -->
-          <div class="text-xs text-gray-500 px-2 py-1 bg-yellow-50 rounded border border-yellow-200">
-            <strong>Debug:</strong> Status = <span class="font-mono">{{ selectedRequest()!.status }}</span> |
-            Action = <span class="font-mono">{{ reviewAction || 'null' }}</span> |
-            Processing = <span class="font-mono">{{ isProcessing() }}</span>
-          </div>
+    <!-- Dialog Footer - MUST be direct child of p-dialog -->
+    <ng-template pTemplate="footer">
+      <div class="flex flex-col gap-2">
+        <!-- Debug Info -->
+        <div class="text-xs text-gray-500 px-2 py-1 bg-yellow-50 rounded border border-yellow-200">
+          <strong>Debug:</strong> Status = {{ selectedRequest()?.status || 'null' }} |
+          Action = {{ reviewAction || 'null' }} |
+          Processing = {{ isProcessing() }}
+        </div>
 
-          <div class="flex justify-end gap-2">
+        <div class="flex justify-end gap-2">
           <p-button
-            label="{{ selectedRequest()!.status === 'pending' ? 'Cancel' : 'Close' }}"
+            label="Cancel"
             icon="pi pi-times"
             (onClick)="showReviewDialog.set(false)"
             [disabled]="isProcessing()"
             styleClass="p-button-text">
           </p-button>
-          @if (selectedRequest()!.status === 'pending') {
-            <p-button
-              label="Submit Review"
-              icon="pi pi-check"
-              (onClick)="submitReview()"
-              [disabled]="!reviewAction || isProcessing()"
-              [loading]="isProcessing()"
-              styleClass="p-button-success">
-            </p-button>
-          }
-          </div>
+
+          <!-- ALWAYS VISIBLE BUTTON -->
+          <p-button
+            label="Submit Review"
+            icon="pi pi-check"
+            (onClick)="submitReview()"
+            [disabled]="!reviewAction || isProcessing()"
+            [loading]="isProcessing()"
+            styleClass="p-button-success">
+          </p-button>
         </div>
-      </ng-template>
-    }
+      </div>
+    </ng-template>
   </p-dialog>
 
   <!-- Document Viewer Dialog -->
