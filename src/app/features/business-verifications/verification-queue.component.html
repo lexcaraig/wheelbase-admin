@@ -392,7 +392,7 @@
       <ng-template pTemplate="footer">
         <div class="flex justify-end gap-2">
           <p-button
-            label="Cancel"
+            label="{{ selectedRequest()!.status === 'pending' ? 'Cancel' : 'Close' }}"
             icon="pi pi-times"
             (onClick)="showReviewDialog.set(false)"
             [disabled]="isProcessing()"
@@ -406,14 +406,6 @@
               [disabled]="!reviewAction || isProcessing()"
               [loading]="isProcessing()"
               styleClass="p-button-success">
-            </p-button>
-          } @else {
-            <!-- Already reviewed - show read-only state -->
-            <p-button
-              label="Close"
-              icon="pi pi-times"
-              (onClick)="showReviewDialog.set(false)"
-              styleClass="p-button-secondary">
             </p-button>
           }
         </div>
