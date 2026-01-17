@@ -5,7 +5,6 @@ import { AuthLayoutComponent } from './layout/auth-layout/auth-layout.component'
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 import { LoginComponent } from './features/auth/login/login.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
-import { AdvancedAnalyticsComponent } from './features/analytics/advanced-analytics.component';
 import { UsersListComponent } from './features/users/users-list/users-list.component';
 import { UserDetailComponent } from './features/users/user-detail/user-detail.component';
 import { ContentQueueComponent } from './features/moderation/content-queue/content-queue.component';
@@ -17,6 +16,10 @@ import { ContentListComponent } from './features/content-management/content-list
 import { ContentEditorComponent } from './features/content-management/content-editor/content-editor.component';
 import { ContentViewerComponent } from './features/content-management/content-viewer/content-viewer.component';
 import { VerificationQueueComponent } from './features/business-verifications/verification-queue.component';
+import { MonitoringComponent } from './features/monitoring/monitoring.component';
+import { PromotionsListComponent } from './features/promotions/promotions-list.component';
+import { PromotionEditorComponent } from './features/promotions/promotion-editor.component';
+import { PromotionReportComponent } from './features/promotions/promotion-report.component';
 
 export const routes: Routes = [
   // Root redirect to dashboard (will trigger AuthGuard if not authenticated)
@@ -49,8 +52,8 @@ export const routes: Routes = [
         component: DashboardComponent
       },
       {
-        path: 'analytics',
-        component: AdvancedAnalyticsComponent,
+        path: 'monitoring',
+        component: MonitoringComponent,
         canActivate: [AdminRoleGuard],
         data: { permission: 'analytics.view' }
       },
@@ -123,6 +126,31 @@ export const routes: Routes = [
       {
         path: 'verifications',
         component: VerificationQueueComponent,
+        canActivate: [AdminRoleGuard],
+        data: { permission: 'content.moderate' }
+      },
+      // Promotions management (Quick Action Widget banners)
+      {
+        path: 'promotions',
+        component: PromotionsListComponent,
+        canActivate: [AdminRoleGuard],
+        data: { permission: 'content.moderate' }
+      },
+      {
+        path: 'promotions/new',
+        component: PromotionEditorComponent,
+        canActivate: [AdminRoleGuard],
+        data: { permission: 'content.moderate' }
+      },
+      {
+        path: 'promotions/edit/:id',
+        component: PromotionEditorComponent,
+        canActivate: [AdminRoleGuard],
+        data: { permission: 'content.moderate' }
+      },
+      {
+        path: 'promotions/report/:id',
+        component: PromotionReportComponent,
         canActivate: [AdminRoleGuard],
         data: { permission: 'content.moderate' }
       }
