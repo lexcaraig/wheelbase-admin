@@ -1,6 +1,3 @@
-<p-toast></p-toast>
-<p-confirmDialog></p-confirmDialog>
-
 <div class="space-y-6">
   <!-- Header -->
   <div>
@@ -11,207 +8,139 @@
   <!-- Filters -->
   <div class="bg-white p-4 rounded-lg shadow">
     <div class="flex items-center gap-4">
-      <div class="flex flex-col gap-2">
-        <label class="font-medium text-gray-700">Content Type</label>
-        <select
-          [(ngModel)]="contentTypeFilter"
-          (change)="onContentTypeFilterChange()"
-          class="w-48 p-2 border border-gray-300 rounded"
+      <mat-form-field appearance="outline" class="w-48">
+        <mat-label>Content Type</mat-label>
+        <mat-select
+          [value]="contentTypeFilter()"
+          (selectionChange)="contentTypeFilter.set($event.value); onContentTypeFilterChange()"
         >
           @for (option of contentTypeOptions; track option.value) {
-            <option [value]="option.value">{{ option.label }}</option>
+            <mat-option [value]="option.value">{{ option.label }}</mat-option>
           }
-        </select>
-      </div>
+        </mat-select>
+      </mat-form-field>
     </div>
   </div>
 
   <!-- Flagged Content Table -->
-  <div class="bg-white rounded-lg shadow">
-    <p-table
-      [value]="flaggedContent()"
-      [loading]="isLoading()"
-      [paginator]="true"
-      [rows]="pageSize"
-      [totalRecords]="totalRecords()"
-      [lazy]="true"
-      (onLazyLoad)="onPageChange($event)"
-      [rowHover]="true"
-      styleClass="p-datatable-sm"
-    >
-      <ng-template pTemplate="header">
-        <tr>
-          <th>Type</th>
-          <th>Content</th>
-          <th>Author</th>
-          <th>Flag Reason</th>
-          <th>Flagged Date</th>
-          <th class="text-center">Actions</th>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="body" let-content>
-        <tr>
-          <!-- Type -->
-          <td>
-            <p-tag
-              [value]="content.content_type.toUpperCase()"
-              [severity]="getContentTypeColor(content.content_type)"
-              styleClass="text-xs"
-            ></p-tag>
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    <!-- Loading State -->
+    @if (isLoading()) {
+      <div class="flex items-center justify-center py-12">
+        <span class="material-symbols-outlined animate-spin text-4xl text-gray-400">progress_activity</span>
+      </div>
+    } @else {
+      <table mat-table [dataSource]="flaggedContent()" class="w-full">
+        <!-- Type Column -->
+        <ng-container matColumnDef="type">
+          <th mat-header-cell *matHeaderCellDef>Type</th>
+          <td mat-cell *matCellDef="let content">
+            <app-status-badge [severity]="getContentTypeSeverity(content.content_type)">
+              {{ content.content_type | uppercase }}
+            </app-status-badge>
           </td>
+        </ng-container>
 
-          <!-- Content Preview -->
-          <td>
+        <!-- Content Column -->
+        <ng-container matColumnDef="content">
+          <th mat-header-cell *matHeaderCellDef>Content</th>
+          <td mat-cell *matCellDef="let content">
             <div class="max-w-md">
               <p class="text-gray-800 line-clamp-2">
                 {{ content.content | slice:0:150 }}{{ content.content.length > 150 ? '...' : '' }}
               </p>
             </div>
           </td>
+        </ng-container>
 
-          <!-- Author -->
-          <td>
+        <!-- Author Column -->
+        <ng-container matColumnDef="author">
+          <th mat-header-cell *matHeaderCellDef>Author</th>
+          <td mat-cell *matCellDef="let content">
             <div class="flex items-center gap-2">
-              @if (content.author_avatar_url) {
-                <img [src]="content.author_avatar_url" alt="" class="w-8 h-8 rounded-full object-cover" />
-              } @else {
-                <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 font-bold text-xs">
-                  {{ content.author_username ? content.author_username.charAt(0).toUpperCase() : '?' }}
-                </div>
-              }
+              <app-avatar
+                [image]="content.author_avatar_url"
+                [label]="content.author_username"
+                shape="circle"
+                size="small"
+              ></app-avatar>
               <span class="text-gray-700">{{ content.author_username }}</span>
             </div>
           </td>
+        </ng-container>
 
-          <!-- Flag Reason -->
-          <td>
+        <!-- Flag Reason Column -->
+        <ng-container matColumnDef="flagReason">
+          <th mat-header-cell *matHeaderCellDef>Flag Reason</th>
+          <td mat-cell *matCellDef="let content">
             <p class="text-gray-700 max-w-xs truncate">{{ content.flag_reason }}</p>
           </td>
+        </ng-container>
 
-          <!-- Flagged Date -->
-          <td>
+        <!-- Flagged Date Column -->
+        <ng-container matColumnDef="flaggedDate">
+          <th mat-header-cell *matHeaderCellDef>Flagged Date</th>
+          <td mat-cell *matCellDef="let content">
             <span class="text-gray-700 text-sm">
               {{ content.flagged_at | relativeTime }}
             </span>
           </td>
+        </ng-container>
 
-          <!-- Actions -->
-          <td>
-            <div class="flex items-center justify-center gap-2">
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="text-center">Actions</th>
+          <td mat-cell *matCellDef="let content">
+            <div class="flex items-center justify-center gap-1">
               <button
-                pButton
-                type="button"
-                icon="pi pi-eye"
-                class="p-button-sm p-button-text"
+                mat-icon-button
+                matTooltip="View Details"
                 (click)="viewContent(content)"
-                pTooltip="View Details"
-              ></button>
+              >
+                <span class="material-symbols-outlined">visibility</span>
+              </button>
 
               <button
-                pButton
-                type="button"
-                icon="pi pi-check"
-                class="p-button-sm p-button-text p-button-success"
+                mat-icon-button
+                color="primary"
+                matTooltip="Approve Content"
                 (click)="confirmApprove(content)"
-                pTooltip="Approve Content"
-              ></button>
+              >
+                <span class="material-symbols-outlined">check</span>
+              </button>
 
               <button
-                pButton
-                type="button"
-                icon="pi pi-trash"
-                class="p-button-sm p-button-text p-button-danger"
+                mat-icon-button
+                color="warn"
+                matTooltip="Remove Content"
                 (click)="confirmRemove(content)"
-                pTooltip="Remove Content"
-              ></button>
+              >
+                <span class="material-symbols-outlined">delete</span>
+              </button>
             </div>
           </td>
-        </tr>
-      </ng-template>
+        </ng-container>
 
-      <ng-template pTemplate="emptymessage">
-        <tr>
-          <td colspan="6" class="text-center py-8 text-gray-500">
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+        <!-- Empty State -->
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell text-center py-8 text-gray-500" [attr.colspan]="displayedColumns.length">
             No flagged content found
           </td>
         </tr>
-      </ng-template>
-    </p-table>
+      </table>
+
+      <!-- Paginator -->
+      <mat-paginator
+        [length]="totalRecords()"
+        [pageSize]="pageSize"
+        [pageIndex]="currentPage()"
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons
+      ></mat-paginator>
+    }
   </div>
 </div>
-
-<!-- Content Preview Dialog -->
-<p-dialog
-  [(visible)]="showPreviewDialog"
-  [modal]="true"
-  [closable]="true"
-  [style]="{ width: '700px' }"
-  header="Content Details"
->
-  @if (selectedContent(); as content) {
-    <div class="space-y-4">
-      <!-- Content Type & Author -->
-      <div class="flex items-center justify-between pb-4 border-b border-gray-200">
-        <div class="flex items-center gap-3">
-          @if (content.author_avatar_url) {
-            <img [src]="content.author_avatar_url" alt="" class="w-12 h-12 rounded-full object-cover" />
-          } @else {
-            <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 font-bold">
-              {{ content.author_username ? content.author_username.charAt(0).toUpperCase() : '?' }}
-            </div>
-          }
-          <div>
-            <p class="font-medium text-gray-800">{{ content.author_username }}</p>
-            <p class="text-sm text-gray-600">{{ content.flagged_at | relativeTime }}</p>
-          </div>
-        </div>
-        <p-tag
-          [value]="content.content_type.toUpperCase()"
-          [severity]="getContentTypeColor(content.content_type)"
-        ></p-tag>
-      </div>
-
-      <!-- Content -->
-      <div>
-        <h3 class="font-medium text-gray-700 mb-2">Content:</h3>
-        <div class="p-4 bg-gray-50 rounded-lg">
-          <p class="text-gray-800 whitespace-pre-wrap">{{ content.content }}</p>
-        </div>
-      </div>
-
-      <!-- Flag Reason -->
-      <div>
-        <h3 class="font-medium text-gray-700 mb-2">Flag Reason:</h3>
-        <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p class="text-red-800">{{ content.flag_reason }}</p>
-        </div>
-      </div>
-
-      <!-- Actions -->
-      <div class="flex justify-end gap-2 pt-4 border-t border-gray-200">
-        <p-button
-          label="Close"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="showPreviewDialog.set(false)"
-          [disabled]="isProcessing()"
-        ></p-button>
-        <p-button
-          label="Approve"
-          severity="success"
-          icon="pi pi-check"
-          (onClick)="moderateContent(content, 'approve')"
-          [loading]="isProcessing()"
-        ></p-button>
-        <p-button
-          label="Remove"
-          severity="danger"
-          icon="pi pi-trash"
-          (onClick)="moderateContent(content, 'remove')"
-          [loading]="isProcessing()"
-        ></p-button>
-      </div>
-    </div>
-  }
-</p-dialog>

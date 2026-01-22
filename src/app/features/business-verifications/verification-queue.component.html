@@ -4,464 +4,169 @@
     <h1>Business Verification Queue</h1>
     <div class="stats-badges">
       <span class="stat-badge pending">
-        <i class="pi pi-clock"></i>
+        <span class="material-symbols-outlined">schedule</span>
         {{ pendingCount() }} Pending
       </span>
       <span class="stat-badge approved">
-        <i class="pi pi-check-circle"></i>
+        <span class="material-symbols-outlined">check_circle</span>
         {{ approvedCount() }} Approved
       </span>
       <span class="stat-badge rejected">
-        <i class="pi pi-times-circle"></i>
+        <span class="material-symbols-outlined">cancel</span>
         {{ rejectedCount() }} Rejected
       </span>
     </div>
   </div>
 
   <!-- Filters -->
-  <div class="filters-section">
-    <p-select
-      [options]="statusOptions"
-      [(ngModel)]="statusFilter"
-      (onChange)="onStatusFilterChange()"
-      placeholder="Filter by Status"
-      styleClass="filter-dropdown">
-    </p-select>
+  <div class="filters-section mb-4">
+    <mat-form-field appearance="outline" class="filter-dropdown">
+      <mat-label>Filter by Status</mat-label>
+      <mat-select [value]="statusFilter()" (selectionChange)="onStatusFilterChanged($event.value)">
+        @for (option of statusOptions; track option.value) {
+          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
   </div>
 
-  <!-- Table -->
-  <p-table
-    [value]="requests()"
-    [loading]="isLoading()"
-    [paginator]="true"
-    [rows]="pageSize"
-    [totalRecords]="totalRecords()"
-    [lazy]="true"
-    (onLazyLoad)="onPageChange($event)"
-    [rowsPerPageOptions]="[10, 20, 50]"
-    styleClass="p-datatable-sm"
-    responsiveLayout="scroll">
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="loading-container flex justify-center items-center py-12">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  } @else {
+    <!-- Table -->
+    <div class="mat-elevation-z1 rounded-lg overflow-hidden">
+      <table mat-table [dataSource]="requests()" class="w-full">
+        <!-- Business Name Column -->
+        <ng-container matColumnDef="business">
+          <th mat-header-cell *matHeaderCellDef>Business Name</th>
+          <td mat-cell *matCellDef="let request">
+            <div class="business-name-cell">
+              <strong>{{ request.business_name }}</strong>
+              <small class="text-gray-500 block">{{ request.service_provider?.category || 'N/A' }}</small>
+            </div>
+          </td>
+        </ng-container>
 
-    <ng-template pTemplate="header">
-      <tr>
-        <th>Business Name</th>
-        <th>Owner</th>
-        <th>Contact</th>
-        <th>Location</th>
-        <th>Documents</th>
-        <th>Status</th>
-        <th>Submitted</th>
-        <th>Actions</th>
-      </tr>
-    </ng-template>
+        <!-- Owner Column -->
+        <ng-container matColumnDef="owner">
+          <th mat-header-cell *matHeaderCellDef>Owner</th>
+          <td mat-cell *matCellDef="let request">
+            <div class="owner-cell">
+              <div>{{ request.owner_name }}</div>
+              <small class="text-gray-500">{{ request.email }}</small>
+            </div>
+          </td>
+        </ng-container>
 
-    <ng-template pTemplate="body" let-request>
-      <tr>
-        <!-- Business Name -->
-        <td>
-          <div class="business-name-cell">
-            <strong>{{ request.business_name }}</strong>
-            <small class="text-muted">{{ request.service_provider?.category || 'N/A' }}</small>
-          </div>
-        </td>
-
-        <!-- Owner -->
-        <td>
-          <div class="owner-cell">
-            <div>{{ request.owner_name }}</div>
-            <small class="text-muted">{{ request.email }}</small>
-          </div>
-        </td>
-
-        <!-- Contact -->
-        <td>
-          <div>{{ request.contact_number }}</div>
-          @if (request.business_registration_number) {
-            <small class="text-muted">Reg: {{ request.business_registration_number }}</small>
-          }
-        </td>
-
-        <!-- Location -->
-        <td>
-          <div>{{ request.service_provider?.city || 'N/A' }}</div>
-          @if (request.service_provider?.state_province) {
-            <small class="text-muted">{{ request.service_provider.state_province }}</small>
-          }
-        </td>
-
-        <!-- Documents -->
-        <td>
-          <div class="documents-cell">
-            @if (hasDocuments(request)) {
-              <span class="document-count">
-                <i class="pi pi-file"></i> {{ getDocumentCount(request) }} docs
-              </span>
-            } @else {
-              <span class="text-muted">None</span>
+        <!-- Contact Column -->
+        <ng-container matColumnDef="contact">
+          <th mat-header-cell *matHeaderCellDef>Contact</th>
+          <td mat-cell *matCellDef="let request">
+            <div>{{ request.contact_number }}</div>
+            @if (request.business_registration_number) {
+              <small class="text-gray-500">Reg: {{ request.business_registration_number }}</small>
             }
-          </div>
-        </td>
+          </td>
+        </ng-container>
 
-        <!-- Status -->
-        <td>
-          <p-tag
-            [value]="getStatusLabel(request.status)"
-            [severity]="getStatusSeverity(request.status)">
-          </p-tag>
-        </td>
-
-        <!-- Submitted -->
-        <td>
-          <div class="date-cell">
-            <div>{{ formatDate(request.submitted_at) }}</div>
-            @if (request.reviewed_at) {
-              <small class="text-muted">Reviewed: {{ formatDate(request.reviewed_at) }}</small>
+        <!-- Location Column -->
+        <ng-container matColumnDef="location">
+          <th mat-header-cell *matHeaderCellDef>Location</th>
+          <td mat-cell *matCellDef="let request">
+            <div>{{ request.service_provider?.city || 'N/A' }}</div>
+            @if (request.service_provider?.state_province) {
+              <small class="text-gray-500">{{ request.service_provider.state_province }}</small>
             }
-          </div>
-        </td>
+          </td>
+        </ng-container>
 
-        <!-- Actions -->
-        <td>
-          <div class="action-buttons">
-            <p-button
-              icon="pi pi-eye"
-              label="Review"
-              size="small"
-              (onClick)="openReviewDialog(request)"
-              [disabled]="request.status !== 'pending'"
-              styleClass="p-button-sm">
-            </p-button>
-          </div>
-        </td>
-      </tr>
-    </ng-template>
-
-    <ng-template pTemplate="emptymessage">
-      <tr>
-        <td colspan="8" class="text-center">
-          <div class="empty-state">
-            <i class="pi pi-inbox" style="font-size: 3rem; color: var(--text-color-secondary);"></i>
-            <p>No verification requests found</p>
-          </div>
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
-
-  <!-- Review Dialog -->
-  <p-dialog
-    [(visible)]="showReviewDialog"
-    [header]="'Review Claim - ' + (selectedRequest()?.business_name || '')"
-    [modal]="true"
-    [style]="{ width: '900px', maxWidth: '95vw' }"
-    [dismissableMask]="true"
-    styleClass="review-dialog">
-
-    @if (selectedRequest()) {
-      <div class="space-y-6 p-4">
-        <!-- Business Information -->
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4">Business Information</h3>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="text-sm font-medium text-gray-600">Business Name</label>
-              <div class="text-gray-900 mt-1">{{ selectedRequest()!.business_name }}</div>
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-600">Category</label>
-              <div class="text-gray-900 mt-1">{{ selectedRequest()!.service_provider?.category || 'N/A' }}</div>
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-600">Address</label>
-              <div class="text-gray-900 mt-1">{{ selectedRequest()!.service_provider?.address || 'N/A' }}</div>
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-600">City</label>
-              <div class="text-gray-900 mt-1">{{ selectedRequest()!.service_provider?.city || 'N/A' }}</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Owner Information -->
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4">Owner Information</h3>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="text-sm font-medium text-gray-600">Owner Name</label>
-              <div class="text-gray-900 mt-1">{{ selectedRequest()!.owner_name }}</div>
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-600">Contact Number</label>
-              <div class="text-gray-900 mt-1">{{ selectedRequest()!.contact_number }}</div>
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-600">Email</label>
-              <div class="text-gray-900 mt-1">{{ selectedRequest()!.email }}</div>
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-600">Business Reg #</label>
-              <div class="text-gray-900 mt-1">{{ selectedRequest()!.business_registration_number || 'Not provided' }}</div>
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-600">Tax ID</label>
-              <div class="text-gray-900 mt-1">{{ selectedRequest()!.tax_id || 'Not provided' }}</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Verification Documents -->
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4">Verification Documents</h3>
-          <div class="grid grid-cols-3 gap-4">
-            <!-- Business Permit -->
-            <div class="border border-gray-200 rounded-lg p-4 bg-white">
-              <div class="flex items-center gap-2 mb-3">
-                <i class="pi pi-file text-blue-600"></i>
-                <span class="font-medium text-gray-900">Business Permit</span>
-              </div>
-              @if (selectedRequest()!.business_permit_url) {
-                <p-button
-                  label="View Document"
-                  icon="pi pi-eye"
-                  size="small"
-                  (onClick)="viewDocument(selectedRequest()!.business_permit_url, 'Business Permit')"
-                  styleClass="p-button-sm p-button-outlined w-full mb-2">
-                </p-button>
-                <div class="flex items-center gap-1 text-green-600 text-sm">
-                  <i class="pi pi-check-circle"></i> Uploaded
-                </div>
+        <!-- Documents Column -->
+        <ng-container matColumnDef="documents">
+          <th mat-header-cell *matHeaderCellDef>Documents</th>
+          <td mat-cell *matCellDef="let request">
+            <div class="documents-cell">
+              @if (hasDocuments(request)) {
+                <span class="document-count flex items-center gap-1">
+                  <span class="material-symbols-outlined text-base">description</span>
+                  {{ getDocumentCount(request) }} docs
+                </span>
               } @else {
-                <div class="flex items-center gap-1 text-gray-400 text-sm">
-                  <i class="pi pi-times-circle"></i> Not uploaded
-                </div>
+                <span class="text-gray-400">None</span>
               }
             </div>
+          </td>
+        </ng-container>
 
-            <!-- Tax ID Document -->
-            <div class="border border-gray-200 rounded-lg p-4 bg-white">
-              <div class="flex items-center gap-2 mb-3">
-                <i class="pi pi-file text-blue-600"></i>
-                <span class="font-medium text-gray-900">Tax ID Document</span>
-              </div>
-              @if (selectedRequest()!.tax_id_document_url) {
-                <p-button
-                  label="View Document"
-                  icon="pi pi-eye"
-                  size="small"
-                  (onClick)="viewDocument(selectedRequest()!.tax_id_document_url, 'Tax ID Document')"
-                  styleClass="p-button-sm p-button-outlined w-full mb-2">
-                </p-button>
-                <div class="flex items-center gap-1 text-green-600 text-sm">
-                  <i class="pi pi-check-circle"></i> Uploaded
-                </div>
-              } @else {
-                <div class="flex items-center gap-1 text-gray-400 text-sm">
-                  <i class="pi pi-times-circle"></i> Not uploaded
-                </div>
+        <!-- Status Column -->
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let request">
+            <app-status-badge [severity]="getStatusSeverity(request.status)">
+              {{ getStatusLabel(request.status) }}
+            </app-status-badge>
+          </td>
+        </ng-container>
+
+        <!-- Submitted Column -->
+        <ng-container matColumnDef="submitted">
+          <th mat-header-cell *matHeaderCellDef>Submitted</th>
+          <td mat-cell *matCellDef="let request">
+            <div class="date-cell">
+              <div>{{ formatDate(request.submitted_at) }}</div>
+              @if (request.reviewed_at) {
+                <small class="text-gray-500">Reviewed: {{ formatDate(request.reviewed_at) }}</small>
               }
             </div>
+          </td>
+        </ng-container>
 
-            <!-- Proof of Ownership -->
-            <div class="border border-gray-200 rounded-lg p-4 bg-white">
-              <div class="flex items-center gap-2 mb-3">
-                <i class="pi pi-file text-blue-600"></i>
-                <span class="font-medium text-gray-900">Proof of Ownership</span>
-              </div>
-              @if (selectedRequest()!.proof_of_ownership_url) {
-                <p-button
-                  label="View Document"
-                  icon="pi pi-eye"
-                  size="small"
-                  (onClick)="viewDocument(selectedRequest()!.proof_of_ownership_url, 'Proof of Ownership')"
-                  styleClass="p-button-sm p-button-outlined w-full mb-2">
-                </p-button>
-                <div class="flex items-center gap-1 text-green-600 text-sm">
-                  <i class="pi pi-check-circle"></i> Uploaded
-                </div>
-              } @else {
-                <div class="flex items-center gap-1 text-gray-400 text-sm">
-                  <i class="pi pi-times-circle"></i> Not uploaded
-                </div>
-              }
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let request">
+            <div class="action-buttons">
+              <button
+                mat-stroked-button
+                color="primary"
+                (click)="openReviewDialog(request)"
+                matTooltip="Review this verification request"
+              >
+                <span class="material-symbols-outlined mr-1">visibility</span>
+                Review
+              </button>
             </div>
-          </div>
-        </div>
+          </td>
+        </ng-container>
 
-        <!-- Admin Review Section -->
-        @if (selectedRequest()!.status === 'pending') {
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Admin Review</h3>
+        <!-- Header Row -->
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
 
-            <!-- Decision Radio Buttons -->
-            <div class="mb-4">
-              <label class="text-sm font-medium text-gray-700 mb-2 block">Decision *</label>
-              <div class="flex gap-6">
-                <div class="flex items-center gap-2">
-                  <p-radioButton
-                    name="reviewAction"
-                    value="approve"
-                    [(ngModel)]="reviewAction"
-                    inputId="approve">
-                  </p-radioButton>
-                  <label for="approve" class="flex items-center gap-2 text-green-600 font-medium cursor-pointer">
-                    <i class="pi pi-check-circle"></i> Approve
-                  </label>
-                </div>
-                <div class="flex items-center gap-2">
-                  <p-radioButton
-                    name="reviewAction"
-                    value="reject"
-                    [(ngModel)]="reviewAction"
-                    inputId="reject">
-                  </p-radioButton>
-                  <label for="reject" class="flex items-center gap-2 text-red-600 font-medium cursor-pointer">
-                    <i class="pi pi-times-circle"></i> Reject
-                  </label>
-                </div>
-              </div>
+        <!-- Data Rows -->
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+        <!-- Empty State -->
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell text-center py-12" [attr.colspan]="displayedColumns.length">
+            <div class="empty-state flex flex-col items-center gap-2">
+              <span class="material-symbols-outlined text-5xl text-gray-400">inbox</span>
+              <p class="text-gray-500">No verification requests found</p>
             </div>
+          </td>
+        </tr>
+      </table>
 
-            <!-- Rejection Reason (shown only if reject is selected) -->
-            @if (reviewAction === 'reject') {
-              <div class="mb-4">
-                <label for="rejectionReason" class="text-sm font-medium text-gray-700 mb-1 block">Rejection Reason *</label>
-                <textarea
-                  pTextarea
-                  id="rejectionReason"
-                  [(ngModel)]="rejectionReason"
-                  rows="3"
-                  placeholder="e.g., Business permit image is unclear, please resubmit"
-                  class="w-full">
-                </textarea>
-                <small class="text-xs text-gray-500 mt-1 block">This will be sent to the business owner</small>
-              </div>
-            }
-
-            <!-- Admin Notes (optional) -->
-            <div class="mb-0">
-              <label for="adminNotes" class="text-sm font-medium text-gray-700 mb-1 block">Admin Notes (Internal)</label>
-              <textarea
-                pTextarea
-                id="adminNotes"
-                [(ngModel)]="adminNotes"
-                rows="2"
-                placeholder="e.g., Verified with DTI database"
-                class="w-full">
-              </textarea>
-              <small class="text-xs text-gray-500 mt-1 block">Internal notes, not visible to user</small>
-            </div>
-          </div>
-        }
-
-        <!-- Already Reviewed Section -->
-        @if (selectedRequest()!.status !== 'pending') {
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Review Details</h3>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="text-sm font-medium text-gray-600">Status</label>
-                <div class="mt-1">
-                  <p-tag
-                    [value]="getStatusLabel(selectedRequest()!.status)"
-                    [severity]="getStatusSeverity(selectedRequest()!.status)">
-                  </p-tag>
-                </div>
-              </div>
-              <div>
-                <label class="text-sm font-medium text-gray-600">Reviewed At</label>
-                <div class="text-gray-900 mt-1">{{ formatDate(selectedRequest()!.reviewed_at) }}</div>
-              </div>
-              @if (selectedRequest()!.rejection_reason) {
-                <div class="col-span-2">
-                  <label class="text-sm font-medium text-gray-600">Rejection Reason</label>
-                  <div class="bg-red-50 border border-red-200 rounded p-3 text-red-900 mt-1">{{ selectedRequest()!.rejection_reason }}</div>
-                </div>
-              }
-              @if (selectedRequest()!.admin_notes) {
-                <div class="col-span-2">
-                  <label class="text-sm font-medium text-gray-600">Admin Notes</label>
-                  <div class="text-gray-900 mt-1">{{ selectedRequest()!.admin_notes }}</div>
-                </div>
-              }
-            </div>
-          </div>
-        }
-      </div>
-    }
-
-    <!-- Dialog Footer - MUST be direct child of p-dialog -->
-    <ng-template pTemplate="footer">
-      <div class="flex flex-col gap-2">
-        <!-- Debug Info -->
-        <div class="text-xs text-gray-500 px-2 py-1 bg-yellow-50 rounded border border-yellow-200">
-          <strong>Debug:</strong> Status = {{ selectedRequest()?.status || 'null' }} |
-          Action = {{ reviewAction || 'null' }} |
-          Processing = {{ isProcessing() }}
-        </div>
-
-        <div class="flex justify-end gap-2">
-          <p-button
-            label="Cancel"
-            icon="pi pi-times"
-            (onClick)="showReviewDialog.set(false)"
-            [disabled]="isProcessing()"
-            styleClass="p-button-text">
-          </p-button>
-
-          <!-- ALWAYS VISIBLE BUTTON -->
-          <p-button
-            label="Submit Review"
-            icon="pi pi-check"
-            (onClick)="submitReview()"
-            [disabled]="!reviewAction || isProcessing()"
-            [loading]="isProcessing()"
-            styleClass="p-button-success">
-          </p-button>
-        </div>
-      </div>
-    </ng-template>
-  </p-dialog>
-
-  <!-- Document Viewer Dialog -->
-  <p-dialog
-    [(visible)]="showDocumentViewer"
-    [header]="currentDocument()?.title || 'Document'"
-    [modal]="true"
-    [style]="{ width: '90vw', maxWidth: '1200px', height: '90vh' }"
-    [dismissableMask]="true"
-    styleClass="document-viewer-dialog">
-
-    @if (currentDocument()) {
-      <div class="flex items-center justify-center">
-        <img
-          [src]="currentDocument()!.url"
-          [alt]="currentDocument()!.title"
-          style="max-width: 100%; max-height: 80vh; object-fit: contain;"
-        />
-      </div>
-
-      <ng-template pTemplate="footer">
-        <div class="flex justify-end gap-2">
-          <p-button
-            label="Download"
-            icon="pi pi-download"
-            (onClick)="downloadDocument()"
-            styleClass="p-button-outlined">
-          </p-button>
-          <p-button
-            label="Close"
-            icon="pi pi-times"
-            (onClick)="showDocumentViewer.set(false)"
-            styleClass="p-button-text">
-          </p-button>
-        </div>
-      </ng-template>
-    }
-  </p-dialog>
-
-  <!-- Toast Messages -->
-  <p-toast></p-toast>
-
-  <!-- Confirmation Dialog -->
-  <p-confirmDialog></p-confirmDialog>
+      <!-- Paginator -->
+      <mat-paginator
+        [length]="totalRecords()"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[10, 20, 50]"
+        [pageIndex]="currentPage()"
+        (page)="onPageChange($event)"
+        showFirstLastButtons
+      ></mat-paginator>
+    </div>
+  }
 </div>

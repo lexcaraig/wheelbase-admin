@@ -20,6 +20,9 @@ import { MonitoringComponent } from './features/monitoring/monitoring.component'
 import { PromotionsListComponent } from './features/promotions/promotions-list.component';
 import { PromotionEditorComponent } from './features/promotions/promotion-editor.component';
 import { PromotionReportComponent } from './features/promotions/promotion-report.component';
+import { AnnouncementsComponent } from './features/announcements/announcements.component';
+import { BusinessListComponent } from './features/businesses/business-list.component';
+import { EmergencyDashboardComponent } from './features/emergency/emergency-dashboard.component';
 
 export const routes: Routes = [
   // Root redirect to dashboard (will trigger AuthGuard if not authenticated)
@@ -54,6 +57,13 @@ export const routes: Routes = [
       {
         path: 'monitoring',
         component: MonitoringComponent,
+        canActivate: [AdminRoleGuard],
+        data: { permission: 'analytics.view' }
+      },
+      // Emergency Dashboard - TICKET-009
+      {
+        path: 'emergency',
+        component: EmergencyDashboardComponent,
         canActivate: [AdminRoleGuard],
         data: { permission: 'analytics.view' }
       },
@@ -96,6 +106,12 @@ export const routes: Routes = [
       {
         path: 'settings',
         component: SystemSettingsComponent,
+        canActivate: [AdminRoleGuard],
+        data: { permission: 'users.view' }
+      },
+      {
+        path: 'announcements',
+        component: AnnouncementsComponent,
         canActivate: [AdminRoleGuard],
         data: { permission: 'users.view' }
       },
@@ -151,6 +167,13 @@ export const routes: Routes = [
       {
         path: 'promotions/report/:id',
         component: PromotionReportComponent,
+        canActivate: [AdminRoleGuard],
+        data: { permission: 'content.moderate' }
+      },
+      // Business Portal Management
+      {
+        path: 'businesses',
+        component: BusinessListComponent,
         canActivate: [AdminRoleGuard],
         data: { permission: 'content.moderate' }
       }

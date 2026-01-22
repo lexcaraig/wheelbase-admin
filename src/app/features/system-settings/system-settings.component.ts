@@ -1,18 +1,16 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CardModule } from 'primeng/card';
-import { TableModule } from 'primeng/table';
-import { ButtonModule } from 'primeng/button';
-import { ToastModule } from 'primeng/toast';
-import { DialogModule } from 'primeng/dialog';
-import { InputTextModule } from 'primeng/inputtext';
-import { ToggleSwitch } from 'primeng/toggleswitch';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { Textarea } from 'primeng/textarea';
-import { TagModule } from 'primeng/tag';
-import { MessageService } from 'primeng/api';
+import { MatCardModule } from '@angular/material/card';
+import { MatTableModule } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { NotificationService } from '../../core/services/notification.service';
+import { StatusBadgeComponent, BadgeSeverity } from '../../shared/components/status-badge/status-badge.component';
+import { EditSettingDialogComponent } from './dialogs/edit-setting-dialog.component';
 
 interface SystemSetting {
   id: string;
@@ -33,18 +31,14 @@ interface SystemSetting {
   imports: [
     CommonModule,
     FormsModule,
-    CardModule,
-    TableModule,
-    ButtonModule,
-    ToastModule,
-    DialogModule,
-    InputTextModule,
-    ToggleSwitch,
-    InputNumberModule,
-    Textarea,
-    TagModule
+    MatCardModule,
+    MatTableModule,
+    MatButtonModule,
+    MatTooltipModule,
+    MatProgressSpinnerModule,
+    MatDialogModule,
+    StatusBadgeComponent
   ],
-  providers: [MessageService],
   templateUrl: './system-settings.component.html',
   styleUrl: './system-settings.component.scss'
 })
@@ -52,18 +46,15 @@ export class SystemSettingsComponent implements OnInit {
   settings = signal<SystemSetting[]>([]);
   isLoading = signal(true);
 
-  // Edit Dialog
-  showEditDialog = signal(false);
-  selectedSetting = signal<SystemSetting | null>(null);
-  editValue: any = null;
-  isProcessing = signal(false);
-
   // Grouping
   groupedSettings = signal<Map<string, SystemSetting[]>>(new Map());
 
+  displayedColumns: string[] = ['key', 'type', 'value', 'description', 'actions'];
+
   constructor(
     private supabase: SupabaseService,
-    private messageService: MessageService
+    private notificationService: NotificationService,
+    private dialog: MatDialog
   ) {}
 
   async ngOnInit() {
@@ -85,11 +76,7 @@ export class SystemSettingsComponent implements OnInit {
         this.groupSettingsByCategory(data.data.settings);
       }
     } catch (error: any) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: error.message || 'Failed to load settings'
-      });
+      this.notificationService.error('Error', error.message || 'Failed to load settings');
       console.error('Load settings error:', error);
     } finally {
       this.isLoading.set(false);
@@ -111,54 +98,25 @@ export class SystemSettingsComponent implements OnInit {
   }
 
   openEditDialog(setting: SystemSetting) {
-    this.selectedSetting.set(setting);
-    this.editValue = setting.value;
-    this.showEditDialog.set(true);
-  }
+    const dialogRef = this.dialog.open(EditSettingDialogComponent, {
+      width: '500px',
+      disableClose: true,
+      data: { setting }
+    });
 
-  async updateSetting() {
-    const setting = this.selectedSetting();
-    if (!setting) return;
-
-    try {
-      this.isProcessing.set(true);
-
-      const { data, error } = await this.supabase.client.functions.invoke('admin-update-settings', {
-        body: {
-          setting_id: setting.id,
-          value: this.editValue
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.success) {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Setting updated successfully'
-        });
-        this.showEditDialog.set(false);
-        await this.loadSettings();
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadSettings();
       }
-    } catch (error: any) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: error.message || 'Failed to update setting'
-      });
-      console.error('Update setting error:', error);
-    } finally {
-      this.isProcessing.set(false);
-    }
+    });
   }
 
-  getCategoryColor(category: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
-    const colors: Record<string, 'success' | 'info' | 'warn' | 'danger' | 'secondary'> = {
+  getCategoryColor(category: string): BadgeSeverity {
+    const colors: Record<string, BadgeSeverity> = {
       'General': 'info',
       'Security': 'danger',
       'Features': 'success',
-      'Limits': 'warn',
+      'Limits': 'warning',
       'Payment': 'info',
       'Notification': 'secondary'
     };
@@ -167,12 +125,12 @@ export class SystemSettingsComponent implements OnInit {
 
   getTypeIcon(type: string): string {
     const icons: Record<string, string> = {
-      'boolean': 'pi-check-circle',
-      'number': 'pi-hashtag',
-      'string': 'pi-align-left',
-      'json': 'pi-code'
+      'boolean': 'check_circle',
+      'number': 'tag',
+      'string': 'notes',
+      'json': 'code'
     };
-    return icons[type] || 'pi-question';
+    return icons[type] || 'help';
   }
 
   formatValue(value: any, type: string): string {
@@ -183,6 +141,10 @@ export class SystemSettingsComponent implements OnInit {
       return JSON.stringify(value, null, 2);
     }
     return String(value);
+  }
+
+  getValueSeverity(value: boolean): BadgeSeverity {
+    return value ? 'success' : 'danger';
   }
 
   get categories(): string[] {

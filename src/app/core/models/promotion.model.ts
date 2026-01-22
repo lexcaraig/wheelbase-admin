@@ -4,6 +4,45 @@
 export type LogoShape = 'square' | 'horizontal';
 
 /**
+ * Placement locations where promotions can appear
+ * Brands can pay for specific placements
+ */
+export type PlacementType =
+  | 'dashboard'
+  | 'services'
+  | 'events'
+  | 'marketplace_browse'
+  | 'marketplace_detail'
+  | 'post_ride'
+  | 'routes';
+
+/**
+ * Placement display names for UI
+ */
+export const PLACEMENT_LABELS: Record<PlacementType, string> = {
+  dashboard: 'Dashboard',
+  services: 'Services Map',
+  events: 'Events List',
+  marketplace_browse: 'Marketplace Browse',
+  marketplace_detail: 'Marketplace Detail',
+  post_ride: 'Post Ride Summary',
+  routes: 'Routes Discovery'
+};
+
+/**
+ * All available placements
+ */
+export const ALL_PLACEMENTS: PlacementType[] = [
+  'dashboard',
+  'services',
+  'events',
+  'marketplace_browse',
+  'marketplace_detail',
+  'post_ride',
+  'routes'
+];
+
+/**
  * Promotion model for Quick Action Widget banner ads
  * Managed via Admin Panel, displayed in mobile app
  */
@@ -11,13 +50,15 @@ export interface Promotion {
   id: string;
   title: string;
   subtitle?: string | null;
-  logo_url?: string | null;
-  logo_shape: LogoShape;
+  logo_url?: string | null; // Square logo (1:1 aspect ratio)
+  logo_url_horizontal?: string | null; // Horizontal logo (wide aspect ratio)
+  logo_shape: LogoShape; // DEPRECATED
   background_color: string;
   text_color: string;
   cta_url?: string | null;
   priority: number;
   target_tiers: string[];
+  placement_types: PlacementType[];
   start_date?: string | null;
   end_date?: string | null;
   is_active: boolean;
@@ -34,13 +75,15 @@ export interface Promotion {
 export interface PromotionPayload {
   title: string;
   subtitle?: string | null;
-  logo_url?: string | null;
-  logo_shape?: LogoShape;
+  logo_url?: string | null; // Square logo
+  logo_url_horizontal?: string | null; // Horizontal logo
+  logo_shape?: LogoShape; // DEPRECATED
   background_color?: string;
   text_color?: string;
   cta_url?: string | null;
   priority?: number;
   target_tiers?: string[];
+  placement_types?: PlacementType[];
   start_date?: string | null;
   end_date?: string | null;
   is_active?: boolean;
@@ -109,6 +152,18 @@ export interface HourlyStats {
 }
 
 /**
+ * Placement stats for analytics breakdown
+ */
+export interface PlacementStats {
+  placement_type: PlacementType;
+  impressions: number;
+  clicks: number;
+  ctr: number;
+  unique_viewers: number;
+  unique_clickers: number;
+}
+
+/**
  * Full promotion report
  */
 export interface PromotionReport {
@@ -119,6 +174,7 @@ export interface PromotionReport {
     start_date: string | null;
     end_date: string | null;
     target_tiers: string[];
+    placement_types: PlacementType[];
     cta_url: string | null;
   };
   summary: {
@@ -134,5 +190,6 @@ export interface PromotionReport {
   tier_breakdown: TierStats[];
   platform_breakdown: PlatformStats[];
   hourly_breakdown: HourlyStats[];
+  placement_breakdown: PlacementStats[];
   generated_at: string;
 }

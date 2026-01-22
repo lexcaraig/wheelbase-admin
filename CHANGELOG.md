@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Planned for BACKOFFICE-002 (Q1-Q2 2025)
 
 #### Advanced Analytics
+
 - Custom date range selector for all charts
 - User retention cohort analysis
 - Geographic distribution map
@@ -20,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Scheduled daily/weekly/monthly reports
 
 #### System Health Monitoring
+
 - Edge Function performance metrics (response times, error rates)
 - Database query performance monitoring
 - Storage usage metrics
@@ -27,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Uptime monitoring dashboard
 
 #### Push Notification Broadcasting
+
 - Send notifications to all users
 - Send to specific user segments (location, device, subscription)
 - Schedule notifications for later delivery
@@ -35,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Delivery and engagement analytics
 
 #### Support Ticket Management
+
 - Ticket queue with filtering
 - Ticket detail page with full history
 - Reply to users (email + in-app notification)
@@ -43,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Internal notes (admin-only)
 
 #### Enhanced Audit Logging
+
 - Advanced audit log search and filtering
 - Export audit logs to CSV
 - Permission management UI
@@ -50,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Role assignment UI
 
 #### Data Export
+
 - Export users to CSV/JSON/Excel
 - Export content (posts, rides, groups)
 - Export analytics as PNG/PDF
@@ -63,6 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added - MVP Release (BACKOFFICE-001)
 
 #### Authentication & Authorization
+
 - Email/password login with form validation
 - Google OAuth 2.0 integration
 - JWT-based session management (1 hour access token, 7 day refresh token)
@@ -72,6 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic session timeout and redirect to login
 
 #### Dashboard
+
 - Analytics metrics cards:
   - Total Users (all-time count)
   - Daily Active Users (DAU) - last 24 hours
@@ -86,6 +94,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Error handling with toast notifications
 
 #### User Management
+
 - User list table with PrimeNG DataTable
   - Pagination (25 users per page)
   - Search by email or username
@@ -104,6 +113,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Audit logging for ban/unban actions
 
 #### Content Moderation
+
 - Flagged content queue table
   - Display flagged posts and comments
   - Filter by content type (all/posts/comments)
@@ -116,6 +126,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Toast notifications for success/error
 
 #### UI/UX
+
 - Responsive layouts for desktop, tablet, mobile
 - Dark theme with yellow accents (#FFD535)
 - Modern glassmorphism design (blur backgrounds)
@@ -127,6 +138,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Relative time pipe ("2 hours ago" formatting)
 
 #### Backend Integration
+
 - 9 Supabase Edge Functions deployed:
   - `admin-login` - Authentication
   - `admin-verify-session` - Session validation
@@ -142,6 +154,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Typed responses with error handling
 
 #### Database
+
 - `admin_users` table with role system
 - `admin_audit_logs` table (immutable audit trail)
 - `users` table ban tracking fields
@@ -150,6 +163,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Row-Level Security (RLS) policies on all admin tables
 
 #### Security
+
 - HTTPS enforced (TLS 1.3)
 - Security headers configured:
   - Content-Security-Policy
@@ -163,6 +177,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - IP address and user agent tracking
 
 #### Developer Experience
+
 - Angular 20 standalone components
 - TypeScript strict mode enabled
 - PrimeNG 20 component library
@@ -173,11 +188,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Environment-based configuration (dev/prod)
 
 ### Changed
+
 - Migrated from NgModules to standalone components
 - Updated to Angular 20 (from Angular 18)
 - Switched to Signals for reactive state (from RxJS BehaviorSubjects)
 
 ### Fixed
+
 - Bundle size optimization (tree-shaking enabled)
 - Chart memory leaks (destroy on component unmount)
 - Auto-refresh interval cleanup on destroy
@@ -189,6 +206,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.0] - 2024-12-20
 
 ### Added - Project Setup Phase
+
 - Initialized Angular 20 project with standalone architecture
 - Installed dependencies (PrimeNG, Supabase, Chart.js, TailwindCSS)
 - Configured TailwindCSS with PrimeNG integration
@@ -198,6 +216,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Created project directory structure
 
 ### Changed
+
 - Updated package.json with all required dependencies
 - Configured angular.json build settings
 - Set up tsconfig.json with strict mode
@@ -207,7 +226,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2024-12-15
 
 ### Added - Backend Infrastructure Phase
+
 - Created database migration `20250101_admin_panel_mvp.sql`:
+
   - `admin_users` table with roles (super_admin, admin, moderator, support)
   - `admin_audit_logs` table for complete audit trail
   - Modified `users` table with ban tracking fields
@@ -216,6 +237,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Enabled RLS policies on all admin tables
 
 - Deployed 9 Supabase Edge Functions:
+
   - `admin-login` (email/password authentication)
   - `admin-verify-session` (JWT validation)
   - `admin-get-users` (paginated user list)
@@ -227,11 +249,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `admin-moderate-content` (approve/remove content)
 
 - Configured Google OAuth in Supabase:
+
   - Created admin-specific OAuth client
   - Set callback URL: admin.ridewheelbase.app/auth/callback
   - Configured admin scopes
 
 - Created super admin user:
+
   - Email: lexphicableme@gmail.com
   - Role: super_admin
   - Full permissions
@@ -241,6 +265,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added localhost:4200 for development
 
 ### Security
+
 - Implemented JWT RS256 authentication
 - Enabled RLS on all admin tables
 - Created audit logging system
@@ -250,11 +275,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History Summary
 
-| Version | Release Date | Milestone | Status |
-|---------|--------------|-----------|--------|
+| Version | Release Date | Milestone                     | Status                  |
+| ------- | ------------ | ----------------------------- | ----------------------- |
 | 1.0.0   | 2024-12-27   | MVP Complete (BACKOFFICE-001) | ✅ Ready for Deployment |
-| 0.2.0   | 2024-12-20   | Project Setup | ✅ Complete |
-| 0.1.0   | 2024-12-15   | Backend Infrastructure | ✅ Complete |
+| 0.2.0   | 2024-12-20   | Project Setup                 | ✅ Complete             |
+| 0.1.0   | 2024-12-15   | Backend Infrastructure        | ✅ Complete             |
 
 ---
 
@@ -283,6 +308,7 @@ No migration required - this is the initial release.
 ### Non-Critical Issues
 
 1. **Bundle Size Warning**
+
    - Main bundle exceeds budget by 126 KB (1.63 MB vs 1.50 MB target)
    - **Impact:** Low - acceptable for admin panel
    - **Fix:** Planned for future with lazy loading
@@ -300,6 +326,7 @@ No migration required - this is the initial release.
 ## Future Roadmap
 
 ### Version 2.0.0 - BACKOFFICE-002 (Q1-Q2 2025)
+
 - Advanced analytics with custom date ranges
 - System health monitoring dashboard
 - Push notification broadcasting
@@ -308,18 +335,21 @@ No migration required - this is the initial release.
 - Data export capabilities (CSV, PDF, Excel)
 
 ### Version 2.1.0 - Security Enhancements (Q2 2025)
+
 - Two-Factor Authentication (2FA)
 - IP whitelisting
 - Session activity monitoring
 - Advanced permission management
 
 ### Version 2.2.0 - Performance Optimizations (Q2 2025)
+
 - Lazy loading for all feature modules
 - Service worker for offline support
 - Advanced caching strategies
 - Bundle size optimization (<1.5 MB)
 
 ### Version 3.0.0 - Mobile App (Q3 2025)
+
 - Native iOS app for admin panel
 - Native Android app for admin panel
 - Push notifications for admin alerts
@@ -329,21 +359,25 @@ No migration required - this is the initial release.
 ## Support
 
 For questions, bug reports, or feature requests:
+
 - **Technical Support:** lexphicableme@gmail.com
 - **Documentation:** See README.md, ARCHITECTURE.md, FEATURES.md
-- **Backend Docs:** `FLUTTER_APP/supabase/ADMIN_GOOGLE_OAUTH_SETUP.md`
+- **Backend Docs:** `wheelbase-supabase/supabase/ADMIN_GOOGLE_OAUTH_SETUP.md`
 
 ---
 
 ## Contributors
 
 **Development:**
+
 - Claude Code (AI Assistant) - Full-stack implementation
 
 **Product Owner:**
+
 - Lex Caraig (Co+Lab Digital Solutions)
 
 **Super Admin:**
+
 - Lex Caraig (lexphicableme@gmail.com)
 
 ---

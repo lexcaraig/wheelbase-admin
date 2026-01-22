@@ -7,6 +7,7 @@ import {
   VerificationQueueResponse,
   ClaimStatus
 } from '../models/verification.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -25,10 +26,6 @@ export class VerificationService {
     filters: VerificationQueueFilters
   ): Promise<VerificationQueueResponse> {
     try {
-      console.log('🔵 Calling admin Edge Function...');
-
-      // Call Edge Function instead of direct database query
-      // This uses service role key server-side to bypass RLS
       const { data, error } = await this.client.functions.invoke('admin-get-verifications', {
         body: {
           status: filters.status,
@@ -37,15 +34,12 @@ export class VerificationService {
         }
       });
 
-      console.log('🔵 Edge Function response:', { data, error });
-
       if (error) throw error;
       if (!data || !data.success) {
         throw new Error(data?.error?.message || 'Failed to fetch verification requests');
       }
 
       const result = data.data;
-      console.log('✅ Verification data:', result);
 
       return {
         requests: result.requests || [],
@@ -55,7 +49,7 @@ export class VerificationService {
         rejected: result.rejected || 0
       };
     } catch (error: any) {
-      console.error('❌ Error fetching verification queue:', error);
+      console.error('Error fetching verification queue:', error);
       throw new Error(error.message || 'Failed to fetch verification requests');
     }
   }
@@ -97,23 +91,37 @@ export class VerificationService {
    */
   async reviewClaim(request: ReviewClaimRequest): Promise<void> {
     try {
-      // Edge Function will verify admin authentication via JWT token
-      // The Supabase client automatically includes the session token from SupabaseService
-      const { data, error } = await this.client.functions.invoke('review-claim', {
-        body: {
+      const session = await this.supabase.getSession();
+
+      if (!session?.access_token) {
+        throw new Error('No active session - please log in again');
+      }
+
+      const response = await fetch(`${environment.supabaseUrl}/functions/v1/review-claim`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': environment.supabaseAnonKey
+        },
+        body: JSON.stringify({
           requestId: request.requestId,
           action: request.action,
           rejectionReason: request.rejectionReason,
           adminNotes: request.adminNotes
-        }
+        })
       });
 
-      if (error) throw error;
+      const responseData = await response.json();
 
-      // Check for function execution errors
-      if (data?.error) {
-        throw new Error(data.error.message || 'Failed to review claim');
+      if (!response.ok) {
+        throw new Error(responseData.error?.message || 'Request failed');
       }
+
+      if (!responseData.success) {
+        throw new Error(responseData.error?.message || 'Failed to review claim');
+      }
+
     } catch (error: any) {
       console.error('Error reviewing claim:', error);
       throw new Error(error.message || 'Failed to review claim');

@@ -1,24 +1,37 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { UsersService } from '../../../core/services/users.service';
+import { SelectionModel } from '@angular/cdk/collections';
+import { UsersService, UserStats } from '../../../core/services/users.service';
 import { AppUser } from '../../../core/models/user.model';
-import { TableModule } from 'primeng/table';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { TagModule } from 'primeng/tag';
-import { DialogModule } from 'primeng/dialog';
-import { ToastModule } from 'primeng/toast';
-import { TooltipModule } from 'primeng/tooltip';
-import { Select } from 'primeng/select';
-import { CardModule } from 'primeng/card';
-import { IconFieldModule } from 'primeng/iconfield';
-import { InputIconModule } from 'primeng/inputicon';
-import { Textarea } from 'primeng/textarea';
-import { AvatarModule } from 'primeng/avatar';
-import { MessageService } from 'primeng/api';
+import { NotificationService } from '../../../core/services/notification.service';
+import { ConfirmService } from '../../../core/services/confirm.service';
+
+// Angular Material imports
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
+import { MatSortModule, MatSort, Sort } from '@angular/material/sort';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+
+// Shared components
+import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
+import { AvatarComponent } from '../../../shared/components/avatar/avatar.component';
 import { RelativeTimePipe } from '../../../shared/pipes/relative-time.pipe';
+
+// Dialog Components
+import { BanUserDialogComponent } from './dialogs/ban-user-dialog.component';
+import { BulkBanDialogComponent } from './dialogs/bulk-ban-dialog.component';
+import { RestoreUserDialogComponent } from './dialogs/restore-user-dialog.component';
+import { ForceDeleteDialogComponent } from './dialogs/force-delete-dialog.component';
 
 @Component({
   selector: 'app-users-list',
@@ -26,63 +39,106 @@ import { RelativeTimePipe } from '../../../shared/pipes/relative-time.pipe';
   imports: [
     CommonModule,
     FormsModule,
-    TableModule,
-    ButtonModule,
-    InputTextModule,
-    Textarea,
-    TagModule,
-    DialogModule,
-    ToastModule,
-    TooltipModule,
-    Select,
-    CardModule,
-    IconFieldModule,
-    InputIconModule,
-    AvatarModule,
+    // Angular Material
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatSortModule,
+    MatCheckboxModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatTooltipModule,
+    MatDialogModule,
+    // Shared components
+    StatusBadgeComponent,
+    AvatarComponent,
     RelativeTimePipe
   ],
-  providers: [MessageService],
   templateUrl: './users-list.component.html',
   styleUrl: './users-list.component.scss'
 })
 export class UsersListComponent implements OnInit {
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
+
   users = signal<AppUser[]>([]);
   isLoading = signal(true);
   totalRecords = signal(0);
 
-  // Filters - using regular properties for ngModel compatibility
+  // User Stats
+  stats = signal<UserStats | null>(null);
+  isLoadingStats = signal(true);
+
+  // Selection
+  selection = new SelectionModel<AppUser>(true, []);
+
+  // Table columns
+  displayedColumns: string[] = ['select', 'user', 'email', 'country', 'subscription', 'verification', 'status', 'joined', 'actions'];
+
+  // Filters
   searchQuery = '';
   statusFilter: 'all' | 'active' | 'banned' = 'all';
+  subscriptionFilter: 'all' | 'free' | 'pro' | 'premium' = 'all';
+  verificationFilter: 'all' | 'verified' | 'unverified' = 'all';
+  accountStatusFilter: 'all' | 'active' | 'deleted' | 'suspended' = 'all';
+
   statusOptions = [
-    { label: 'All Users', value: 'all' },
+    { label: 'All Ban Status', value: 'all' },
     { label: 'Active', value: 'active' },
     { label: 'Banned', value: 'banned' }
+  ];
+
+  subscriptionOptions = [
+    { label: 'All Tiers', value: 'all' },
+    { label: 'Free', value: 'free' },
+    { label: 'Pro', value: 'pro' },
+    { label: 'Premium', value: 'premium' }
+  ];
+
+  verificationOptions = [
+    { label: 'All Verification', value: 'all' },
+    { label: 'Verified', value: 'verified' },
+    { label: 'Unverified', value: 'unverified' }
+  ];
+
+  accountStatusOptions = [
+    { label: 'All Account Status', value: 'all' },
+    { label: 'Active', value: 'active' },
+    { label: 'Deleted', value: 'deleted' },
+    { label: 'Suspended', value: 'suspended' }
   ];
 
   // Pagination
   currentPage = signal(1);
   pageSize = 25;
-
-  // Ban Dialog
-  showBanDialog = signal(false);
-  selectedUser = signal<AppUser | null>(null);
-  banReason = ''; // Regular property for ngModel
-  isBanning = signal(false);
-
-  // Bulk Operations
-  selectedUsers = signal<AppUser[]>([]);
-  showBulkBanDialog = signal(false);
-  bulkBanReason = '';
-  isBulkBanning = signal(false);
+  pageSizeOptions = [10, 25, 50];
 
   constructor(
     private usersService: UsersService,
     private router: Router,
-    private messageService: MessageService
+    private notificationService: NotificationService,
+    private confirmService: ConfirmService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit() {
+    this.loadStats();
     this.loadUsers();
+  }
+
+  async loadStats() {
+    try {
+      this.isLoadingStats.set(true);
+      const stats = await this.usersService.getUserStats();
+      this.stats.set(stats);
+    } catch (error: any) {
+      console.error('Failed to load user stats:', error);
+    } finally {
+      this.isLoadingStats.set(false);
+    }
   }
 
   async loadUsers() {
@@ -92,189 +148,139 @@ export class UsersListComponent implements OnInit {
         page: this.currentPage(),
         pageSize: this.pageSize,
         search: this.searchQuery || undefined,
-        status: this.statusFilter
+        status: this.statusFilter,
+        subscription: this.subscriptionFilter !== 'all' ? this.subscriptionFilter : undefined,
+        verification: this.verificationFilter !== 'all' ? this.verificationFilter : undefined,
+        accountStatus: this.accountStatusFilter !== 'all' ? this.accountStatusFilter : undefined
       });
 
       this.users.set(response.users);
       this.totalRecords.set(response.total);
+      this.selection.clear();
     } catch (error: any) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: error.message || 'Failed to load users'
-      });
+      this.notificationService.error('Error', error.message || 'Failed to load users');
     } finally {
       this.isLoading.set(false);
     }
   }
 
-  onPageChange(event: any) {
-    // PrimeNG lazy load event structure: { first: number, rows: number }
-    // Calculate page number from 'first' index
-    const page = Math.floor(event.first / event.rows) + 1;
-    this.currentPage.set(page);
-    this.pageSize = event.rows;
+  onPageChange(event: PageEvent) {
+    this.currentPage.set(event.pageIndex + 1);
+    this.pageSize = event.pageSize;
     this.loadUsers();
   }
 
   onSearch() {
     this.currentPage.set(1);
+    if (this.paginator) {
+      this.paginator.firstPage();
+    }
     this.loadUsers();
   }
 
-  onStatusFilterChange() {
+  onFilterChange() {
     this.currentPage.set(1);
+    if (this.paginator) {
+      this.paginator.firstPage();
+    }
     this.loadUsers();
+  }
+
+  clearFilters() {
+    this.searchQuery = '';
+    this.statusFilter = 'all';
+    this.subscriptionFilter = 'all';
+    this.verificationFilter = 'all';
+    this.accountStatusFilter = 'all';
+    this.currentPage.set(1);
+    if (this.paginator) {
+      this.paginator.firstPage();
+    }
+    this.loadUsers();
+  }
+
+  hasActiveFilters(): boolean {
+    return this.searchQuery !== '' ||
+      this.statusFilter !== 'all' ||
+      this.subscriptionFilter !== 'all' ||
+      this.verificationFilter !== 'all' ||
+      this.accountStatusFilter !== 'all';
+  }
+
+  // Selection
+  isAllSelected() {
+    const numSelected = this.selection.selected.length;
+    const numRows = this.users().length;
+    return numSelected === numRows && numRows > 0;
+  }
+
+  toggleAllRows() {
+    if (this.isAllSelected()) {
+      this.selection.clear();
+    } else {
+      this.users().forEach(row => this.selection.select(row));
+    }
   }
 
   viewUserDetail(user: AppUser) {
     this.router.navigate(['/users', user.id]);
   }
 
+  // Ban/Unban Operations
   openBanDialog(user: AppUser) {
-    this.selectedUser.set(user);
-    this.banReason = '';
-    this.showBanDialog.set(true);
-  }
+    const dialogRef = this.dialog.open(BanUserDialogComponent, {
+      width: '500px',
+      data: { user }
+    });
 
-  async banUser() {
-    if (!this.selectedUser() || !this.banReason.trim()) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Warning',
-        detail: 'Ban reason is required'
-      });
-      return;
-    }
-
-    try {
-      this.isBanning.set(true);
-      await this.usersService.banUser(this.selectedUser()!.id, this.banReason);
-
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'User has been banned'
-      });
-
-      this.showBanDialog.set(false);
-      this.loadUsers();
-    } catch (error: any) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: error.message || 'Failed to ban user'
-      });
-    } finally {
-      this.isBanning.set(false);
-    }
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadUsers();
+      }
+    });
   }
 
   async unbanUser(user: AppUser) {
+    const confirmed = await this.confirmService.confirmRestore(user.username);
+    if (!confirmed) return;
+
     try {
       await this.usersService.unbanUser(user.id);
-
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'User has been unbanned'
-      });
-
+      this.notificationService.success('Success', 'User has been unbanned');
       this.loadUsers();
     } catch (error: any) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: error.message || 'Failed to unban user'
-      });
-    }
-  }
-
-  getSeverity(status: string): 'success' | 'danger' | 'warn' | 'info' {
-    switch (status) {
-      case 'premium': return 'warn';
-      case 'pro': return 'info';
-      case 'free': return 'success';
-      default: return 'info';
+      this.notificationService.error('Error', error.message || 'Failed to unban user');
     }
   }
 
   // Bulk Operations
-  onSelectionChange(event: any) {
-    this.selectedUsers.set(event);
-  }
-
   openBulkBanDialog() {
-    if (this.selectedUsers().length === 0) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Warning',
-        detail: 'Please select at least one user to ban'
-      });
+    if (this.selection.selected.length === 0) {
+      this.notificationService.warn('Warning', 'Please select at least one user to ban');
       return;
     }
 
-    this.bulkBanReason = '';
-    this.showBulkBanDialog.set(true);
-  }
+    const dialogRef = this.dialog.open(BulkBanDialogComponent, {
+      width: '600px',
+      data: { users: this.selection.selected }
+    });
 
-  async bulkBanUsers() {
-    if (!this.bulkBanReason.trim() || this.bulkBanReason.trim().length < 10) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Warning',
-        detail: 'Ban reason is required (minimum 10 characters)'
-      });
-      return;
-    }
-
-    try {
-      this.isBulkBanning.set(true);
-      const userIds = this.selectedUsers().map(u => u.id);
-
-      const response = await this.usersService.bulkBanUsers(userIds, this.bulkBanReason);
-
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: `Successfully banned ${response.banned_count} out of ${userIds.length} users`
-      });
-
-      if (response.failed_count > 0) {
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'Partial Failure',
-          detail: `${response.failed_count} users could not be banned`
-        });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.selection.clear();
+        this.loadUsers();
       }
-
-      this.showBulkBanDialog.set(false);
-      this.selectedUsers.set([]);
-      this.loadUsers();
-    } catch (error: any) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: error.message || 'Failed to ban users'
-      });
-    } finally {
-      this.isBulkBanning.set(false);
-    }
+    });
   }
 
   exportSelectedUsers() {
-    if (this.selectedUsers().length === 0) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Warning',
-        detail: 'Please select at least one user to export'
-      });
+    if (this.selection.selected.length === 0) {
+      this.notificationService.warn('Warning', 'Please select at least one user to export');
       return;
     }
 
-    // Prepare CSV data
     const headers = ['Username', 'Email', 'Display Name', 'Country', 'Subscription', 'Status', 'Joined'];
-    const rows = this.selectedUsers().map(user => [
+    const rows = this.selection.selected.map(user => [
       user.username,
       user.email,
       user.display_name || '',
@@ -284,13 +290,11 @@ export class UsersListComponent implements OnInit {
       new Date(user.created_at).toLocaleDateString()
     ]);
 
-    // Create CSV content
     const csvContent = [
       headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
     ].join('\n');
 
-    // Create blob and download
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -303,10 +307,103 @@ export class UsersListComponent implements OnInit {
     link.click();
     document.body.removeChild(link);
 
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Success',
-      detail: `Exported ${this.selectedUsers().length} users to CSV`
+    this.notificationService.success('Success', `Exported ${this.selection.selected.length} users to CSV`);
+  }
+
+  // Deleted User Management
+  getDaysUntilDeletion(deletedAt: string | null): number {
+    if (!deletedAt) return 0;
+    const deleted = new Date(deletedAt);
+    const now = new Date();
+    const daysSince = (now.getTime() - deleted.getTime()) / (1000 * 60 * 60 * 24);
+    return Math.max(0, Math.ceil(7 - daysSince));
+  }
+
+  isWithinRecoveryWindow(deletedAt: string | null): boolean {
+    return this.getDaysUntilDeletion(deletedAt) > 0;
+  }
+
+  openRestoreDialog(user: AppUser) {
+    const dialogRef = this.dialog.open(RestoreUserDialogComponent, {
+      width: '500px',
+      data: { user, daysUntilDeletion: this.getDaysUntilDeletion(user.deleted_at) }
     });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadUsers();
+        this.loadStats();
+      }
+    });
+  }
+
+  openForceDeleteDialog(user: AppUser) {
+    const dialogRef = this.dialog.open(ForceDeleteDialogComponent, {
+      width: '600px',
+      data: { user }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadUsers();
+        this.loadStats();
+      }
+    });
+  }
+
+  exportDeletedUsers() {
+    const deletedUsers = this.users().filter(u => u.account_status === 'deleted');
+
+    if (deletedUsers.length === 0) {
+      this.notificationService.warn('Warning', 'No deleted users to export. Try filtering by "Deleted" account status first.');
+      return;
+    }
+
+    const headers = ['Username', 'Email', 'Display Name', 'Country', 'Deleted At', 'Days Until Permanent Deletion'];
+    const rows = deletedUsers.map(user => [
+      user.username,
+      user.email,
+      user.display_name || '',
+      user.country_code || 'N/A',
+      user.deleted_at ? new Date(user.deleted_at).toLocaleDateString() : 'N/A',
+      user.deleted_at ? this.getDaysUntilDeletion(user.deleted_at).toString() : 'N/A'
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    link.setAttribute('href', url);
+    link.setAttribute('download', `wheelbase_deleted_users_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    this.notificationService.success('Success', `Exported ${deletedUsers.length} deleted users to CSV`);
+  }
+
+  // Badge severity helpers
+  getSubscriptionSeverity(tier: string): 'success' | 'info' | 'warning' | 'secondary' {
+    switch (tier.toLowerCase()) {
+      case 'premium': return 'warning';
+      case 'pro': return 'info';
+      default: return 'success';
+    }
+  }
+
+  getAccountStatusSeverity(status: string): 'success' | 'secondary' | 'warning' | 'danger' {
+    switch (status) {
+      case 'active': return 'success';
+      case 'deleted': return 'secondary';
+      case 'suspended': return 'warning';
+      default: return 'success';
+    }
   }
 }

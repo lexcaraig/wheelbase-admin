@@ -1,26 +1,50 @@
-:host {
-  display: block;
-}
+// Users Table Styling for Angular Material
+.users-table {
+  width: 100%;
 
-::ng-deep {
-  .p-datatable {
-    .p-datatable-header {
-      background-color: #f9fafb;
-      border: none;
-    }
-
-    .p-datatable-thead > tr > th {
-      background-color: #f9fafb;
-      color: #374151;
+  ::ng-deep {
+    .mat-mdc-header-cell {
+      background: #f9fafb;
+      color: #6b7280;
       font-weight: 600;
-      border: none;
+      font-size: 0.875rem;
+      padding: 0.75rem 1rem;
       border-bottom: 1px solid #e5e7eb;
     }
 
-    .p-datatable-tbody > tr {
+    .mat-mdc-row {
+      transition: background-color 0.15s ease;
+
       &:hover {
         background-color: #f9fafb;
       }
     }
+
+    .mat-mdc-cell {
+      padding: 0.75rem 1rem;
+      font-size: 0.875rem;
+      border-bottom: 1px solid #e5e7eb;
+      vertical-align: middle;
+    }
   }
+}
+
+// Paginator styling
+::ng-deep .mat-mdc-paginator {
+  border-top: 1px solid #e5e7eb;
+  background: transparent;
+}
+
+// Loading spinner animation
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
 }

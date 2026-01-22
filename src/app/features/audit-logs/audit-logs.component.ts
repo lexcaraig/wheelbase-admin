@@ -1,15 +1,20 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CardModule } from 'primeng/card';
-import { TableModule } from 'primeng/table';
-import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
-import { ButtonModule } from 'primeng/button';
-import { Select } from 'primeng/select';
-import { DatePicker } from 'primeng/datepicker';
-import { MessageService } from 'primeng/api';
+import { MatCardModule } from '@angular/material/card';
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { NotificationService } from '../../core/services/notification.service';
+import { StatusBadgeComponent, BadgeSeverity } from '../../shared/components/status-badge/status-badge.component';
 
 interface AuditLog {
   id: string;
@@ -34,15 +39,19 @@ interface AuditLog {
   imports: [
     CommonModule,
     FormsModule,
-    CardModule,
-    TableModule,
-    TagModule,
-    ToastModule,
-    ButtonModule,
-    Select,
-    DatePicker
+    MatCardModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatOptionModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatInputModule,
+    MatProgressSpinnerModule,
+    StatusBadgeComponent
   ],
-  providers: [MessageService],
   templateUrl: './audit-logs.component.html',
   styleUrl: './audit-logs.component.scss'
 })
@@ -54,7 +63,10 @@ export class AuditLogsComponent implements OnInit {
   page = 0;
   pageSize = 50;
   actionTypeFilter = '';
-  dateRange: Date[] | null = null;
+  startDate: Date | null = null;
+  endDate: Date | null = null;
+
+  displayedColumns: string[] = ['timestamp', 'admin', 'action', 'targetType', 'targetId', 'details', 'ipAddress'];
 
   actionTypeOptions = [
     { label: 'All Actions', value: '' },
@@ -75,7 +87,7 @@ export class AuditLogsComponent implements OnInit {
 
   constructor(
     private supabase: SupabaseService,
-    private messageService: MessageService
+    private notificationService: NotificationService
   ) {}
 
   async ngOnInit() {
@@ -92,9 +104,9 @@ export class AuditLogsComponent implements OnInit {
         action_type: this.actionTypeFilter
       };
 
-      if (this.dateRange && this.dateRange.length === 2 && this.dateRange[0] && this.dateRange[1]) {
-        body.start_date = this.dateRange[0].toISOString().split('T')[0];
-        body.end_date = this.dateRange[1].toISOString().split('T')[0];
+      if (this.startDate && this.endDate) {
+        body.start_date = this.startDate.toISOString().split('T')[0];
+        body.end_date = this.endDate.toISOString().split('T')[0];
       }
 
       const { data, error } = await this.supabase.client.functions.invoke('admin-get-audit-logs', {
@@ -108,24 +120,21 @@ export class AuditLogsComponent implements OnInit {
         this.totalRecords.set(data.data.total);
       }
     } catch (error: any) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: error.message || 'Failed to load audit logs'
-      });
+      this.notificationService.error('Error', error.message || 'Failed to load audit logs');
       console.error('Load audit logs error:', error);
     } finally {
       this.isLoading.set(false);
     }
   }
 
-  onPageChange(event: any) {
-    this.page = event.first / event.rows;
-    this.pageSize = event.rows;
+  onPageChange(event: PageEvent) {
+    this.page = event.pageIndex;
+    this.pageSize = event.pageSize;
     this.loadAuditLogs();
   }
 
-  onActionTypeFilterChange() {
+  onActionTypeFilterChange(value: string) {
+    this.actionTypeFilter = value;
     this.page = 0;
     this.loadAuditLogs();
   }
@@ -135,31 +144,31 @@ export class AuditLogsComponent implements OnInit {
     this.loadAuditLogs();
   }
 
-  getActionSeverity(action: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
+  getActionSeverity(action: string): BadgeSeverity {
     if (action.includes('approve') || action === 'login') return 'success';
     if (action.includes('ban') || action.includes('remove') || action.includes('flag')) return 'danger';
     if (action.includes('view')) return 'info';
-    if (action.includes('settings')) return 'warn';
+    if (action.includes('settings')) return 'warning';
     return 'secondary';
   }
 
-  getTargetTypeSeverity(type: string): 'success' | 'info' | 'warn' | 'secondary' {
+  getTargetTypeSeverity(type: string): BadgeSeverity {
     switch (type) {
       case 'user': return 'info';
       case 'post': return 'success';
-      case 'comment': return 'warn';
+      case 'comment': return 'warning';
       case 'system': return 'secondary';
       default: return 'secondary';
     }
   }
 
+  formatActionType(action: string): string {
+    return action.replace(/_/g, ' ').toUpperCase();
+  }
+
   exportToCSV() {
     if (this.auditLogs().length === 0) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Warning',
-        detail: 'No audit logs to export'
-      });
+      this.notificationService.warn('Warning', 'No audit logs to export');
       return;
     }
 
@@ -194,18 +203,10 @@ export class AuditLogsComponent implements OnInit {
     link.click();
     document.body.removeChild(link);
 
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Success',
-      detail: `Exported ${this.auditLogs().length} audit logs to CSV`
-    });
+    this.notificationService.success('Success', `Exported ${this.auditLogs().length} audit logs to CSV`);
   }
 
   exportToPDF() {
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Info',
-      detail: 'PDF export functionality coming soon'
-    });
+    this.notificationService.info('Info', 'PDF export functionality coming soon');
   }
 }

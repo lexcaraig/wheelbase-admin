@@ -2,16 +2,24 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { CardModule } from 'primeng/card';
-import { ButtonModule } from 'primeng/button';
-import { TableModule } from 'primeng/table';
-import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
-import { DialogModule } from 'primeng/dialog';
-import { InputTextModule } from 'primeng/inputtext';
-import { Select } from 'primeng/select';
-import { MessageService } from 'primeng/api';
+import { MatCardModule } from '@angular/material/card';
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { NotificationService } from '../../core/services/notification.service';
+import { ConfirmService } from '../../core/services/confirm.service';
+import { StatusBadgeComponent, BadgeSeverity } from '../../shared/components/status-badge/status-badge.component';
+import { CreateAdminDialogComponent } from './dialogs/create-admin-dialog.component';
+import { EditAdminDialogComponent } from './dialogs/edit-admin-dialog.component';
 
 interface AdminUser {
   id: string;
@@ -31,16 +39,20 @@ interface AdminUser {
   imports: [
     CommonModule,
     FormsModule,
-    CardModule,
-    ButtonModule,
-    TableModule,
-    TagModule,
-    ToastModule,
-    DialogModule,
-    InputTextModule,
-    Select
+    MatCardModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatOptionModule,
+    MatTooltipModule,
+    MatProgressSpinnerModule,
+    MatIconModule,
+    MatDialogModule,
+    StatusBadgeComponent
   ],
-  providers: [MessageService],
   templateUrl: './admin-users-list.component.html',
   styleUrl: './admin-users-list.component.scss'
 })
@@ -54,21 +66,7 @@ export class AdminUsersListComponent implements OnInit {
   searchQuery = '';
   roleFilter = '';
 
-  // Dialog states
-  showCreateDialog = signal(false);
-  showEditDialog = signal(false);
-  showDeleteDialog = signal(false);
-  selectedAdmin = signal<AdminUser | null>(null);
-  isProcessing = signal(false);
-
-  // Create form
-  newAdminEmail = '';
-  newAdminRole = 'admin';
-  newAdminPassword = '';
-
-  // Edit form
-  editAdminRole = '';
-  editAdminIsActive = true;
+  displayedColumns: string[] = ['email', 'role', 'status', 'createdBy', 'lastLogin', 'created', 'actions'];
 
   roleOptions = [
     { label: 'All Roles', value: '' },
@@ -78,20 +76,11 @@ export class AdminUsersListComponent implements OnInit {
     { label: 'Support', value: 'support' }
   ];
 
-  createRoleOptions = [
-    { label: 'Admin', value: 'admin' },
-    { label: 'Moderator', value: 'moderator' },
-    { label: 'Support', value: 'support' }
-  ];
-
-  // Computed property for edit dialog role options
-  get editRoleOptions() {
-    return this.roleOptions.filter(r => r.value !== '');
-  }
-
   constructor(
     private supabase: SupabaseService,
-    private messageService: MessageService,
+    private notificationService: NotificationService,
+    private confirmService: ConfirmService,
+    private dialog: MatDialog,
     private router: Router
   ) {}
 
@@ -119,20 +108,16 @@ export class AdminUsersListComponent implements OnInit {
         this.totalRecords.set(data.data.total);
       }
     } catch (error: any) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: error.message || 'Failed to load admin users'
-      });
+      this.notificationService.error('Error', error.message || 'Failed to load admin users');
       console.error('Load admin users error:', error);
     } finally {
       this.isLoading.set(false);
     }
   }
 
-  onPageChange(event: any) {
-    this.page = event.first / event.rows;
-    this.pageSize = event.rows;
+  onPageChange(event: PageEvent) {
+    this.page = event.pageIndex;
+    this.pageSize = event.pageSize;
     this.loadAdminUsers();
   }
 
@@ -141,118 +126,50 @@ export class AdminUsersListComponent implements OnInit {
     this.loadAdminUsers();
   }
 
-  onRoleFilterChange() {
+  onRoleFilterChange(value: string) {
+    this.roleFilter = value;
     this.page = 0;
     this.loadAdminUsers();
   }
 
   openCreateDialog() {
-    this.newAdminEmail = '';
-    this.newAdminRole = 'admin';
-    this.newAdminPassword = '';
-    this.showCreateDialog.set(true);
-  }
+    const dialogRef = this.dialog.open(CreateAdminDialogComponent, {
+      width: '500px',
+      disableClose: true
+    });
 
-  async createAdmin() {
-    if (!this.newAdminEmail || !this.newAdminRole) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Validation Error',
-        detail: 'Email and role are required'
-      });
-      return;
-    }
-
-    try {
-      this.isProcessing.set(true);
-
-      const { data, error } = await this.supabase.client.functions.invoke('admin-create-admin-user', {
-        body: {
-          email: this.newAdminEmail,
-          role: this.newAdminRole
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.success) {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: `Admin user created. Temporary password: ${data.data.temporary_password}`
-        });
-        this.showCreateDialog.set(false);
-        await this.loadAdminUsers();
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadAdminUsers();
       }
-    } catch (error: any) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: error.message || 'Failed to create admin user'
-      });
-      console.error('Create admin error:', error);
-    } finally {
-      this.isProcessing.set(false);
-    }
+    });
   }
 
   openEditDialog(admin: AdminUser) {
-    this.selectedAdmin.set(admin);
-    this.editAdminRole = admin.role;
-    this.editAdminIsActive = admin.is_active;
-    this.showEditDialog.set(true);
-  }
+    const dialogRef = this.dialog.open(EditAdminDialogComponent, {
+      width: '500px',
+      disableClose: true,
+      data: { admin }
+    });
 
-  async updateAdmin() {
-    const admin = this.selectedAdmin();
-    if (!admin) return;
-
-    try {
-      this.isProcessing.set(true);
-
-      const { data, error } = await this.supabase.client.functions.invoke('admin-update-admin-user', {
-        body: {
-          admin_user_id: admin.id,
-          role: this.editAdminRole,
-          is_active: this.editAdminIsActive
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.success) {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Admin user updated successfully'
-        });
-        this.showEditDialog.set(false);
-        await this.loadAdminUsers();
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadAdminUsers();
       }
-    } catch (error: any) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: error.message || 'Failed to update admin user'
-      });
-      console.error('Update admin error:', error);
-    } finally {
-      this.isProcessing.set(false);
-    }
+    });
   }
 
-  openDeleteDialog(admin: AdminUser) {
-    this.selectedAdmin.set(admin);
-    this.showDeleteDialog.set(true);
-  }
+  async deleteAdmin(admin: AdminUser) {
+    const confirmed = await this.confirmService.confirm({
+      title: 'Delete Admin User',
+      message: `Are you sure you want to delete <strong>${admin.email}</strong>? This action cannot be undone.`,
+      confirmText: 'Delete',
+      confirmColor: 'warn'
+    });
 
-  async deleteAdmin() {
-    const admin = this.selectedAdmin();
-    if (!admin) return;
+    if (!confirmed) return;
 
     try {
-      this.isProcessing.set(true);
-
       const { data, error } = await this.supabase.client.functions.invoke('admin-delete-admin-user', {
         body: {
           admin_user_id: admin.id
@@ -262,36 +179,29 @@ export class AdminUsersListComponent implements OnInit {
       if (error) throw error;
 
       if (data.success) {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Admin user deleted successfully'
-        });
-        this.showDeleteDialog.set(false);
+        this.notificationService.success('Success', 'Admin user deleted successfully');
         await this.loadAdminUsers();
       }
     } catch (error: any) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: error.message || 'Failed to delete admin user'
-      });
+      this.notificationService.error('Error', error.message || 'Failed to delete admin user');
       console.error('Delete admin error:', error);
-    } finally {
-      this.isProcessing.set(false);
     }
   }
 
-  getRoleSeverity(role: string): 'success' | 'info' | 'warn' | 'secondary' {
+  getRoleSeverity(role: string): BadgeSeverity {
     switch (role) {
       case 'super_admin': return 'success';
       case 'admin': return 'info';
-      case 'moderator': return 'warn';
+      case 'moderator': return 'warning';
       default: return 'secondary';
     }
   }
 
-  getStatusSeverity(isActive: boolean): 'success' | 'danger' {
+  getStatusSeverity(isActive: boolean): BadgeSeverity {
     return isActive ? 'success' : 'danger';
+  }
+
+  formatRole(role: string): string {
+    return role.toUpperCase().replace(/_/g, ' ');
   }
 }

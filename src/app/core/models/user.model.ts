@@ -15,6 +15,8 @@ export interface AppUser {
   ban_reason: string | null;
   banned_at: string | null;
   banned_by: string | null;
+  account_status: 'active' | 'deleted' | 'suspended';
+  deleted_at: string | null;
   subscription_tier: 'free' | 'pro' | 'premium';
   created_at: string;
   last_active_at: string | null;

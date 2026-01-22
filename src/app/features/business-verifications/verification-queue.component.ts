@@ -1,21 +1,25 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { VerificationService } from '../../core/services/verification.service';
 import {
   VerificationRequest,
   ClaimStatus
 } from '../../core/models/verification.model';
-import { TableModule } from 'primeng/table';
-import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
-import { DialogModule } from 'primeng/dialog';
-import { ToastModule } from 'primeng/toast';
-import { Select } from 'primeng/select';
-import { Textarea } from 'primeng/textarea';
-import { RadioButton } from 'primeng/radiobutton';
-import { MessageService, ConfirmationService } from 'primeng/api';
-import { ConfirmDialog } from 'primeng/confirmdialog';
+import { NotificationService } from '../../core/services/notification.service';
+import { StatusBadgeComponent, BadgeSeverity } from '../../shared/components/status-badge/status-badge.component';
+import { formatDateTime } from '../../shared/utils';
+import { VerificationReviewDialogComponent } from './dialogs/verification-review-dialog.component';
+import { DocumentViewerDialogComponent } from './dialogs/document-viewer-dialog.component';
 
 @Component({
   selector: 'app-verification-queue',
@@ -23,17 +27,17 @@ import { ConfirmDialog } from 'primeng/confirmdialog';
   imports: [
     CommonModule,
     FormsModule,
-    TableModule,
-    ButtonModule,
-    TagModule,
-    DialogModule,
-    ToastModule,
-    Select,
-    Textarea,
-    RadioButton,
-    ConfirmDialog
+    MatTableModule,
+    MatPaginatorModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatOptionModule,
+    MatTooltipModule,
+    MatProgressSpinnerModule,
+    MatDialogModule,
+    StatusBadgeComponent
   ],
-  providers: [MessageService, ConfirmationService],
   templateUrl: './verification-queue.component.html',
   styleUrl: './verification-queue.component.scss'
 })
@@ -45,6 +49,9 @@ export class VerificationQueueComponent implements OnInit {
   approvedCount = signal(0);
   rejectedCount = signal(0);
 
+  // Table columns
+  displayedColumns: string[] = ['business', 'owner', 'contact', 'location', 'documents', 'status', 'submitted', 'actions'];
+
   // Filters
   statusFilter = signal<ClaimStatus | 'all'>('all');
   statusOptions = [
@@ -55,195 +62,101 @@ export class VerificationQueueComponent implements OnInit {
   ];
 
   // Pagination
-  currentPage = signal(1);
+  currentPage = signal(0);
   pageSize = 20;
-
-  // Review Dialog
-  showReviewDialog = signal(false);
-  selectedRequest = signal<VerificationRequest | null>(null);
-  reviewAction: 'approve' | 'reject' | null = null;  // Regular property for ngModel
-  rejectionReason = '';  // Regular property for ngModel
-  adminNotes = '';  // Regular property for ngModel
-  isProcessing = signal(false);
-
-  // Document Viewer Dialog
-  showDocumentViewer = signal(false);
-  currentDocument = signal<{ url: string; title: string } | null>(null);
 
   constructor(
     private verificationService: VerificationService,
-    private messageService: MessageService,
-    private confirmationService: ConfirmationService
+    private notificationService: NotificationService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit() {
-    console.log('🔵 VerificationQueueComponent initialized');
     this.loadVerificationQueue();
   }
 
   async loadVerificationQueue() {
     try {
-      console.log('🔵 Loading verification queue...');
       this.isLoading.set(true);
       const response = await this.verificationService.getVerificationQueue({
         status: this.statusFilter(),
-        page: this.currentPage(),
+        page: this.currentPage() + 1, // API uses 1-based
         pageSize: this.pageSize
       });
 
-      console.log('✅ Got response:', response);
       this.requests.set(response.requests);
       this.totalRecords.set(response.total);
       this.pendingCount.set(response.pending);
       this.approvedCount.set(response.approved);
       this.rejectedCount.set(response.rejected);
-      console.log('✅ Requests loaded:', response.requests.length);
     } catch (error: any) {
-      console.error('❌ Error loading verification queue:', error);
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: error.message || 'Failed to load verification requests'
-      });
+      this.notificationService.error('Error', error.message || 'Failed to load verification requests');
     } finally {
       this.isLoading.set(false);
     }
   }
 
-  onPageChange(event: any) {
-    this.currentPage.set(event.page + 1);
+  onPageChange(event: PageEvent) {
+    this.currentPage.set(event.pageIndex);
+    this.pageSize = event.pageSize;
     this.loadVerificationQueue();
   }
 
   onStatusFilterChange() {
-    this.currentPage.set(1);
+    this.currentPage.set(0);
+    this.loadVerificationQueue();
+  }
+
+  onStatusFilterChanged(value: ClaimStatus | 'all') {
+    this.statusFilter.set(value);
+    this.currentPage.set(0);
     this.loadVerificationQueue();
   }
 
   openReviewDialog(request: VerificationRequest) {
-    console.log('🔵 Opening review dialog for request:', {
-      id: request.id,
-      business: request.business_name,
-      status: request.status,
-      submittedAt: request.submitted_at
+    const dialogRef = this.dialog.open(VerificationReviewDialogComponent, {
+      width: '900px',
+      maxWidth: '95vw',
+      data: { request, verificationService: this.verificationService }
     });
-    this.selectedRequest.set(request);
-    this.reviewAction = null;
-    this.rejectionReason = '';
-    this.adminNotes = '';
-    this.showReviewDialog.set(true);
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadVerificationQueue();
+      }
+    });
   }
 
   viewDocument(url: string | null, title: string) {
     if (!url) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'No Document',
-        detail: 'This document was not uploaded'
-      });
+      this.notificationService.warn('No Document', 'This document was not uploaded');
       return;
     }
 
     const fullUrl = this.verificationService.getDocumentUrl(url);
     if (!fullUrl) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to load document URL'
-      });
+      this.notificationService.error('Error', 'Failed to load document URL');
       return;
     }
 
-    this.currentDocument.set({ url: fullUrl, title });
-    this.showDocumentViewer.set(true);
-  }
-
-  downloadDocument() {
-    const doc = this.currentDocument();
-    if (doc) {
-      window.open(doc.url, '_blank');
-    }
-  }
-
-  async submitReview() {
-    const action = this.reviewAction;
-    const request = this.selectedRequest();
-
-    console.log('🔵 submitReview called:', {
-      action,
-      requestStatus: request?.status,
-      hasRejectionReason: !!this.rejectionReason?.trim()
-    });
-
-    if (!action || !request) {
-      console.log('⚠️ Missing action or request');
-      return;
-    }
-
-    if (action === 'reject' && !this.rejectionReason.trim()) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Validation Error',
-        detail: 'Please provide a rejection reason'
-      });
-      return;
-    }
-
-    this.confirmationService.confirm({
-      message: `Are you sure you want to ${action} this claim for "${request.business_name}"?`,
-      header: `Confirm ${action === 'approve' ? 'Approval' : 'Rejection'}`,
-      icon: action === 'approve' ? 'pi pi-check-circle' : 'pi pi-times-circle',
-      acceptButtonStyleClass: action === 'approve' ? 'p-button-success' : 'p-button-danger',
-      accept: async () => {
-        await this.executeReview();
-      }
+    this.dialog.open(DocumentViewerDialogComponent, {
+      width: '90vw',
+      maxWidth: '1200px',
+      height: '90vh',
+      data: { url: fullUrl, title }
     });
   }
 
-  async executeReview() {
-    try {
-      this.isProcessing.set(true);
-      const request = this.selectedRequest();
-      const action = this.reviewAction;
-
-      if (!request || !action) return;
-
-      await this.verificationService.reviewClaim({
-        requestId: request.id,
-        action,
-        rejectionReason: action === 'reject' ? this.rejectionReason : undefined,
-        adminNotes: this.adminNotes || undefined
-      });
-
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: `Claim ${action === 'approve' ? 'approved' : 'rejected'} successfully`
-      });
-
-      this.showReviewDialog.set(false);
-      this.loadVerificationQueue();
-    } catch (error: any) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: error.message || 'Failed to review claim'
-      });
-    } finally {
-      this.isProcessing.set(false);
-    }
-  }
-
-  getStatusSeverity(status: ClaimStatus): 'success' | 'warn' | 'danger' {
+  getStatusSeverity(status: ClaimStatus): BadgeSeverity {
     switch (status) {
       case 'approved':
         return 'success';
       case 'pending':
-        return 'warn';
+        return 'warning';
       case 'rejected':
         return 'danger';
       default:
-        return 'warn';
+        return 'warning';
     }
   }
 
@@ -268,13 +181,6 @@ export class VerificationQueueComponent implements OnInit {
   }
 
   formatDate(dateString: string | null): string {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    return formatDateTime(dateString);
   }
 }

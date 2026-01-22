@@ -1,0 +1,358 @@
+// Material Design 3 Theme for Wheelbase Admin
+@use '@angular/material' as mat;
+
+// Define custom theme colors using M3 palettes
+$_primary: mat.$yellow-palette;
+$_tertiary: mat.$azure-palette;
+
+// Create the theme using M3 API
+$theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: $_primary,
+    tertiary: $_tertiary,
+  ),
+));
+
+// Apply the theme
+html {
+  @include mat.all-component-themes($theme);
+}
+
+// Dark mode support (optional)
+.dark-theme {
+  $dark-theme: mat.define-theme((
+    color: (
+      theme-type: dark,
+      primary: $_primary,
+      tertiary: $_tertiary,
+    ),
+  ));
+  @include mat.all-component-colors($dark-theme);
+}
+
+// =============================================================================
+// CUSTOM DESIGN TOKENS (matching current Wheelbase palette)
+// =============================================================================
+:root {
+  // Brand colors
+  --wb-primary: #FFD535;
+  --wb-primary-dark: #FBC02D;
+
+  // Semantic colors
+  --wb-success: #10b981;
+  --wb-success-light: #d1fae5;
+  --wb-error: #ef4444;
+  --wb-error-light: #fee2e2;
+  --wb-warning: #f59e0b;
+  --wb-warning-light: #fef3c7;
+  --wb-info: #3b82f6;
+  --wb-info-light: #dbeafe;
+
+  // Gray scale
+  --wb-gray-50: #f9fafb;
+  --wb-gray-100: #f3f4f6;
+  --wb-gray-200: #e5e7eb;
+  --wb-gray-300: #d1d5db;
+  --wb-gray-400: #9ca3af;
+  --wb-gray-500: #6b7280;
+  --wb-gray-600: #4b5563;
+  --wb-gray-700: #374151;
+  --wb-gray-800: #1f2937;
+  --wb-gray-900: #111827;
+}
+
+// =============================================================================
+// MATERIAL COMPONENT CUSTOMIZATIONS
+// =============================================================================
+
+// Form fields - outline appearance by default
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+// Fix Tailwind conflicts with Angular Material form fields
+.mat-mdc-form-field {
+  // Fix input text alignment
+  .mat-mdc-form-field-infix {
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+  }
+
+  // Ensure subscript wrapper (error/hint) displays correctly
+  .mat-mdc-form-field-subscript-wrapper {
+    position: relative;
+  }
+}
+
+// Critical fix: Floating label position for outline appearance
+// Tailwind's box-sizing and overflow rules clip the label
+.mat-mdc-form-field-appearance-outline {
+  .mat-mdc-form-field-flex {
+    position: relative;
+  }
+
+  // Fix the label container to not clip text
+  .mdc-notched-outline {
+    .mdc-notched-outline__leading {
+      width: 12px;
+      flex-shrink: 0;
+    }
+
+    .mdc-notched-outline__notch {
+      // Prevent clipping of floating label
+      padding: 0 4px 0 0;
+
+      .mdc-floating-label {
+        // Override any Tailwind clipping
+        overflow: visible !important;
+        text-overflow: unset !important;
+        white-space: nowrap;
+        left: 0 !important;
+        transform-origin: left top;
+      }
+    }
+  }
+
+  // Ensure proper label scaling when floating
+  &.mat-mdc-form-field-has-floating-label {
+    .mdc-floating-label--float-above {
+      transform: translateY(-106%) scale(0.75);
+      left: 4px !important;
+    }
+  }
+}
+
+// Fix mat-select display
+.mat-mdc-select {
+  display: flex !important;
+  align-items: center;
+}
+
+// Fix mat-datepicker toggle
+.mat-datepicker-toggle {
+  display: inline-flex !important;
+}
+
+// Buttons - Wheelbase styling
+.mat-mdc-raised-button.mat-primary {
+  --mdc-protected-button-container-color: var(--wb-primary);
+  --mdc-protected-button-label-text-color: rgba(0, 0, 0, 0.87);
+}
+
+.mat-mdc-button.mat-primary {
+  --mdc-text-button-label-text-color: var(--wb-primary-dark);
+}
+
+// Cards - subtle shadows matching current design
+.mat-mdc-card {
+  --mdc-elevated-card-container-color: white;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+}
+
+// Tables - match existing admin-datatable styling
+.mat-mdc-table {
+  background: transparent;
+
+  .mat-mdc-header-row {
+    background-color: var(--wb-gray-50);
+  }
+
+  .mat-mdc-header-cell {
+    color: var(--wb-gray-700);
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-bottom: 1px solid var(--wb-gray-200);
+  }
+
+  .mat-mdc-row {
+    &:hover {
+      background-color: var(--wb-gray-50);
+    }
+  }
+
+  .mat-mdc-cell {
+    font-size: 0.875rem;
+    border-bottom: 1px solid var(--wb-gray-200);
+  }
+}
+
+// Dialog - consistent styling
+.mat-mdc-dialog-container {
+  --mdc-dialog-container-shape: 12px;
+}
+
+// Snackbar - severity variants
+.mat-mdc-snack-bar-container {
+  &.snackbar-success {
+    --mdc-snackbar-container-color: var(--wb-success);
+    --mat-snack-bar-button-color: white;
+  }
+
+  &.snackbar-error {
+    --mdc-snackbar-container-color: var(--wb-error);
+    --mat-snack-bar-button-color: white;
+  }
+
+  &.snackbar-warning {
+    --mdc-snackbar-container-color: var(--wb-warning);
+    --mat-snack-bar-button-color: rgba(0, 0, 0, 0.87);
+  }
+
+  &.snackbar-info {
+    --mdc-snackbar-container-color: var(--wb-info);
+    --mat-snack-bar-button-color: white;
+  }
+}
+
+// Tabs - Wheelbase styling
+.mat-mdc-tab-group {
+  --mdc-tab-indicator-active-indicator-color: var(--wb-primary);
+  --mat-tab-header-active-focus-indicator-color: var(--wb-primary);
+  --mat-tab-header-active-hover-indicator-color: var(--wb-primary);
+}
+
+// Select - consistent with form fields
+.mat-mdc-select {
+  font-size: 0.875rem;
+}
+
+// Chip/Badge - for status indicators
+.mat-mdc-chip {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+// =============================================================================
+// SKELETON SHIMMER ANIMATION (replaces p-skeleton)
+// =============================================================================
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--wb-gray-200) 25%,
+    var(--wb-gray-100) 37%,
+    var(--wb-gray-200) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-loading 1.4s ease infinite;
+  border-radius: 4px;
+}
+
+.skeleton-text {
+  @extend .skeleton;
+  height: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-text-sm {
+  @extend .skeleton;
+  height: 0.75rem;
+  margin-bottom: 0.375rem;
+}
+
+.skeleton-card {
+  @extend .skeleton;
+  height: 120px;
+  border-radius: 8px;
+}
+
+.skeleton-avatar {
+  @extend .skeleton;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.skeleton-button {
+  @extend .skeleton;
+  height: 36px;
+  width: 100px;
+  border-radius: 4px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+// =============================================================================
+// STATUS BADGE COMPONENT STYLES
+// =============================================================================
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+
+  &.badge-success {
+    background-color: var(--wb-success-light);
+    color: #065f46;
+  }
+
+  &.badge-danger {
+    background-color: var(--wb-error-light);
+    color: #991b1b;
+  }
+
+  &.badge-warning {
+    background-color: var(--wb-warning-light);
+    color: #92400e;
+  }
+
+  &.badge-info {
+    background-color: var(--wb-info-light);
+    color: #1e40af;
+  }
+
+  &.badge-secondary {
+    background-color: var(--wb-gray-200);
+    color: var(--wb-gray-700);
+  }
+}
+
+// =============================================================================
+// AVATAR COMPONENT STYLES
+// =============================================================================
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: var(--wb-primary);
+  color: rgba(0, 0, 0, 0.87);
+  font-weight: 600;
+
+  &.avatar-sm {
+    width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
+  }
+
+  &.avatar-md {
+    width: 40px;
+    height: 40px;
+    font-size: 0.875rem;
+  }
+
+  &.avatar-lg {
+    width: 48px;
+    height: 48px;
+    font-size: 1rem;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}

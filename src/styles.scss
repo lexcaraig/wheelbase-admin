@@ -1,15 +1,88 @@
 /* You can add global styles to this file, and also import other style files */
 
+// Material Design 3 Theme (must come before @tailwind rules)
+@use './styles/material-theme.scss';
+
 // Tailwind CSS
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-// PrimeNG Icons
-@import 'primeicons/primeicons.css';
+// =============================================================================
+// TAILWIND + ANGULAR MATERIAL COMPATIBILITY FIXES
+// Must come after @tailwind directives to override base resets
+// =============================================================================
 
-// Note: PrimeNG v20+ themes are configured in app.config.ts
-// No CSS imports needed
+// Prevent Tailwind from resetting Angular Material form field elements
+.mat-mdc-form-field {
+  legend {
+    float: unset;
+    width: unset;
+    padding: 0;
+    line-height: inherit;
+  }
+
+  fieldset {
+    border: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  // Fix input/textarea Tailwind resets
+  input, textarea {
+    border: none;
+    background: transparent;
+    padding: 0;
+  }
+
+  // CRITICAL: Ensure label displays correctly and is not clipped
+  // Tailwind's preflight sets overflow:hidden on many elements
+  label, .mat-mdc-floating-label, .mdc-floating-label {
+    display: inline-block;
+    overflow: visible !important;
+    text-overflow: unset !important;
+    clip: unset !important;
+    -webkit-clip-path: none !important;
+    clip-path: none !important;
+  }
+}
+
+// Fix mat-select Tailwind button reset
+.mat-mdc-select-trigger {
+  background: transparent;
+  border: none;
+}
+
+// Fix mat-option Tailwind list reset
+.mat-mdc-option {
+  list-style: none;
+}
+
+// CRITICAL: Override Tailwind's @layer base that clips elements
+// This ensures mat-form-field labels are never clipped
+.mdc-notched-outline__notch {
+  overflow: visible !important;
+
+  .mdc-floating-label {
+    overflow: visible !important;
+    max-width: none !important;
+  }
+}
+
+// Fix mat-select Tailwind button reset
+.mat-mdc-select-trigger {
+  background: transparent;
+  border: none;
+}
+
+// Fix mat-option Tailwind list reset
+.mat-mdc-option {
+  list-style: none;
+}
+
+// Material Icons (Google Fonts)
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
 
 // Custom Global Styles
 * {
@@ -21,13 +94,32 @@
 html,
 body {
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-family: Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
 body {
   background-color: #f3f4f6;
   color: #1f2937;
   overflow-x: hidden;
+}
+
+// Material Symbols icon styling
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'liga';
 }
 
 // Utility classes
@@ -155,41 +247,42 @@ body {
   }
 }
 
-// PrimeNG DataTable shared styling
-::ng-deep .admin-datatable {
-  .p-datatable-header {
+// Angular Material DataTable shared styling
+.admin-datatable {
+  width: 100%;
+
+  .mat-mdc-header-row {
     background-color: #f9fafb;
-    border: none;
   }
 
-  .p-datatable-thead > tr > th {
-    background-color: #f9fafb;
+  .mat-mdc-header-cell {
     color: #374151;
     font-weight: 600;
     font-size: 0.875rem;
-    border: none;
     border-bottom: 1px solid #e5e7eb;
     padding: 0.75rem 1rem;
   }
 
-  .p-datatable-tbody > tr {
+  .mat-mdc-row {
     transition: background-color 0.15s ease;
 
     &:hover {
       background-color: #f9fafb;
     }
+  }
 
-    > td {
-      padding: 0.75rem 1rem;
-      font-size: 0.875rem;
-      border-bottom: 1px solid #e5e7eb;
-    }
+  .mat-mdc-cell {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    border-bottom: 1px solid #e5e7eb;
   }
 }
 
 // Compact table variant
-::ng-deep .compact-table {
-  .p-datatable-thead > tr > th {
+.compact-table {
+  width: 100%;
+
+  .mat-mdc-header-cell {
     background: #f9fafb;
     color: #6b7280;
     font-weight: 600;
@@ -198,18 +291,18 @@ body {
     border-bottom: 1px solid #e5e7eb;
   }
 
-  .p-datatable-tbody > tr {
+  .mat-mdc-row {
     transition: background-color 0.15s ease;
 
     &:hover {
       background-color: #f9fafb;
     }
+  }
 
-    > td {
-      padding: 0.75rem 1rem;
-      font-size: 0.875rem;
-      border-bottom: 1px solid #e5e7eb;
-    }
+  .mat-mdc-cell {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    border-bottom: 1px solid #e5e7eb;
   }
 }
 
@@ -261,7 +354,7 @@ body {
   padding: 3rem;
   text-align: center;
 
-  i {
+  .material-symbols-outlined {
     font-size: 3rem;
     color: var(--text-color-secondary, #9ca3af);
   }
@@ -326,19 +419,6 @@ body {
   overflow: hidden;
 
   canvas {
-    max-height: 100%;
-    max-width: 100%;
-  }
-}
-
-::ng-deep .chart-container .p-chart {
-  width: 100% !important;
-  height: 100% !important;
-  display: block;
-
-  canvas {
-    width: 100% !important;
-    height: 100% !important;
     max-height: 100%;
     max-width: 100%;
   }

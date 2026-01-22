@@ -9,6 +9,12 @@ export class RelativeTimePipe implements PipeTransform {
     if (!value) return '';
 
     const date = typeof value === 'string' ? new Date(value) : value;
+
+    // Handle invalid dates
+    if (isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+
     const now = new Date();
     const diffInMs = now.getTime() - date.getTime();
     const diffInSeconds = Math.floor(diffInMs / 1000);

@@ -2,7 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { PromotionService } from '../../core/services/promotion.service';
-import { Promotion, PromotionReport } from '../../core/models/promotion.model';
+import { Promotion, PromotionReport, PlacementType, PLACEMENT_LABELS } from '../../core/models/promotion.model';
 
 @Component({
   selector: 'app-promotion-report',
@@ -241,7 +241,7 @@ import { Promotion, PromotionReport } from '../../core/models/promotion.model';
                         <td class="py-2">{{ formatDate(day.date) }}</td>
                         <td class="text-right py-2">{{ formatNumber(day.impressions) }}</td>
                         <td class="text-right py-2 text-yellow-400">{{ formatNumber(day.clicks) }}</td>
-                        <td class="text-right py-2">{{ day.ctr?.toFixed(2) }}%</td>
+                        <td class="text-right py-2">{{ day.ctr.toFixed(2) }}%</td>
                       </tr>
                     }
                   </tbody>
@@ -266,7 +266,7 @@ import { Promotion, PromotionReport } from '../../core/models/promotion.model';
                     <div class="text-right">
                       <span class="text-white">{{ formatNumber(geo.impressions) }} views</span>
                       <span class="text-gray-400 mx-2">|</span>
-                      <span class="text-yellow-400">{{ geo.ctr?.toFixed(2) }}% CTR</span>
+                      <span class="text-yellow-400">{{ geo.ctr.toFixed(2) }}% CTR</span>
                     </div>
                   </div>
                 }
@@ -298,7 +298,7 @@ import { Promotion, PromotionReport } from '../../core/models/promotion.model';
                       ></div>
                     </div>
                     <div class="text-sm text-gray-400 mt-1">
-                      {{ formatNumber(platform.clicks) }} clicks ({{ platform.ctr?.toFixed(2) }}% CTR)
+                      {{ formatNumber(platform.clicks) }} clicks ({{ platform.ctr.toFixed(2) }}% CTR)
                     </div>
                   </div>
                 }
@@ -329,7 +329,7 @@ import { Promotion, PromotionReport } from '../../core/models/promotion.model';
                       ></div>
                     </div>
                     <div class="text-sm text-gray-400 mt-1">
-                      {{ formatNumber(tier.clicks) }} clicks ({{ tier.ctr?.toFixed(2) }}% CTR)
+                      {{ formatNumber(tier.clicks) }} clicks ({{ tier.ctr.toFixed(2) }}% CTR)
                     </div>
                   </div>
                 }
@@ -338,6 +338,53 @@ import { Promotion, PromotionReport } from '../../core/models/promotion.model';
               <p class="text-gray-500 text-center py-4">No tier data available yet</p>
             }
           </div>
+        </div>
+
+        <!-- Placement Breakdown -->
+        <div class="bg-gray-800 rounded-lg p-6 mt-6">
+          <h3 class="text-lg font-semibold text-white mb-4">Placement Performance</h3>
+          @if (report()?.placement_breakdown?.length) {
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              @for (placement of report()?.placement_breakdown; track placement.placement_type) {
+                <div class="bg-gray-700/50 rounded-lg p-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-white font-medium flex items-center gap-2">
+                      <i [class]="getPlacementIcon(placement.placement_type)"></i>
+                      {{ getPlacementLabel(placement.placement_type) }}
+                    </span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <div class="text-gray-400">Impressions</div>
+                      <div class="text-white font-semibold">{{ formatNumber(placement.impressions) }}</div>
+                    </div>
+                    <div>
+                      <div class="text-gray-400">Clicks</div>
+                      <div class="text-yellow-400 font-semibold">{{ formatNumber(placement.clicks) }}</div>
+                    </div>
+                    <div>
+                      <div class="text-gray-400">CTR</div>
+                      <div class="text-green-400 font-semibold">{{ placement.ctr.toFixed(2) }}%</div>
+                    </div>
+                    <div>
+                      <div class="text-gray-400">Unique Views</div>
+                      <div class="text-blue-400 font-semibold">{{ formatNumber(placement.unique_viewers) }}</div>
+                    </div>
+                  </div>
+                  <div class="mt-3">
+                    <div class="w-full bg-gray-600 rounded-full h-1.5">
+                      <div
+                        class="h-1.5 rounded-full bg-yellow-400"
+                        [style.width.%]="calculatePercentage(placement.impressions, getTotalPlacementImpressions())"
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="text-gray-500 text-center py-4">No placement data available yet</p>
+          }
         </div>
 
         <!-- Hourly Performance -->
@@ -477,6 +524,27 @@ export class PromotionReportComponent implements OnInit {
 
   getTotalTierImpressions(): number {
     return this.report()?.tier_breakdown?.reduce((sum, t) => sum + t.impressions, 0) || 0;
+  }
+
+  getTotalPlacementImpressions(): number {
+    return this.report()?.placement_breakdown?.reduce((sum, p) => sum + p.impressions, 0) || 0;
+  }
+
+  getPlacementLabel(placement: PlacementType): string {
+    return PLACEMENT_LABELS[placement] || placement;
+  }
+
+  getPlacementIcon(placement: PlacementType): string {
+    const icons: Record<PlacementType, string> = {
+      dashboard: 'pi pi-home',
+      services: 'pi pi-map-marker',
+      events: 'pi pi-calendar',
+      marketplace_browse: 'pi pi-shopping-bag',
+      marketplace_detail: 'pi pi-tag',
+      post_ride: 'pi pi-flag',
+      routes: 'pi pi-map'
+    };
+    return icons[placement] || 'pi pi-circle';
   }
 
   getCountryFlag(code: string): string {

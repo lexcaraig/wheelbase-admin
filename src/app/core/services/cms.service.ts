@@ -96,9 +96,6 @@ export class CmsService {
   } = {}): Observable<PaginatedResponse<ContentPage>> {
     return from(
       this.supabase.client.auth.getSession().then(({ data: { session } }) => {
-        console.log('Session exists:', !!session);
-        console.log('Access token exists:', !!session?.access_token);
-
         if (!session) {
           throw new Error('No active session. Please log in again.');
         }
@@ -112,10 +109,7 @@ export class CmsService {
       })
     ).pipe(
       map(response => {
-        console.log('Response:', response);
-
         if (response.error) {
-          console.error('Function error:', response.error);
           throw new Error(response.error.message || 'Failed to load content list');
         }
         if (!response.data || !response.data.success) {
@@ -259,7 +253,6 @@ export class CmsService {
    * Handle API errors
    */
   private handleError(error: any): Observable<never> {
-    console.error('CMS API Error:', error);
     const message = error.error?.error?.message || error.message || 'An unexpected error occurred';
     return throwError(() => new Error(message));
   }

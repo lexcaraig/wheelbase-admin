@@ -1,18 +1,23 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatTableModule } from '@angular/material/table';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { UsersService } from '../../../core/services/users.service';
 import { UserDetail } from '../../../core/models/user.model';
-import { CardModule } from 'primeng/card';
-import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
-import { TableModule } from 'primeng/table';
-import { DialogModule } from 'primeng/dialog';
-import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
-import { SkeletonModule } from 'primeng/skeleton';
+import { NotificationService } from '../../../core/services/notification.service';
+import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
+import { AvatarComponent } from '../../../shared/components/avatar/avatar.component';
 import { RelativeTimePipe } from '../../../shared/pipes/relative-time.pipe';
+import { getSubscriptionTierSeverity } from '../../../shared/utils/severity.utils';
+import { BadgeSeverity } from '../../../shared/components/status-badge/status-badge.component';
+import { UserDetailBanDialogComponent } from './dialogs/user-detail-ban-dialog.component';
+import { UserDetailHardDeleteDialogComponent } from './dialogs/user-detail-hard-delete-dialog.component';
 
 @Component({
   selector: 'app-user-detail',
@@ -20,16 +25,16 @@ import { RelativeTimePipe } from '../../../shared/pipes/relative-time.pipe';
   imports: [
     CommonModule,
     FormsModule,
-    CardModule,
-    ButtonModule,
-    TagModule,
-    TableModule,
-    DialogModule,
-    ToastModule,
-    SkeletonModule,
+    MatCardModule,
+    MatButtonModule,
+    MatTabsModule,
+    MatTableModule,
+    MatDialogModule,
+    MatTooltipModule,
+    StatusBadgeComponent,
+    AvatarComponent,
     RelativeTimePipe
   ],
-  providers: [MessageService],
   templateUrl: './user-detail.component.html',
   styleUrl: './user-detail.component.scss'
 })
@@ -39,16 +44,16 @@ export class UserDetailComponent implements OnInit {
   userId = signal<string>('');
   activeTab = signal(0);
 
-  // Ban Dialog
-  showBanDialog = signal(false);
-  banReason = ''; // Regular property for ngModel
-  isBanning = signal(false);
+  // Posts table columns
+  postsDisplayedColumns: string[] = ['content', 'engagement', 'date'];
+  ridesDisplayedColumns: string[] = ['title', 'distance', 'participants', 'date'];
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private usersService: UsersService,
-    private messageService: MessageService
+    private notificationService: NotificationService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit() {
@@ -64,11 +69,7 @@ export class UserDetailComponent implements OnInit {
       const userData = await this.usersService.getUserDetail(this.userId());
       this.user.set(userData);
     } catch (error: any) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: error.message || 'Failed to load user details'
-      });
+      this.notificationService.error('Error', error.message || 'Failed to load user details');
       // Go back to users list on error
       setTimeout(() => this.router.navigate(['/users']), 2000);
     } finally {
@@ -77,41 +78,16 @@ export class UserDetailComponent implements OnInit {
   }
 
   openBanDialog() {
-    this.banReason = '';
-    this.showBanDialog.set(true);
-  }
+    const dialogRef = this.dialog.open(UserDetailBanDialogComponent, {
+      width: '500px',
+      data: { user: this.user() }
+    });
 
-  async banUser() {
-    if (!this.user() || !this.banReason.trim()) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Warning',
-        detail: 'Ban reason is required'
-      });
-      return;
-    }
-
-    try {
-      this.isBanning.set(true);
-      await this.usersService.banUser(this.user()!.id, this.banReason);
-
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'User has been banned'
-      });
-
-      this.showBanDialog.set(false);
-      await this.loadUserDetail();
-    } catch (error: any) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: error.message || 'Failed to ban user'
-      });
-    } finally {
-      this.isBanning.set(false);
-    }
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadUserDetail();
+      }
+    });
   }
 
   async unbanUser() {
@@ -119,33 +95,36 @@ export class UserDetailComponent implements OnInit {
 
     try {
       await this.usersService.unbanUser(this.user()!.id);
-
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'User has been unbanned'
-      });
-
+      this.notificationService.success('Success', 'User has been unbanned');
       await this.loadUserDetail();
     } catch (error: any) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: error.message || 'Failed to unban user'
-      });
+      this.notificationService.error('Error', error.message || 'Failed to unban user');
     }
+  }
+
+  openHardDeleteDialog() {
+    const dialogRef = this.dialog.open(UserDetailHardDeleteDialogComponent, {
+      width: '600px',
+      data: { user: this.user() }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Navigate back to users list
+        setTimeout(() => this.router.navigate(['/users']), 1500);
+      }
+    });
   }
 
   goBack() {
     this.router.navigate(['/users']);
   }
 
-  getSeverity(tier: string): 'success' | 'danger' | 'warn' | 'info' {
-    switch (tier) {
-      case 'premium': return 'warn';
-      case 'pro': return 'info';
-      case 'free': return 'success';
-      default: return 'info';
-    }
+  getSeverity(tier: string): BadgeSeverity {
+    return getSubscriptionTierSeverity(tier);
+  }
+
+  onTabChange(index: number) {
+    this.activeTab.set(index);
   }
 }

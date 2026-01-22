@@ -1,12 +1,47 @@
 import { Injectable } from '@angular/core';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { ApiService } from './api.service';
 import { AppUser, UserDetail, UsersListResponse } from '../models/user.model';
+import { environment } from '../../../environments/environment';
+
+export interface UserStats {
+  total_users: number;
+  active_users: number;
+  banned_users: number;
+  verified_users: number;
+  pro_users: number;
+  premium_users: number;
+  pending_deletion: number; // Users within 7-day grace period before permanent deletion
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class UsersService {
-  constructor(private api: ApiService) {}
+  private supabase: SupabaseClient;
+
+  constructor(private api: ApiService) {
+    this.supabase = createClient(
+      environment.supabaseUrl,
+      environment.supabaseAnonKey
+    );
+  }
+
+  /**
+   * Get user statistics (uses RPC function)
+   */
+  async getUserStats(): Promise<UserStats> {
+    const { data, error } = await this.supabase.rpc('get_user_stats');
+
+    if (error) {
+      console.error('Error fetching user stats:', error);
+      throw new Error(error.message);
+    }
+
+    // RPC returns an array, get the first row
+    const stats = Array.isArray(data) ? data[0] : data;
+    return stats as UserStats;
+  }
 
   /**
    * Get paginated users list
@@ -16,6 +51,9 @@ export class UsersService {
     pageSize?: number;
     search?: string;
     status?: 'all' | 'active' | 'banned';
+    subscription?: 'free' | 'pro' | 'premium';
+    verification?: 'verified' | 'unverified';
+    accountStatus?: 'all' | 'active' | 'deleted' | 'suspended';
   }): Promise<UsersListResponse> {
     return await this.api.call<UsersListResponse>('get-users', params);
   }
@@ -56,6 +94,25 @@ export class UsersService {
     return await this.api.call('bulk-ban-users', {
       user_ids: userIds,
       ban_reason: reason
+    });
+  }
+
+  /**
+   * Permanently delete a user and all their data
+   * WARNING: This action is IRREVERSIBLE
+   */
+  async hardDeleteUser(userId: string): Promise<void> {
+    await this.api.call('hard-delete-user', {
+      user_id: userId
+    });
+  }
+
+  /**
+   * Restore a soft-deleted user account (within 7-day grace period)
+   */
+  async restoreUser(userId: string): Promise<void> {
+    await this.api.call('restore-user', {
+      user_id: userId
     });
   }
 }

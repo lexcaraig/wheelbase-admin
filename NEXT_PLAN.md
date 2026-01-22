@@ -1,12 +1,12 @@
 # NEXT PLAN
 
 - Repository README: /Users/lexcaraig/development/wheelbase-admin/README.md
-- Google OAuth Setup: /Users/lexcaraig/development/Wheelbase/FLUTTER_APP/supabase/ADMIN_GOOGLE_OAUTH_SETUP.md
+- Google OAuth Setup: /Users/lexcaraig/development/Wheelbase/wheelbase-supabase/supabase/ADMIN_GOOGLE_OAUTH_SETUP.md
 - Implementation Plan: See plan file at /Users/lexcaraig/.claude/plans/hazy-leaping-hennessy.md
 
 ✅ Repository Moved - Updated Structure  
  /Users/lexcaraig/development/Wheelbase/
-├── FLUTTER_APP/ # Flutter app + Supabase backend  
+├── wheelbase-app/ # Flutter app + Supabase backend  
  │ ├── wheelbase_app/ # Flutter source code  
  │ ├── supabase/  
  │ │ ├── migrations/ # Database migrations  
@@ -27,7 +27,7 @@
 
 📋 Phase 1 Complete Summary
 
-Backend (FLUTTER_APP):
+Backend (wheelbase-app):
 
 - ✅ Database migration applied
 - ✅ 9 Edge Functions deployed

@@ -1,5 +1,3 @@
-<p-toast></p-toast>
-
 <div class="p-4">
   <!-- Header -->
   <div class="mb-4">
@@ -7,422 +5,455 @@
     <p class="text-gray-600">View, search, and manage platform users</p>
   </div>
 
-  <!-- Filters Card -->
-  <p-card class="mb-4">
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-      <!-- Search -->
-      <div class="md:col-span-8">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Search Users</label>
-        <p-iconfield iconPosition="left" class="w-full">
-          <p-inputicon styleClass="pi pi-search" />
-          <input
-            pInputText
-            type="text"
-            [(ngModel)]="searchQuery"
-            (keyup.enter)="onSearch()"
-            placeholder="Search by email, username, or display name..."
-            class="w-full"
-          />
-        </p-iconfield>
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-4">
+    <!-- Total Users -->
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="flex justify-center mb-2">
+        <span class="material-symbols-outlined text-2xl text-blue-600">group</span>
       </div>
-
-      <!-- Status Filter -->
-      <div class="md:col-span-4">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Status Filter</label>
-        <p-select
-          [(ngModel)]="statusFilter"
-          [options]="statusOptions"
-          (onChange)="onStatusFilterChange()"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="Select Status"
-          styleClass="w-full"
-        />
-      </div>
-    </div>
-  </p-card>
-
-  <!-- Users Table Card -->
-  <p-card>
-    <!-- Bulk Actions Toolbar -->
-    @if (selectedUsers().length > 0) {
-      <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <i class="pi pi-check-circle text-blue-600"></i>
-          <span class="font-semibold text-blue-900">
-            {{ selectedUsers().length }} user(s) selected
-          </span>
-        </div>
-        <div class="flex gap-2">
-          <p-button
-            label="Export Selected"
-            icon="pi pi-download"
-            severity="secondary"
-            [outlined]="true"
-            (onClick)="exportSelectedUsers()"
-          />
-          <p-button
-            label="Ban Selected"
-            icon="pi pi-ban"
-            severity="danger"
-            (onClick)="openBulkBanDialog()"
-          />
-        </div>
-      </div>
-    }
-
-    <p-table
-      [value]="users()"
-      [(selection)]="selectedUsers"
-      (onSelectionChange)="onSelectionChange($event)"
-      [loading]="isLoading()"
-      [paginator]="true"
-      [rows]="pageSize"
-      [totalRecords]="totalRecords()"
-      [lazy]="true"
-      (onLazyLoad)="onPageChange($event)"
-      [rowHover]="true"
-      [showCurrentPageReport]="true"
-      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} users"
-      [rowsPerPageOptions]="[10, 25, 50]"
-      styleClass="p-datatable-striped"
-      [tableStyle]="{ 'min-width': '60rem' }"
-      dataKey="id"
-    >
-      <ng-template pTemplate="header">
-        <tr>
-          <th style="width: 3%">
-            <p-tableHeaderCheckbox />
-          </th>
-          <th pSortableColumn="username" style="width: 18%">
-            User
-            <p-sortIcon field="username" />
-          </th>
-          <th pSortableColumn="email" style="width: 20%">
-            Email
-            <p-sortIcon field="email" />
-          </th>
-          <th style="width: 8%">Country</th>
-          <th style="width: 12%">Subscription</th>
-          <th style="width: 12%">Verification</th>
-          <th style="width: 10%">Status</th>
-          <th pSortableColumn="created_at" style="width: 12%">
-            Joined
-            <p-sortIcon field="created_at" />
-          </th>
-          <th class="text-center" style="width: 6%">Actions</th>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="body" let-user>
-        <tr>
-          <!-- Selection Checkbox -->
-          <td>
-            <p-tableCheckbox [value]="user" />
-          </td>
-
-          <!-- User -->
-          <td>
-            <div class="flex items-center gap-3">
-              @if (user.avatar_url) {
-                <p-avatar
-                  [image]="user.avatar_url"
-                  shape="circle"
-                  size="large"
-                ></p-avatar>
-              } @else {
-                <p-avatar
-                  [label]="user.username?.charAt(0)?.toUpperCase() || '?'"
-                  shape="circle"
-                  size="large"
-                  styleClass="bg-primary text-white"
-                ></p-avatar>
-              }
-              <div>
-                <div class="font-semibold text-gray-900">{{ user.username }}</div>
-                @if (user.display_name) {
-                  <div class="text-sm text-gray-500">{{ user.display_name }}</div>
-                }
-              </div>
-            </div>
-          </td>
-
-          <!-- Email -->
-          <td>
-            <span class="text-gray-700">{{ user.email }}</span>
-          </td>
-
-          <!-- Country -->
-          <td>
-            <p-tag
-              [value]="user.country_code || 'N/A'"
-              severity="secondary"
-              [rounded]="true"
-            ></p-tag>
-          </td>
-
-          <!-- Subscription -->
-          <td>
-            <p-tag
-              [value]="user.subscription_tier.toUpperCase()"
-              [severity]="getSeverity(user.subscription_tier)"
-              [rounded]="true"
-            ></p-tag>
-          </td>
-
-          <!-- Verification -->
-          <td>
-            <div class="flex items-center gap-2">
-              @if (user.identity_verified) {
-                <i
-                  class="pi pi-verified text-blue-600 text-lg"
-                  pTooltip="Identity Verified"
-                  tooltipPosition="top"
-                ></i>
-              }
-              @if (user.email_verified) {
-                <i
-                  class="pi pi-envelope text-green-600"
-                  pTooltip="Email Verified"
-                  tooltipPosition="top"
-                ></i>
-              }
-              @if (user.phone_verified) {
-                <i
-                  class="pi pi-phone text-green-600"
-                  pTooltip="Phone Verified"
-                  tooltipPosition="top"
-                ></i>
-              }
-              @if (!user.email_verified && !user.phone_verified && !user.identity_verified) {
-                <span class="text-gray-400 text-sm">Not verified</span>
-              }
-            </div>
-          </td>
-
-          <!-- Status -->
-          <td>
-            @if (user.is_banned) {
-              <p-tag value="BANNED" severity="danger" [rounded]="true"></p-tag>
-            } @else {
-              <p-tag value="ACTIVE" severity="success" [rounded]="true"></p-tag>
-            }
-          </td>
-
-          <!-- Created -->
-          <td>
-            <span class="text-gray-700 text-sm">
-              {{ user.created_at | relativeTime }}
-            </span>
-          </td>
-
-          <!-- Actions -->
-          <td class="text-center">
-            <div class="flex items-center justify-center gap-1">
-              <p-button
-                icon="pi pi-eye"
-                [rounded]="true"
-                [text]="true"
-                severity="secondary"
-                (onClick)="viewUserDetail(user)"
-                pTooltip="View Details"
-                tooltipPosition="top"
-              />
-
-              @if (!user.is_banned) {
-                <p-button
-                  icon="pi pi-ban"
-                  [rounded]="true"
-                  [text]="true"
-                  severity="danger"
-                  (onClick)="openBanDialog(user)"
-                  pTooltip="Ban User"
-                  tooltipPosition="top"
-                />
-              } @else {
-                <p-button
-                  icon="pi pi-check-circle"
-                  [rounded]="true"
-                  [text]="true"
-                  severity="success"
-                  (onClick)="unbanUser(user)"
-                  pTooltip="Unban User"
-                  tooltipPosition="top"
-                />
-              }
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="emptymessage">
-        <tr>
-          <td colspan="9" class="text-center py-12">
-            <div class="flex flex-col items-center gap-3">
-              <i class="pi pi-users text-gray-400 text-6xl"></i>
-              <div class="text-gray-500 text-lg">No users found</div>
-              <p class="text-gray-400 text-sm">Try adjusting your search or filter criteria</p>
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
-  </p-card>
-</div>
-
-<!-- Ban User Dialog -->
-<p-dialog
-  [(visible)]="showBanDialog"
-  [modal]="true"
-  [closable]="true"
-  [style]="{ width: '500px' }"
-  [header]="'Ban User'"
-  [draggable]="false"
-  [resizable]="false"
->
-  @if (selectedUser(); as user) {
-    <div class="space-y-4">
-      <!-- User Info -->
-      <div class="p-4 bg-gray-50 rounded-lg">
-        <div class="flex items-center gap-3">
-          @if (user.avatar_url) {
-            <p-avatar
-              [image]="user.avatar_url"
-              shape="circle"
-              size="large"
-            ></p-avatar>
-          } @else {
-            <p-avatar
-              [label]="user.username.charAt(0).toUpperCase() || '?'"
-              shape="circle"
-              size="large"
-              styleClass="bg-primary text-white"
-            ></p-avatar>
-          }
-          <div>
-            <div class="font-semibold text-gray-900">{{ user.username }}</div>
-            <div class="text-sm text-gray-500">{{ user.email }}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Warning Message -->
-      <div class="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-        <i class="pi pi-exclamation-triangle text-red-600 text-xl mt-1"></i>
-        <div class="text-sm text-red-800">
-          This user will be immediately banned from accessing the platform. This action can be reversed later.
-        </div>
-      </div>
-
-      <!-- Ban Reason -->
-      <div class="flex flex-col gap-2">
-        <label for="banReason" class="font-semibold text-gray-700">
-          Reason for Ban <span class="text-red-500">*</span>
-        </label>
-        <textarea
-          pTextarea
-          id="banReason"
-          [(ngModel)]="banReason"
-          rows="4"
-          placeholder="Enter the reason for banning this user (minimum 10 characters)..."
-          class="w-full"
-        ></textarea>
-        <small class="text-gray-500">
-          This reason will be stored in the audit log.
-        </small>
-      </div>
-
-      <!-- Actions -->
-      <div class="flex justify-end gap-2 pt-4">
-        <p-button
-          label="Cancel"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="showBanDialog.set(false)"
-          [disabled]="isBanning()"
-        />
-        <p-button
-          label="Ban User"
-          severity="danger"
-          icon="pi pi-ban"
-          (onClick)="banUser()"
-          [loading]="isBanning()"
-          [disabled]="!banReason.trim() || banReason.trim().length < 10"
-        />
-      </div>
-    </div>
-  }
-</p-dialog>
-
-<!-- Bulk Ban Users Dialog -->
-<p-dialog
-  [(visible)]="showBulkBanDialog"
-  [modal]="true"
-  [closable]="true"
-  [style]="{ width: '600px' }"
-  [header]="'Bulk Ban Users'"
-  [draggable]="false"
-  [resizable]="false"
->
-  <div class="space-y-4">
-    <!-- Selected Users Summary -->
-    <div class="p-4 bg-gray-50 rounded-lg">
-      <div class="font-semibold text-gray-900 mb-2">
-        Selected Users ({{ selectedUsers().length }})
-      </div>
-      <div class="max-h-32 overflow-y-auto space-y-1">
-        @for (user of selectedUsers(); track user.id) {
-          <div class="text-sm text-gray-700 flex items-center gap-2">
-            <i class="pi pi-user text-xs"></i>
-            <span>{{ user.username }} ({{ user.email }})</span>
-          </div>
-        }
-      </div>
+      @if (isLoadingStats()) {
+        <div class="h-8 bg-gray-200 rounded animate-pulse mb-1"></div>
+      } @else {
+        <p class="text-2xl font-bold text-blue-600">{{ (stats()?.total_users ?? 0) | number }}</p>
+      }
+      <p class="text-sm text-gray-600">Total Users</p>
     </div>
 
-    <!-- Warning Message -->
-    <div class="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-      <i class="pi pi-exclamation-triangle text-red-600 text-xl mt-1"></i>
-      <div class="text-sm text-red-800">
-        All selected users will be immediately banned from accessing the platform. This action can be reversed later.
+    <!-- Active Users -->
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="flex justify-center mb-2">
+        <span class="material-symbols-outlined text-2xl text-green-600">check_circle</span>
       </div>
+      @if (isLoadingStats()) {
+        <div class="h-8 bg-gray-200 rounded animate-pulse mb-1"></div>
+      } @else {
+        <p class="text-2xl font-bold text-green-600">{{ (stats()?.active_users ?? 0) | number }}</p>
+      }
+      <p class="text-sm text-gray-600">Active</p>
     </div>
 
-    <!-- Ban Reason -->
-    <div class="flex flex-col gap-2">
-      <label for="bulkBanReason" class="font-semibold text-gray-700">
-        Reason for Ban <span class="text-red-500">*</span>
-      </label>
-      <textarea
-        pTextarea
-        id="bulkBanReason"
-        [(ngModel)]="bulkBanReason"
-        rows="4"
-        placeholder="Enter the reason for banning these users (minimum 10 characters)..."
-        class="w-full"
-      ></textarea>
-      <small class="text-gray-500">
-        This reason will be applied to all selected users and stored in the audit log.
-      </small>
+    <!-- Banned Users -->
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="flex justify-center mb-2">
+        <span class="material-symbols-outlined text-2xl text-red-600">block</span>
+      </div>
+      @if (isLoadingStats()) {
+        <div class="h-8 bg-gray-200 rounded animate-pulse mb-1"></div>
+      } @else {
+        <p class="text-2xl font-bold text-red-600">{{ (stats()?.banned_users ?? 0) | number }}</p>
+      }
+      <p class="text-sm text-gray-600">Banned</p>
     </div>
 
-    <!-- Actions -->
-    <div class="flex justify-end gap-2 pt-4">
-      <p-button
-        label="Cancel"
-        severity="secondary"
-        [outlined]="true"
-        (onClick)="showBulkBanDialog.set(false)"
-        [disabled]="isBulkBanning()"
-      />
-      <p-button
-        [label]="'Ban ' + selectedUsers().length + ' User(s)'"
-        severity="danger"
-        icon="pi pi-ban"
-        (onClick)="bulkBanUsers()"
-        [loading]="isBulkBanning()"
-        [disabled]="!bulkBanReason.trim() || bulkBanReason.trim().length < 10"
-      />
+    <!-- Verified Users -->
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="flex justify-center mb-2">
+        <span class="material-symbols-outlined text-2xl text-cyan-600">verified</span>
+      </div>
+      @if (isLoadingStats()) {
+        <div class="h-8 bg-gray-200 rounded animate-pulse mb-1"></div>
+      } @else {
+        <p class="text-2xl font-bold text-cyan-600">{{ (stats()?.verified_users ?? 0) | number }}</p>
+      }
+      <p class="text-sm text-gray-600">Verified</p>
+    </div>
+
+    <!-- Pro Users -->
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="flex justify-center mb-2">
+        <span class="material-symbols-outlined text-2xl text-purple-600">star</span>
+      </div>
+      @if (isLoadingStats()) {
+        <div class="h-8 bg-gray-200 rounded animate-pulse mb-1"></div>
+      } @else {
+        <p class="text-2xl font-bold text-purple-600">{{ (stats()?.pro_users ?? 0) | number }}</p>
+      }
+      <p class="text-sm text-gray-600">Pro</p>
+    </div>
+
+    <!-- Premium Users -->
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="flex justify-center mb-2">
+        <span class="material-symbols-outlined text-2xl text-amber-600">workspace_premium</span>
+      </div>
+      @if (isLoadingStats()) {
+        <div class="h-8 bg-gray-200 rounded animate-pulse mb-1"></div>
+      } @else {
+        <p class="text-2xl font-bold text-amber-600">{{ (stats()?.premium_users ?? 0) | number }}</p>
+      }
+      <p class="text-sm text-gray-600">Premium</p>
+    </div>
+
+    <!-- Pending Deletion -->
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="flex justify-center mb-2">
+        <span class="material-symbols-outlined text-2xl text-orange-600">schedule</span>
+      </div>
+      @if (isLoadingStats()) {
+        <div class="h-8 bg-gray-200 rounded animate-pulse mb-1"></div>
+      } @else {
+        <p class="text-2xl font-bold text-orange-600">{{ (stats()?.pending_deletion ?? 0) | number }}</p>
+      }
+      <p class="text-sm text-gray-600">Pending Deletion</p>
     </div>
   </div>
-</p-dialog>
+
+  <!-- Filters Card -->
+  <mat-card class="mb-4">
+    <mat-card-content>
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <!-- Search -->
+        <div class="md:col-span-4">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Search Users</mat-label>
+            <input
+              matInput
+              [(ngModel)]="searchQuery"
+              (keyup.enter)="onSearch()"
+              placeholder="Search by email, username, or display name..."
+            />
+            <span matPrefix class="material-symbols-outlined mr-2">search</span>
+          </mat-form-field>
+        </div>
+
+        <!-- Account Status Filter -->
+        <div class="md:col-span-2">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Account Status</mat-label>
+            <mat-select [(value)]="accountStatusFilter" (selectionChange)="onFilterChange()">
+              @for (option of accountStatusOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Ban Status Filter -->
+        <div class="md:col-span-2">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Ban Status</mat-label>
+            <mat-select [(value)]="statusFilter" (selectionChange)="onFilterChange()">
+              @for (option of statusOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Subscription Filter -->
+        <div class="md:col-span-2">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Subscription</mat-label>
+            <mat-select [(value)]="subscriptionFilter" (selectionChange)="onFilterChange()">
+              @for (option of subscriptionOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Verification Filter -->
+        <div class="md:col-span-1">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Verified</mat-label>
+            <mat-select [(value)]="verificationFilter" (selectionChange)="onFilterChange()">
+              @for (option of verificationOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Clear Filters -->
+        <div class="md:col-span-1 flex items-center">
+          @if (hasActiveFilters()) {
+            <button
+              mat-icon-button
+              (click)="clearFilters()"
+              matTooltip="Clear all filters"
+            >
+              <span class="material-symbols-outlined">filter_alt_off</span>
+            </button>
+          }
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Users Table Card -->
+  <mat-card>
+    <mat-card-content>
+      <!-- Bulk Actions Toolbar -->
+      @if (selection.selected.length > 0) {
+        <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-blue-600">check_circle</span>
+            <span class="font-semibold text-blue-900">
+              {{ selection.selected.length }} user(s) selected
+            </span>
+          </div>
+          <div class="flex gap-2">
+            <button mat-stroked-button (click)="exportSelectedUsers()">
+              <span class="material-symbols-outlined mr-2">download</span>
+              Export Selected
+            </button>
+            <button mat-raised-button color="warn" (click)="openBulkBanDialog()">
+              <span class="material-symbols-outlined mr-2">block</span>
+              Ban Selected
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Export Deleted Users Button -->
+      @if (accountStatusFilter === 'deleted') {
+        <div class="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-orange-600">schedule</span>
+            <span class="text-orange-900">
+              Viewing deleted users in 7-day grace period
+            </span>
+          </div>
+          <button mat-stroked-button (click)="exportDeletedUsers()">
+            <span class="material-symbols-outlined mr-2">download</span>
+            Export Deleted Users
+          </button>
+        </div>
+      }
+
+      <!-- Loading Overlay -->
+      @if (isLoading()) {
+        <div class="flex justify-center items-center py-12">
+          <span class="material-symbols-outlined animate-spin text-4xl text-gray-400">progress_activity</span>
+        </div>
+      }
+
+      <!-- Users Table -->
+      @if (!isLoading()) {
+        <div class="overflow-x-auto">
+          <table mat-table [dataSource]="users()" class="w-full users-table">
+            <!-- Checkbox Column -->
+            <ng-container matColumnDef="select">
+              <th mat-header-cell *matHeaderCellDef style="width: 48px">
+                <mat-checkbox
+                  (change)="$event ? toggleAllRows() : null"
+                  [checked]="selection.hasValue() && isAllSelected()"
+                  [indeterminate]="selection.hasValue() && !isAllSelected()"
+                >
+                </mat-checkbox>
+              </th>
+              <td mat-cell *matCellDef="let row">
+                <mat-checkbox
+                  (click)="$event.stopPropagation()"
+                  (change)="$event ? selection.toggle(row) : null"
+                  [checked]="selection.isSelected(row)"
+                >
+                </mat-checkbox>
+              </td>
+            </ng-container>
+
+            <!-- User Column -->
+            <ng-container matColumnDef="user">
+              <th mat-header-cell *matHeaderCellDef>User</th>
+              <td mat-cell *matCellDef="let user">
+                <div class="flex items-center gap-3">
+                  <app-avatar
+                    [image]="user.avatar_url"
+                    [label]="user.username"
+                    shape="circle"
+                    size="large"
+                  ></app-avatar>
+                  <div>
+                    <div class="font-semibold text-gray-900">{{ user.username }}</div>
+                    @if (user.display_name) {
+                      <div class="text-sm text-gray-500">{{ user.display_name }}</div>
+                    }
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Email Column -->
+            <ng-container matColumnDef="email">
+              <th mat-header-cell *matHeaderCellDef>Email</th>
+              <td mat-cell *matCellDef="let user">
+                <span class="text-gray-700">{{ user.email }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Country Column -->
+            <ng-container matColumnDef="country">
+              <th mat-header-cell *matHeaderCellDef style="width: 80px">Country</th>
+              <td mat-cell *matCellDef="let user">
+                <app-status-badge
+                  [value]="user.country_code || 'N/A'"
+                  severity="secondary"
+                  [rounded]="true"
+                ></app-status-badge>
+              </td>
+            </ng-container>
+
+            <!-- Subscription Column -->
+            <ng-container matColumnDef="subscription">
+              <th mat-header-cell *matHeaderCellDef style="width: 100px">Subscription</th>
+              <td mat-cell *matCellDef="let user">
+                <app-status-badge
+                  [value]="user.subscription_tier.toUpperCase()"
+                  [severity]="getSubscriptionSeverity(user.subscription_tier)"
+                  [rounded]="true"
+                ></app-status-badge>
+              </td>
+            </ng-container>
+
+            <!-- Verification Column -->
+            <ng-container matColumnDef="verification">
+              <th mat-header-cell *matHeaderCellDef style="width: 120px">Verification</th>
+              <td mat-cell *matCellDef="let user">
+                <div class="flex items-center gap-2">
+                  @if (user.identity_verified) {
+                    <span
+                      class="material-symbols-outlined text-blue-600"
+                      matTooltip="Identity Verified"
+                    >verified</span>
+                  }
+                  @if (user.email_verified) {
+                    <span
+                      class="material-symbols-outlined text-green-600"
+                      matTooltip="Email Verified"
+                    >mail</span>
+                  }
+                  @if (user.phone_verified) {
+                    <span
+                      class="material-symbols-outlined text-green-600"
+                      matTooltip="Phone Verified"
+                    >phone</span>
+                  }
+                  @if (!user.email_verified && !user.phone_verified && !user.identity_verified) {
+                    <span class="text-gray-400 text-sm">Not verified</span>
+                  }
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef style="width: 120px">Status</th>
+              <td mat-cell *matCellDef="let user">
+                <div class="flex flex-col gap-1">
+                  @if (user.account_status === 'deleted') {
+                    <div class="flex items-center gap-2">
+                      <app-status-badge value="DELETED" severity="secondary" [rounded]="true"></app-status-badge>
+                      @if (user.deleted_at && isWithinRecoveryWindow(user.deleted_at)) {
+                        <span class="text-xs text-orange-600 font-medium">
+                          {{ getDaysUntilDeletion(user.deleted_at) }}d left
+                        </span>
+                      }
+                    </div>
+                  } @else if (user.account_status === 'suspended') {
+                    <app-status-badge value="SUSPENDED" severity="warning" [rounded]="true"></app-status-badge>
+                  } @else if (user.is_banned) {
+                    <app-status-badge value="BANNED" severity="danger" [rounded]="true"></app-status-badge>
+                  } @else {
+                    <app-status-badge value="ACTIVE" severity="success" [rounded]="true"></app-status-badge>
+                  }
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Joined Column -->
+            <ng-container matColumnDef="joined">
+              <th mat-header-cell *matHeaderCellDef style="width: 120px">Joined</th>
+              <td mat-cell *matCellDef="let user">
+                <span class="text-gray-700 text-sm">
+                  {{ user.created_at | relativeTime }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef style="width: 120px" class="text-center">Actions</th>
+              <td mat-cell *matCellDef="let user">
+                <div class="flex items-center justify-center gap-1">
+                  <button
+                    mat-icon-button
+                    (click)="viewUserDetail(user)"
+                    matTooltip="View Details"
+                  >
+                    <span class="material-symbols-outlined">visibility</span>
+                  </button>
+
+                  @if (user.account_status === 'deleted') {
+                    @if (isWithinRecoveryWindow(user.deleted_at)) {
+                      <button
+                        mat-icon-button
+                        color="primary"
+                        (click)="openRestoreDialog(user)"
+                        matTooltip="Restore Account"
+                      >
+                        <span class="material-symbols-outlined">refresh</span>
+                      </button>
+                    }
+                    <button
+                      mat-icon-button
+                      color="warn"
+                      (click)="openForceDeleteDialog(user)"
+                      matTooltip="Force Delete (Permanent)"
+                    >
+                      <span class="material-symbols-outlined">delete_forever</span>
+                    </button>
+                  } @else if (!user.is_banned) {
+                    <button
+                      mat-icon-button
+                      color="warn"
+                      (click)="openBanDialog(user)"
+                      matTooltip="Ban User"
+                    >
+                      <span class="material-symbols-outlined">block</span>
+                    </button>
+                  } @else {
+                    <button
+                      mat-icon-button
+                      color="primary"
+                      (click)="unbanUser(user)"
+                      matTooltip="Unban User"
+                    >
+                      <span class="material-symbols-outlined">check_circle</span>
+                    </button>
+                  }
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="hover:bg-gray-50"></tr>
+
+            <!-- Empty state -->
+            <tr class="mat-row" *matNoDataRow>
+              <td class="mat-cell" colspan="9">
+                <div class="text-center py-12">
+                  <div class="flex flex-col items-center gap-3">
+                    <span class="material-symbols-outlined text-gray-400 text-6xl">group</span>
+                    <div class="text-gray-500 text-lg">No users found</div>
+                    <p class="text-gray-400 text-sm">Try adjusting your search or filter criteria</p>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Paginator -->
+        <mat-paginator
+          [length]="totalRecords()"
+          [pageSize]="pageSize"
+          [pageSizeOptions]="pageSizeOptions"
+          (page)="onPageChange($event)"
+          showFirstLastButtons
+        >
+        </mat-paginator>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

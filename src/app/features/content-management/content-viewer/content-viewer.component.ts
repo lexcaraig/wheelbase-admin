@@ -63,22 +63,16 @@ export class ContentViewerComponent implements OnInit {
 
   renderMarkdown(markdown: string): void {
     try {
-      console.log('Rendering markdown, length:', markdown?.length);
-
       if (!markdown || markdown.trim() === '') {
-        console.warn('Empty markdown content');
         this.renderedContent = this.sanitizer.bypassSecurityTrustHtml('<p><em>No content available</em></p>');
         return;
       }
 
       const html = marked.marked(markdown) as string;
-      console.log('Rendered HTML length:', html?.length);
 
       // Bypass security for trusted CMS content
       this.renderedContent = this.sanitizer.bypassSecurityTrustHtml(html);
     } catch (err) {
-      console.error('Failed to render markdown:', err);
-      console.error('Markdown content:', markdown?.substring(0, 200));
       this.renderedContent = this.sanitizer.bypassSecurityTrustHtml(
         `<div style="color: red; padding: 20px; border: 1px solid red; border-radius: 8px;">
           <h3>Failed to render content</h3>

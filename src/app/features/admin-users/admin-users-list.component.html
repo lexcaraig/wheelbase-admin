@@ -1,5 +1,3 @@
-<p-toast></p-toast>
-
 <div class="p-4">
   <!-- Header -->
   <div class="flex items-center justify-between mb-4">
@@ -7,340 +5,168 @@
       <h1 class="text-3xl font-bold text-gray-900 mb-2">Admin Users</h1>
       <p class="text-gray-600">Manage administrator accounts and permissions</p>
     </div>
-    <p-button
-      label="Create Admin"
-      icon="pi pi-plus"
-      (onClick)="openCreateDialog()"
-    ></p-button>
+    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+      <span class="material-symbols-outlined mr-2">add</span>
+      Create Admin
+    </button>
   </div>
 
   <!-- Filters Card -->
-  <p-card class="mb-4">
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-      <!-- Search -->
-      <div class="md:col-span-8">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
-        <input
-          pInputText
-          type="text"
-          [(ngModel)]="searchQuery"
-          (keyup.enter)="onSearch()"
-          placeholder="Search by email..."
-          class="w-full"
-        />
-      </div>
+  <mat-card class="mb-4">
+    <mat-card-content>
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <!-- Search -->
+        <div class="md:col-span-8">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Search</mat-label>
+            <input
+              matInput
+              type="text"
+              [(ngModel)]="searchQuery"
+              (keyup.enter)="onSearch()"
+              placeholder="Search by email..."
+            >
+            <button mat-icon-button matSuffix (click)="onSearch()" matTooltip="Search">
+              <span class="material-symbols-outlined">search</span>
+            </button>
+          </mat-form-field>
+        </div>
 
-      <!-- Role Filter -->
-      <div class="md:col-span-4">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
-        <p-select
-          [(ngModel)]="roleFilter"
-          [options]="roleOptions"
-          (onChange)="onRoleFilterChange()"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="All Roles"
-          styleClass="w-full"
-        />
-      </div>
-    </div>
-  </p-card>
-
-  <!-- Admin Users Table -->
-  <p-card>
-    <p-table
-      [value]="adminUsers()"
-      [loading]="isLoading()"
-      [paginator]="true"
-      [rows]="pageSize"
-      [totalRecords]="totalRecords()"
-      [lazy]="true"
-      (onLazyLoad)="onPageChange($event)"
-      [rowHover]="true"
-      [showCurrentPageReport]="true"
-      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} admins"
-      [rowsPerPageOptions]="[10, 20, 50]"
-      styleClass="p-datatable-striped"
-      [tableStyle]="{ 'min-width': '60rem' }"
-    >
-      <ng-template pTemplate="header">
-        <tr>
-          <th style="width: 25%">Email</th>
-          <th style="width: 15%">Role</th>
-          <th style="width: 10%">Status</th>
-          <th style="width: 20%">Created By</th>
-          <th style="width: 15%">Last Login</th>
-          <th style="width: 15%">Created</th>
-          <th class="text-center" style="width: 10%">Actions</th>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="body" let-admin>
-        <tr>
-          <!-- Email -->
-          <td>
-            <span class="font-medium text-gray-900">{{ admin.email }}</span>
-          </td>
-
-          <!-- Role -->
-          <td>
-            <p-tag
-              [value]="admin.role.toUpperCase().replace('_', ' ')"
-              [severity]="getRoleSeverity(admin.role)"
-              [rounded]="true"
-            ></p-tag>
-          </td>
-
-          <!-- Status -->
-          <td>
-            <p-tag
-              [value]="admin.is_active ? 'ACTIVE' : 'INACTIVE'"
-              [severity]="getStatusSeverity(admin.is_active)"
-              [rounded]="true"
-            ></p-tag>
-          </td>
-
-          <!-- Created By -->
-          <td>
-            <span class="text-gray-700 text-sm">
-              {{ admin.created_by_email || 'System' }}
-            </span>
-          </td>
-
-          <!-- Last Login -->
-          <td>
-            <span class="text-gray-700 text-sm">
-              {{ admin.last_login_at ? (admin.last_login_at | date:'short') : 'Never' }}
-            </span>
-          </td>
-
-          <!-- Created -->
-          <td>
-            <span class="text-gray-700 text-sm">
-              {{ admin.created_at | date:'short' }}
-            </span>
-          </td>
-
-          <!-- Actions -->
-          <td class="text-center">
-            <div class="flex items-center justify-center gap-1">
-              <p-button
-                icon="pi pi-pencil"
-                [rounded]="true"
-                [text]="true"
-                severity="secondary"
-                (onClick)="openEditDialog(admin)"
-                pTooltip="Edit"
-                tooltipPosition="top"
-              />
-              <p-button
-                icon="pi pi-trash"
-                [rounded]="true"
-                [text]="true"
-                severity="danger"
-                (onClick)="openDeleteDialog(admin)"
-                pTooltip="Delete"
-                tooltipPosition="top"
-              />
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="emptymessage">
-        <tr>
-          <td colspan="7" class="text-center py-12">
-            <div class="flex flex-col items-center gap-3">
-              <i class="pi pi-users text-gray-400 text-6xl"></i>
-              <div class="text-gray-500 text-lg">No admin users found</div>
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
-  </p-card>
-</div>
-
-<!-- Create Admin Dialog -->
-<p-dialog
-  [(visible)]="showCreateDialog"
-  [modal]="true"
-  [closable]="true"
-  [style]="{ width: '500px' }"
-  header="Create Admin User"
-  [draggable]="false"
-  [resizable]="false"
->
-  <div class="space-y-4">
-    <!-- Email -->
-    <div class="flex flex-col gap-2">
-      <label for="newEmail" class="font-semibold text-gray-700">
-        Email <span class="text-red-500">*</span>
-      </label>
-      <input
-        pInputText
-        id="newEmail"
-        [(ngModel)]="newAdminEmail"
-        type="email"
-        placeholder="admin@example.com"
-        class="w-full"
-      />
-    </div>
-
-    <!-- Role -->
-    <div class="flex flex-col gap-2">
-      <label for="newRole" class="font-semibold text-gray-700">
-        Role <span class="text-red-500">*</span>
-      </label>
-      <p-select
-        [(ngModel)]="newAdminRole"
-        [options]="createRoleOptions"
-        optionLabel="label"
-        optionValue="value"
-        placeholder="Select Role"
-        styleClass="w-full"
-      />
-      <small class="text-gray-500">
-        Super Admin role can only be assigned by editing database directly.
-      </small>
-    </div>
-
-    <!-- Info -->
-    <div class="flex items-start gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-      <i class="pi pi-info-circle text-blue-600 text-xl mt-1"></i>
-      <div class="text-sm text-blue-800">
-        A temporary password will be generated. The admin user will need to change it on first login.
-      </div>
-    </div>
-
-    <!-- Actions -->
-    <div class="flex justify-end gap-2 pt-4">
-      <p-button
-        label="Cancel"
-        severity="secondary"
-        [outlined]="true"
-        (onClick)="showCreateDialog.set(false)"
-        [disabled]="isProcessing()"
-      />
-      <p-button
-        label="Create Admin"
-        severity="primary"
-        icon="pi pi-plus"
-        (onClick)="createAdmin()"
-        [loading]="isProcessing()"
-        [disabled]="!newAdminEmail || !newAdminRole"
-      />
-    </div>
-  </div>
-</p-dialog>
-
-<!-- Edit Admin Dialog -->
-<p-dialog
-  [(visible)]="showEditDialog"
-  [modal]="true"
-  [closable]="true"
-  [style]="{ width: '500px' }"
-  header="Edit Admin User"
-  [draggable]="false"
-  [resizable]="false"
->
-  @if (selectedAdmin(); as admin) {
-    <div class="space-y-4">
-      <!-- Email (readonly) -->
-      <div class="flex flex-col gap-2">
-        <label class="font-semibold text-gray-700">Email</label>
-        <input
-          pInputText
-          [value]="admin.email"
-          type="email"
-          readonly
-          class="w-full"
-          disabled
-        />
-      </div>
-
-      <!-- Role -->
-      <div class="flex flex-col gap-2">
-        <label for="editRole" class="font-semibold text-gray-700">Role</label>
-        <p-select
-          [(ngModel)]="editAdminRole"
-          [options]="editRoleOptions"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="Select Role"
-          styleClass="w-full"
-        />
-      </div>
-
-      <!-- Status -->
-      <div class="flex items-center gap-3">
-        <input
-          type="checkbox"
-          id="editIsActive"
-          [(ngModel)]="editAdminIsActive"
-          class="w-4 h-4"
-        />
-        <label for="editIsActive" class="font-semibold text-gray-700">Active</label>
-      </div>
-
-      <!-- Actions -->
-      <div class="flex justify-end gap-2 pt-4">
-        <p-button
-          label="Cancel"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="showEditDialog.set(false)"
-          [disabled]="isProcessing()"
-        />
-        <p-button
-          label="Update"
-          severity="primary"
-          icon="pi pi-check"
-          (onClick)="updateAdmin()"
-          [loading]="isProcessing()"
-        />
-      </div>
-    </div>
-  }
-</p-dialog>
-
-<!-- Delete Admin Dialog -->
-<p-dialog
-  [(visible)]="showDeleteDialog"
-  [modal]="true"
-  [closable]="true"
-  [style]="{ width: '500px' }"
-  header="Delete Admin User"
-  [draggable]="false"
-  [resizable]="false"
->
-  @if (selectedAdmin(); as admin) {
-    <div class="space-y-4">
-      <!-- Warning -->
-      <div class="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-        <i class="pi pi-exclamation-triangle text-red-600 text-xl mt-1"></i>
-        <div class="text-sm text-red-800">
-          Are you sure you want to delete <strong>{{ admin.email }}</strong>? This action cannot be undone.
+        <!-- Role Filter -->
+        <div class="md:col-span-4">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Role</mat-label>
+            <mat-select [value]="roleFilter" (selectionChange)="onRoleFilterChange($event.value)">
+              @for (option of roleOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
         </div>
       </div>
+    </mat-card-content>
+  </mat-card>
 
-      <!-- Actions -->
-      <div class="flex justify-end gap-2 pt-4">
-        <p-button
-          label="Cancel"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="showDeleteDialog.set(false)"
-          [disabled]="isProcessing()"
-        />
-        <p-button
-          label="Delete"
-          severity="danger"
-          icon="pi pi-trash"
-          (onClick)="deleteAdmin()"
-          [loading]="isProcessing()"
-        />
-      </div>
-    </div>
-  }
-</p-dialog>
+  <!-- Admin Users Table -->
+  <mat-card>
+    <mat-card-content class="!p-0">
+      @if (isLoading()) {
+        <div class="flex justify-center items-center py-12">
+          <mat-spinner diameter="48"></mat-spinner>
+        </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table mat-table [dataSource]="adminUsers()" class="w-full">
+            <!-- Email Column -->
+            <ng-container matColumnDef="email">
+              <th mat-header-cell *matHeaderCellDef class="!min-w-[200px]">Email</th>
+              <td mat-cell *matCellDef="let admin">
+                <span class="font-medium text-gray-900">{{ admin.email }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Role Column -->
+            <ng-container matColumnDef="role">
+              <th mat-header-cell *matHeaderCellDef class="!min-w-[120px]">Role</th>
+              <td mat-cell *matCellDef="let admin">
+                <app-status-badge [severity]="getRoleSeverity(admin.role)">
+                  {{ formatRole(admin.role) }}
+                </app-status-badge>
+              </td>
+            </ng-container>
+
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef class="!min-w-[100px]">Status</th>
+              <td mat-cell *matCellDef="let admin">
+                <app-status-badge [severity]="getStatusSeverity(admin.is_active)">
+                  {{ admin.is_active ? 'ACTIVE' : 'INACTIVE' }}
+                </app-status-badge>
+              </td>
+            </ng-container>
+
+            <!-- Created By Column -->
+            <ng-container matColumnDef="createdBy">
+              <th mat-header-cell *matHeaderCellDef class="!min-w-[160px]">Created By</th>
+              <td mat-cell *matCellDef="let admin">
+                <span class="text-gray-700 text-sm">
+                  {{ admin.created_by_email || 'System' }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Last Login Column -->
+            <ng-container matColumnDef="lastLogin">
+              <th mat-header-cell *matHeaderCellDef class="!min-w-[120px]">Last Login</th>
+              <td mat-cell *matCellDef="let admin">
+                <span class="text-gray-700 text-sm">
+                  {{ admin.last_login_at ? (admin.last_login_at | date:'short') : 'Never' }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Created Column -->
+            <ng-container matColumnDef="created">
+              <th mat-header-cell *matHeaderCellDef class="!min-w-[120px]">Created</th>
+              <td mat-cell *matCellDef="let admin">
+                <span class="text-gray-700 text-sm">
+                  {{ admin.created_at | date:'short' }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef class="!text-center !min-w-[100px]">Actions</th>
+              <td mat-cell *matCellDef="let admin" class="!text-center">
+                <div class="flex items-center justify-center gap-1">
+                  <button
+                    mat-icon-button
+                    (click)="openEditDialog(admin)"
+                    matTooltip="Edit"
+                  >
+                    <span class="material-symbols-outlined">edit</span>
+                  </button>
+                  <button
+                    mat-icon-button
+                    color="warn"
+                    (click)="deleteAdmin(admin)"
+                    matTooltip="Delete"
+                  >
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Header Row -->
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+
+            <!-- Data Rows -->
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+            <!-- Empty State -->
+            <tr class="mat-row" *matNoDataRow>
+              <td class="mat-cell text-center py-12" [attr.colspan]="displayedColumns.length">
+                <div class="flex flex-col items-center gap-3">
+                  <span class="material-symbols-outlined text-gray-400 text-6xl">group</span>
+                  <div class="text-gray-500 text-lg">No admin users found</div>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Paginator -->
+        <mat-paginator
+          [length]="totalRecords()"
+          [pageSize]="pageSize"
+          [pageSizeOptions]="[10, 20, 50]"
+          [pageIndex]="page"
+          (page)="onPageChange($event)"
+          showFirstLastButtons
+        ></mat-paginator>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -1,17 +1,14 @@
-<p-toast></p-toast>
-
 <div class="space-y-6">
   <!-- Header -->
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-4">
       <button
-        pButton
-        type="button"
-        icon="pi pi-arrow-left"
-        severity="secondary"
-        [outlined]="true"
+        mat-icon-button
         (click)="goBack()"
-      ></button>
+        matTooltip="Back to users list"
+      >
+        <span class="material-symbols-outlined">arrow_back</span>
+      </button>
       <div>
         <h1 class="text-3xl font-bold text-gray-800">User Details</h1>
         @if (user(); as userData) {
@@ -22,30 +19,71 @@
 
     @if (user(); as userData) {
       <div class="flex gap-2">
-        @if (!userData.is_banned) {
-          <p-button
-            label="Ban User"
-            icon="pi pi-ban"
-            severity="danger"
-            (onClick)="openBanDialog()"
-          ></p-button>
-        } @else {
-          <p-button
-            label="Unban User"
-            icon="pi pi-check-circle"
-            severity="success"
-            (onClick)="unbanUser()"
-          ></p-button>
+        @if (userData.account_status !== 'deleted') {
+          @if (!userData.is_banned) {
+            <button
+              mat-raised-button
+              color="warn"
+              (click)="openBanDialog()"
+            >
+              <span class="material-symbols-outlined mr-2">block</span>
+              Ban User
+            </button>
+          } @else {
+            <button
+              mat-raised-button
+              color="primary"
+              (click)="unbanUser()"
+            >
+              <span class="material-symbols-outlined mr-2">check_circle</span>
+              Unban User
+            </button>
+          }
         }
+        <!-- Always show Permanently Delete button for GDPR compliance -->
+        <button
+          mat-raised-button
+          color="warn"
+          (click)="openHardDeleteDialog()"
+        >
+          <span class="material-symbols-outlined mr-2">delete_forever</span>
+          Permanently Delete
+        </button>
       </div>
     }
   </div>
 
+  <!-- Soft Delete Warning Banner -->
+  @if (user(); as userData) {
+    @if (userData.account_status === 'deleted') {
+      <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+        <div class="flex items-start">
+          <span class="material-symbols-outlined text-red-600 text-xl mr-3">warning</span>
+          <div class="flex-1">
+            <h3 class="text-red-800 font-semibold mb-1">Account Soft Deleted</h3>
+            <p class="text-red-700 text-sm mb-2">
+              This account was soft deleted @if (userData.deleted_at) {
+                {{ userData.deleted_at | relativeTime }}
+              }. The user can no longer log in, but their data is still in the database.
+            </p>
+            <p class="text-red-700 text-sm font-medium">
+              To permanently remove all user data from the database, click "Permanently Delete" above.
+            </p>
+          </div>
+        </div>
+      </div>
+    }
+  }
+
   <!-- Loading State -->
   @if (isLoading()) {
-    <p-card>
-      <p-skeleton width="100%" height="200px"></p-skeleton>
-    </p-card>
+    <mat-card>
+      <mat-card-content>
+        <div class="animate-pulse">
+          <div class="h-48 bg-gray-200 rounded"></div>
+        </div>
+      </mat-card-content>
+    </mat-card>
   }
 
   <!-- User Information -->
@@ -53,310 +91,252 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Profile Card -->
       <div class="lg:col-span-1">
-        <p-card>
-          <ng-template pTemplate="header">
-            <div class="p-4 text-center">
-              @if (userData.avatar_url) {
-                <img [src]="userData.avatar_url" alt="" class="w-32 h-32 rounded-full object-cover mx-auto" />
-              } @else {
-                <div class="w-32 h-32 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 font-bold text-4xl mx-auto">
-                  {{ userData.username ? userData.username.charAt(0).toUpperCase() : '?' }}
-                </div>
-              }
-            </div>
-          </ng-template>
-
-          <div class="space-y-4">
-            <div>
-              <h3 class="text-xl font-bold text-gray-800">{{ userData.username }}</h3>
-              @if (userData.display_name) {
-                <p class="text-gray-600">{{ userData.display_name }}</p>
-              }
+        <mat-card>
+          <mat-card-content class="p-0">
+            <div class="p-4 text-center border-b border-gray-200">
+              <app-avatar
+                [image]="userData.avatar_url"
+                [label]="userData.username"
+                shape="circle"
+                size="xlarge"
+                class="mx-auto"
+              ></app-avatar>
             </div>
 
-            <div class="space-y-2">
-              <div class="flex items-center gap-2 text-gray-700">
-                <i class="pi pi-envelope"></i>
-                <span>{{ userData.email }}</span>
-              </div>
-
-              @if (userData.phone_number) {
-                <div class="flex items-center gap-2 text-gray-700">
-                  <i class="pi pi-phone"></i>
-                  <span>{{ userData.phone_number }}</span>
-                </div>
-              }
-
-              @if (userData.country_code) {
-                <div class="flex items-center gap-2 text-gray-700">
-                  <i class="pi pi-map-marker"></i>
-                  <span>{{ userData.country_code }}</span>
-                </div>
-              }
-            </div>
-
-            <div class="pt-4 border-t border-gray-200">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-gray-600">Subscription</span>
-                <p-tag
-                  [value]="userData.subscription_tier"
-                  [severity]="getSeverity(userData.subscription_tier)"
-                  styleClass="text-xs uppercase"
-                ></p-tag>
-              </div>
-
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-gray-600">Reputation</span>
-                <div class="flex items-center gap-2">
-                  <i class="pi pi-star-fill text-yellow-500"></i>
-                  <span class="font-medium">{{ 0 }}</span>
-                </div>
-              </div>
-
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-gray-600">Status</span>
-                @if (userData.is_banned) {
-                  <p-tag value="BANNED" severity="danger" styleClass="text-xs"></p-tag>
-                } @else {
-                  <p-tag value="ACTIVE" severity="success" styleClass="text-xs"></p-tag>
+            <div class="p-4 space-y-4">
+              <div>
+                <h3 class="text-xl font-bold text-gray-800">{{ userData.username }}</h3>
+                @if (userData.display_name) {
+                  <p class="text-gray-600">{{ userData.display_name }}</p>
                 }
               </div>
 
-              @if (userData.email_verified || userData.phone_verified || userData.identity_verified) {
-                <div class="flex items-center justify-between">
-                  <span class="text-gray-600">Verified</span>
-                  <i class="pi pi-check-circle text-green-600"></i>
+              <div class="space-y-2">
+                <div class="flex items-center gap-2 text-gray-700">
+                  <span class="material-symbols-outlined text-lg">mail</span>
+                  <span>{{ userData.email }}</span>
                 </div>
-              }
-            </div>
 
-            @if (userData.is_banned && userData.ban_reason) {
+                @if (userData.phone_number) {
+                  <div class="flex items-center gap-2 text-gray-700">
+                    <span class="material-symbols-outlined text-lg">phone</span>
+                    <span>{{ userData.phone_number }}</span>
+                  </div>
+                }
+
+                @if (userData.country_code) {
+                  <div class="flex items-center gap-2 text-gray-700">
+                    <span class="material-symbols-outlined text-lg">location_on</span>
+                    <span>{{ userData.country_code }}</span>
+                  </div>
+                }
+              </div>
+
               <div class="pt-4 border-t border-gray-200">
-                <p class="text-sm font-medium text-red-600 mb-1">Ban Reason:</p>
-                <p class="text-sm text-gray-700">{{ userData.ban_reason }}</p>
-                @if (userData.banned_at) {
-                  <p class="text-xs text-gray-500 mt-2">
-                    Banned {{ userData.banned_at | relativeTime }}
-                  </p>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-gray-600">Subscription</span>
+                  <app-status-badge [severity]="getSeverity(userData.subscription_tier)">
+                    {{ userData.subscription_tier | uppercase }}
+                  </app-status-badge>
+                </div>
+
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-gray-600">Reputation</span>
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-yellow-500">star</span>
+                    <span class="font-medium">{{ 0 }}</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-gray-600">Status</span>
+                  @if (userData.account_status === 'deleted') {
+                    <app-status-badge severity="danger">DELETED</app-status-badge>
+                  } @else if (userData.is_banned) {
+                    <app-status-badge severity="danger">BANNED</app-status-badge>
+                  } @else {
+                    <app-status-badge severity="success">ACTIVE</app-status-badge>
+                  }
+                </div>
+
+                @if (userData.email_verified || userData.phone_verified || userData.identity_verified) {
+                  <div class="flex items-center justify-between">
+                    <span class="text-gray-600">Verified</span>
+                    <span class="material-symbols-outlined text-green-600">verified</span>
+                  </div>
                 }
               </div>
-            }
 
-            <div class="pt-4 border-t border-gray-200 text-sm text-gray-600">
-              <p>Joined {{ userData.created_at | relativeTime }}</p>
-              @if (userData.last_active_at) {
-                <p>Last active {{ userData.last_active_at | relativeTime }}</p>
+              @if (userData.is_banned && userData.ban_reason) {
+                <div class="pt-4 border-t border-gray-200">
+                  <p class="text-sm font-medium text-red-600 mb-1">Ban Reason:</p>
+                  <p class="text-sm text-gray-700">{{ userData.ban_reason }}</p>
+                  @if (userData.banned_at) {
+                    <p class="text-xs text-gray-500 mt-2">
+                      Banned {{ userData.banned_at | relativeTime }}
+                    </p>
+                  }
+                </div>
               }
+
+              <div class="pt-4 border-t border-gray-200 text-sm text-gray-600">
+                <p>Joined {{ userData.created_at | relativeTime }}</p>
+                @if (userData.last_active_at) {
+                  <p>Last active {{ userData.last_active_at | relativeTime }}</p>
+                }
+              </div>
             </div>
-          </div>
-        </p-card>
+          </mat-card-content>
+        </mat-card>
       </div>
 
       <!-- Details Tabs -->
       <div class="lg:col-span-2">
-        <p-card>
-          <div class="border-b border-gray-200 mb-4">
-            <nav class="flex space-x-4">
-              <button
-                (click)="activeTab.set(0)"
-                [class.border-blue-500]="activeTab() === 0"
-                [class.text-blue-600]="activeTab() === 0"
-                [class.text-gray-600]="activeTab() !== 0"
-                class="px-4 py-2 border-b-2 font-medium"
-              >
-                Statistics
-              </button>
-              <button
-                (click)="activeTab.set(1)"
-                [class.border-blue-500]="activeTab() === 1"
-                [class.text-blue-600]="activeTab() === 1"
-                [class.text-gray-600]="activeTab() !== 1"
-                class="px-4 py-2 border-b-2 font-medium"
-              >
-                Motorcycles
-              </button>
-              <button
-                (click)="activeTab.set(2)"
-                [class.border-blue-500]="activeTab() === 2"
-                [class.text-blue-600]="activeTab() === 2"
-                [class.text-gray-600]="activeTab() !== 2"
-                class="px-4 py-2 border-b-2 font-medium"
-              >
-                Recent Posts
-              </button>
-              <button
-                (click)="activeTab.set(3)"
-                [class.border-blue-500]="activeTab() === 3"
-                [class.text-blue-600]="activeTab() === 3"
-                [class.text-gray-600]="activeTab() !== 3"
-                class="px-4 py-2 border-b-2 font-medium"
-              >
-                Recent Rides
-              </button>
-            </nav>
-          </div>
+        <mat-card>
+          <mat-card-content>
+            <mat-tab-group (selectedIndexChange)="onTabChange($event)">
+              <!-- Statistics Tab -->
+              <mat-tab label="Statistics">
+                <div class="pt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <p class="text-3xl font-bold text-blue-600">{{ userData.stats.total_rides }}</p>
+                    <p class="text-gray-600 mt-1">Rides</p>
+                  </div>
+                  <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <p class="text-3xl font-bold text-green-600">{{ userData.stats.total_posts }}</p>
+                    <p class="text-gray-600 mt-1">Posts</p>
+                  </div>
+                  <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <p class="text-3xl font-bold text-purple-600">{{ userData.stats.total_comments }}</p>
+                    <p class="text-gray-600 mt-1">Comments</p>
+                  </div>
+                  <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <p class="text-3xl font-bold text-orange-600">{{ userData.stats.total_followers }}</p>
+                    <p class="text-gray-600 mt-1">Followers</p>
+                  </div>
+                  <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <p class="text-3xl font-bold text-pink-600">{{ userData.stats.total_following }}</p>
+                    <p class="text-gray-600 mt-1">Following</p>
+                  </div>
+                  <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <p class="text-3xl font-bold text-indigo-600">{{ userData.stats.groups_count }}</p>
+                    <p class="text-gray-600 mt-1">Groups</p>
+                  </div>
+                </div>
+              </mat-tab>
 
-          <div>
-            <!-- Statistics Tab -->
-            @if (activeTab() === 0) {
-              <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div class="text-center p-4 bg-gray-50 rounded-lg">
-                  <p class="text-3xl font-bold text-blue-600">{{ userData.stats.total_rides }}</p>
-                  <p class="text-gray-600 mt-1">Rides</p>
-                </div>
-                <div class="text-center p-4 bg-gray-50 rounded-lg">
-                  <p class="text-3xl font-bold text-green-600">{{ userData.stats.total_posts }}</p>
-                  <p class="text-gray-600 mt-1">Posts</p>
-                </div>
-                <div class="text-center p-4 bg-gray-50 rounded-lg">
-                  <p class="text-3xl font-bold text-purple-600">{{ userData.stats.total_comments }}</p>
-                  <p class="text-gray-600 mt-1">Comments</p>
-                </div>
-                <div class="text-center p-4 bg-gray-50 rounded-lg">
-                  <p class="text-3xl font-bold text-orange-600">{{ userData.stats.total_followers }}</p>
-                  <p class="text-gray-600 mt-1">Followers</p>
-                </div>
-                <div class="text-center p-4 bg-gray-50 rounded-lg">
-                  <p class="text-3xl font-bold text-pink-600">{{ userData.stats.total_following }}</p>
-                  <p class="text-gray-600 mt-1">Following</p>
-                </div>
-                <div class="text-center p-4 bg-gray-50 rounded-lg">
-                  <p class="text-3xl font-bold text-indigo-600">{{ userData.stats.groups_count }}</p>
-                  <p class="text-gray-600 mt-1">Groups</p>
-                </div>
-              </div>
-            }
-
-            <!-- Motorcycles Tab -->
-            @if (activeTab() === 1) {
-              @if (userData.motorcycles.length > 0) {
-                <div class="space-y-3">
-                  @for (bike of userData.motorcycles; track bike.id) {
-                    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                      <div class="flex items-center gap-3">
-                        <i class="pi pi-car text-2xl text-gray-600"></i>
-                        <div>
-                          <p class="font-medium text-gray-800">{{ bike.brand }} {{ bike.model }}</p>
-                          <p class="text-sm text-gray-600">{{ bike.year }} • {{ bike.type }}</p>
+              <!-- Motorcycles Tab -->
+              <mat-tab label="Motorcycles">
+                <div class="pt-4">
+                  @if (userData.motorcycles.length > 0) {
+                    <div class="space-y-3">
+                      @for (bike of userData.motorcycles; track bike.id) {
+                        <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                          <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-2xl text-gray-600">two_wheeler</span>
+                            <div>
+                              <p class="font-medium text-gray-800">{{ bike.brand }} {{ bike.model }}</p>
+                              <p class="text-sm text-gray-600">{{ bike.year }} • {{ bike.type }}</p>
+                            </div>
+                          </div>
+                          @if (bike.is_primary) {
+                            <app-status-badge severity="info">PRIMARY</app-status-badge>
+                          }
                         </div>
-                      </div>
-                      @if (bike.is_primary) {
-                        <p-tag value="PRIMARY" severity="info" styleClass="text-xs"></p-tag>
                       }
                     </div>
+                  } @else {
+                    <p class="text-center text-gray-500 py-8">No motorcycles registered</p>
                   }
                 </div>
-              } @else {
-                <p class="text-center text-gray-500 py-8">No motorcycles registered</p>
-              }
-            }
+              </mat-tab>
 
-            <!-- Recent Posts Tab -->
-            @if (activeTab() === 2) {
-              @if (userData.recent_posts.length > 0) {
-                <p-table [value]="userData.recent_posts" styleClass="p-datatable-sm">
-                  <ng-template pTemplate="header">
-                    <tr>
-                      <th>Content</th>
-                      <th>Engagement</th>
-                      <th>Date</th>
-                    </tr>
-                  </ng-template>
-                  <ng-template pTemplate="body" let-post>
-                    <tr>
-                      <td>{{ post.content | slice:0:100 }}{{ post.content.length > 100 ? '...' : '' }}</td>
-                      <td>
-                        <div class="flex gap-3 text-sm">
-                          <span><i class="pi pi-heart"></i> {{ post.likes_count }}</span>
-                          <span><i class="pi pi-comment"></i> {{ post.comments_count }}</span>
-                        </div>
-                      </td>
-                      <td>{{ post.created_at | relativeTime }}</td>
-                    </tr>
-                  </ng-template>
-                </p-table>
-              } @else {
-                <p class="text-center text-gray-500 py-8">No recent posts</p>
-              }
-            }
+              <!-- Recent Posts Tab -->
+              <mat-tab label="Recent Posts">
+                <div class="pt-4">
+                  @if (userData.recent_posts.length > 0) {
+                    <table mat-table [dataSource]="userData.recent_posts" class="w-full">
+                      <!-- Content Column -->
+                      <ng-container matColumnDef="content">
+                        <th mat-header-cell *matHeaderCellDef>Content</th>
+                        <td mat-cell *matCellDef="let post">
+                          {{ post.content | slice:0:100 }}{{ post.content.length > 100 ? '...' : '' }}
+                        </td>
+                      </ng-container>
 
-            <!-- Recent Rides Tab -->
-            @if (activeTab() === 3) {
-              @if (userData.recent_rides.length > 0) {
-                <p-table [value]="userData.recent_rides" styleClass="p-datatable-sm">
-                  <ng-template pTemplate="header">
-                    <tr>
-                      <th>Title</th>
-                      <th>Distance</th>
-                      <th>Participants</th>
-                      <th>Date</th>
-                    </tr>
-                  </ng-template>
-                  <ng-template pTemplate="body" let-ride>
-                    <tr>
-                      <td>{{ ride.title }}</td>
-                      <td>{{ ride.distance_km }} km</td>
-                      <td>{{ ride.participants_count }}</td>
-                      <td>{{ ride.start_date | relativeTime }}</td>
-                    </tr>
-                  </ng-template>
-                </p-table>
-              } @else {
-                <p class="text-center text-gray-500 py-8">No recent rides</p>
-              }
-            }
-          </div>
-        </p-card>
+                      <!-- Engagement Column -->
+                      <ng-container matColumnDef="engagement">
+                        <th mat-header-cell *matHeaderCellDef>Engagement</th>
+                        <td mat-cell *matCellDef="let post">
+                          <div class="flex gap-3 text-sm">
+                            <span class="flex items-center gap-1">
+                              <span class="material-symbols-outlined text-sm">favorite</span>
+                              {{ post.likes_count }}
+                            </span>
+                            <span class="flex items-center gap-1">
+                              <span class="material-symbols-outlined text-sm">chat_bubble</span>
+                              {{ post.comments_count }}
+                            </span>
+                          </div>
+                        </td>
+                      </ng-container>
+
+                      <!-- Date Column -->
+                      <ng-container matColumnDef="date">
+                        <th mat-header-cell *matHeaderCellDef>Date</th>
+                        <td mat-cell *matCellDef="let post">{{ post.created_at | relativeTime }}</td>
+                      </ng-container>
+
+                      <tr mat-header-row *matHeaderRowDef="postsDisplayedColumns"></tr>
+                      <tr mat-row *matRowDef="let row; columns: postsDisplayedColumns;"></tr>
+                    </table>
+                  } @else {
+                    <p class="text-center text-gray-500 py-8">No recent posts</p>
+                  }
+                </div>
+              </mat-tab>
+
+              <!-- Recent Rides Tab -->
+              <mat-tab label="Recent Rides">
+                <div class="pt-4">
+                  @if (userData.recent_rides.length > 0) {
+                    <table mat-table [dataSource]="userData.recent_rides" class="w-full">
+                      <!-- Title Column -->
+                      <ng-container matColumnDef="title">
+                        <th mat-header-cell *matHeaderCellDef>Title</th>
+                        <td mat-cell *matCellDef="let ride">{{ ride.title }}</td>
+                      </ng-container>
+
+                      <!-- Distance Column -->
+                      <ng-container matColumnDef="distance">
+                        <th mat-header-cell *matHeaderCellDef>Distance</th>
+                        <td mat-cell *matCellDef="let ride">{{ ride.distance_km }} km</td>
+                      </ng-container>
+
+                      <!-- Participants Column -->
+                      <ng-container matColumnDef="participants">
+                        <th mat-header-cell *matHeaderCellDef>Participants</th>
+                        <td mat-cell *matCellDef="let ride">{{ ride.participants_count }}</td>
+                      </ng-container>
+
+                      <!-- Date Column -->
+                      <ng-container matColumnDef="date">
+                        <th mat-header-cell *matHeaderCellDef>Date</th>
+                        <td mat-cell *matCellDef="let ride">{{ ride.start_date | relativeTime }}</td>
+                      </ng-container>
+
+                      <tr mat-header-row *matHeaderRowDef="ridesDisplayedColumns"></tr>
+                      <tr mat-row *matRowDef="let row; columns: ridesDisplayedColumns;"></tr>
+                    </table>
+                  } @else {
+                    <p class="text-center text-gray-500 py-8">No recent rides</p>
+                  }
+                </div>
+              </mat-tab>
+            </mat-tab-group>
+          </mat-card-content>
+        </mat-card>
       </div>
     </div>
   }
 </div>
-
-<!-- Ban User Dialog -->
-<p-dialog
-  [(visible)]="showBanDialog"
-  [modal]="true"
-  [closable]="true"
-  [style]="{ width: '500px' }"
-  header="Ban User"
->
-  @if (user(); as userData) {
-    <div class="space-y-4">
-      <p class="text-gray-700">
-        You are about to ban <strong>{{ userData.username }}</strong> ({{ userData.email }}).
-        This will prevent them from accessing the platform.
-      </p>
-
-      <div class="flex flex-col gap-2">
-        <label for="banReason" class="font-medium text-gray-700">
-          Reason for ban <span class="text-red-500">*</span>
-        </label>
-        <textarea
-          id="banReason"
-          [(ngModel)]="banReason"
-          rows="4"
-          placeholder="Enter the reason for banning this user..."
-          class="w-full p-2 border border-gray-300 rounded"
-        ></textarea>
-      </div>
-
-      <div class="flex justify-end gap-2 mt-6">
-        <p-button
-          label="Cancel"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="showBanDialog.set(false)"
-          [disabled]="isBanning()"
-        ></p-button>
-        <p-button
-          label="Ban User"
-          severity="danger"
-          icon="pi pi-ban"
-          (onClick)="banUser()"
-          [loading]="isBanning()"
-          [disabled]="!banReason.trim()"
-        ></p-button>
-      </div>
-    </div>
-  }
-</p-dialog>

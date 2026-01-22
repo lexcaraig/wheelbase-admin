@@ -32,7 +32,7 @@ interface MenuItem {
               [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
               class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors"
             >
-              <i [class]="item.icon"></i>
+              <span class="material-symbols-outlined text-xl">{{ item.icon }}</span>
               <span>{{ item.label }}</span>
             </a>
           }
@@ -58,16 +58,17 @@ interface MenuItem {
 })
 export class SidebarComponent {
   menuItems = signal<MenuItem[]>([
-    { label: 'Dashboard', icon: 'pi pi-home', route: '/dashboard' },
-    { label: 'Growth Monitoring', icon: 'pi pi-chart-line', route: '/monitoring', permission: 'analytics.view' },
-    { label: 'Users', icon: 'pi pi-users', route: '/users', permission: 'users.view' },
-    { label: 'Content Management', icon: 'pi pi-file-edit', route: '/content', permission: 'content.moderate' },
-    { label: 'Promotions', icon: 'pi pi-megaphone', route: '/promotions', permission: 'content.moderate' },
-    { label: 'Business Verifications', icon: 'pi pi-verified', route: '/verifications', permission: 'content.moderate' },
-    { label: 'Moderation', icon: 'pi pi-flag', route: '/moderation', permission: 'content.moderate' },
-    { label: 'Admin Users', icon: 'pi pi-shield', route: '/admin-users', permission: 'users.view' },
-    { label: 'Audit Logs', icon: 'pi pi-list', route: '/audit-logs', permission: 'users.view' },
-    { label: 'System Settings', icon: 'pi pi-cog', route: '/settings', permission: 'users.view' },
+    { label: 'Dashboard', icon: 'home', route: '/dashboard' },
+    { label: 'Growth Monitoring', icon: 'show_chart', route: '/monitoring', permission: 'analytics.view' },
+    { label: 'Users', icon: 'group', route: '/users', permission: 'users.view' },
+    { label: 'Content Management', icon: 'edit_document', route: '/content', permission: 'content.moderate' },
+    { label: 'Promotions', icon: 'campaign', route: '/promotions', permission: 'content.moderate' },
+    { label: 'Business Verifications', icon: 'verified', route: '/verifications', permission: 'content.moderate' },
+    { label: 'Moderation', icon: 'flag', route: '/moderation', permission: 'content.moderate' },
+    { label: 'Admin Users', icon: 'shield', route: '/admin-users', permission: 'users.view' },
+    { label: 'Audit Logs', icon: 'list', route: '/audit-logs', permission: 'users.view' },
+    { label: 'System Settings', icon: 'settings', route: '/settings', permission: 'users.view' },
+    { label: 'Announcements', icon: 'notifications', route: '/announcements', permission: 'users.view' },
   ]);
 
   constructor(public authService: AuthService) {}

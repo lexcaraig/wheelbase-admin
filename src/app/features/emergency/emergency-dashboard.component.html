@@ -1,0 +1,395 @@
+<div class="p-4">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Emergency Dashboard</h1>
+        <p class="text-gray-600 mt-1">Real-time SOS alerts and crash detection monitoring</p>
+      </div>
+      <div class="flex gap-3">
+        <button
+          mat-raised-button
+          (click)="toggleAutoRefresh()"
+          [class]="autoRefreshEnabled() ? 'auto-refresh-on' : 'auto-refresh-off'"
+        >
+          {{ autoRefreshEnabled() ? 'Auto-Refresh ON' : 'Auto-Refresh OFF' }}
+        </button>
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="refresh()"
+        >
+          <span class="material-symbols-outlined mr-1">refresh</span>
+          Refresh Now
+        </button>
+      </div>
+    </div>
+
+    <!-- Last Refresh Time -->
+    @if (lastRefreshTime()) {
+      <div class="mb-4 text-sm text-gray-600">
+        Last updated: {{ lastRefreshTime() | date:'medium' }}
+      </div>
+    }
+
+    <!-- Loading State -->
+    @if (isLoading()) {
+      <div class="flex justify-center items-center py-12">
+        <mat-spinner diameter="48"></mat-spinner>
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (error()) {
+      <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">
+        {{ error() }}
+      </div>
+    }
+
+    <!-- Content -->
+    @if (!isLoading()) {
+      <div class="space-y-6">
+        <!-- Active Alerts Banner (if any) -->
+        @if (stats()?.active_sos_alerts && stats()!.active_sos_alerts > 0) {
+          <div class="bg-red-600 text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between animate-pulse">
+            <div class="flex items-center gap-3">
+              <span class="text-3xl">🚨</span>
+              <div>
+                <span class="text-xl font-bold">{{ stats()!.active_sos_alerts }} ACTIVE SOS ALERT(S)</span>
+                <p class="text-red-100 text-sm">Immediate attention required</p>
+              </div>
+            </div>
+            <button
+              mat-raised-button
+              (click)="onStatusFilterChange('active')"
+              class="!bg-white !text-red-600"
+            >
+              View Active Alerts
+            </button>
+          </div>
+        }
+
+        <!-- Stats Cards -->
+        @if (stats()) {
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Total Alerts -->
+            <mat-card>
+              <mat-card-content class="!p-6">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-gray-600 text-sm font-medium">Total SOS Alerts</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats()!.total_sos_alerts }}</p>
+                  </div>
+                  <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                    <span class="text-2xl">🆘</span>
+                  </div>
+                </div>
+                <div class="mt-4 flex gap-4 text-sm">
+                  <span class="text-green-600">{{ stats()!.resolved_sos_alerts }} resolved</span>
+                  <span class="text-gray-400">{{ stats()!.cancelled_sos_alerts }} cancelled</span>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <!-- Crash Detections -->
+            <mat-card>
+              <mat-card-content class="!p-6">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-gray-600 text-sm font-medium">Crash Detections</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats()!.total_crash_detections }}</p>
+                  </div>
+                  <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                    <span class="text-2xl">💥</span>
+                  </div>
+                </div>
+                <div class="mt-4 flex gap-4 text-sm">
+                  <span class="text-green-600">{{ stats()!.true_positives }} true</span>
+                  <span class="text-red-600">{{ stats()!.false_positives }} false positive</span>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <!-- This Week -->
+            <mat-card>
+              <mat-card-content class="!p-6">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-gray-600 text-sm font-medium">Alerts This Week</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats()!.alerts_this_week }}</p>
+                  </div>
+                  <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span class="text-2xl">📊</span>
+                  </div>
+                </div>
+                <div class="mt-4 text-sm">
+                  <span class="text-gray-600">Today: {{ stats()!.alerts_today }}</span>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <!-- Avg Response Time -->
+            <mat-card>
+              <mat-card-content class="!p-6">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-gray-600 text-sm font-medium">Avg Response Time</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">
+                      {{ formatResponseTime(stats()!.avg_response_time_seconds) }}
+                    </p>
+                  </div>
+                  <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <span class="text-2xl">⏱️</span>
+                  </div>
+                </div>
+                <div class="mt-4 text-sm text-gray-600">
+                  Time to resolution
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        }
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Alerts Table (2/3 width) -->
+          <div class="lg:col-span-2">
+            <mat-card>
+              <mat-card-content class="!p-0">
+                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                  <h2 class="text-lg font-semibold text-gray-900">SOS Alerts</h2>
+                  <mat-form-field appearance="outline" class="w-48 !mb-0">
+                    <mat-label>Status</mat-label>
+                    <mat-select [value]="statusFilter" (selectionChange)="onStatusFilterChange($event.value)">
+                      @for (option of statusOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+                <div class="overflow-x-auto">
+                  <table mat-table [dataSource]="alerts()" class="w-full">
+                    <!-- User Column -->
+                    <ng-container matColumnDef="user">
+                      <th mat-header-cell *matHeaderCellDef class="!min-w-[200px]">User</th>
+                      <td mat-cell *matCellDef="let alert">
+                        <div class="flex items-center gap-2 py-2">
+                          <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                            @if (alert.user?.avatar_url) {
+                              <img
+                                [src]="alert.user.avatar_url"
+                                [alt]="alert.user?.full_name || 'User'"
+                                class="w-10 h-10 rounded-full object-cover"
+                              />
+                            } @else {
+                              <span class="text-gray-500 font-medium">
+                                {{ getInitial(alert.user?.full_name) }}
+                              </span>
+                            }
+                          </div>
+                          <div>
+                            <p class="font-medium text-gray-900">{{ alert.user?.full_name || 'Unknown' }}</p>
+                            <p class="text-xs text-gray-500">{{ alert.user?.username }}</p>
+                          </div>
+                        </div>
+                      </td>
+                    </ng-container>
+
+                    <!-- Type Column -->
+                    <ng-container matColumnDef="type">
+                      <th mat-header-cell *matHeaderCellDef class="!min-w-[100px]">Type</th>
+                      <td mat-cell *matCellDef="let alert">
+                        <app-status-badge [severity]="getAlertTypeSeverity(alert.alert_type)">
+                          {{ alert.alert_type === 'automatic' ? 'CRASH' : 'MANUAL' }}
+                        </app-status-badge>
+                      </td>
+                    </ng-container>
+
+                    <!-- Status Column -->
+                    <ng-container matColumnDef="status">
+                      <th mat-header-cell *matHeaderCellDef class="!min-w-[100px]">Status</th>
+                      <td mat-cell *matCellDef="let alert">
+                        <app-status-badge [severity]="getStatusSeverity(alert.status)">
+                          {{ alert.status.toUpperCase() }}
+                        </app-status-badge>
+                      </td>
+                    </ng-container>
+
+                    <!-- Location Column -->
+                    <ng-container matColumnDef="location">
+                      <th mat-header-cell *matHeaderCellDef class="!min-w-[100px]">Location</th>
+                      <td mat-cell *matCellDef="let alert">
+                        @if (alert.location) {
+                          <button
+                            mat-button
+                            color="primary"
+                            (click)="openInMaps(alert.location)"
+                            matTooltip="Open in Google Maps"
+                          >
+                            <span class="material-symbols-outlined mr-1">location_on</span>
+                            View
+                          </button>
+                        } @else {
+                          <span class="text-gray-400 text-sm">No location</span>
+                        }
+                      </td>
+                    </ng-container>
+
+                    <!-- Time Column -->
+                    <ng-container matColumnDef="time">
+                      <th mat-header-cell *matHeaderCellDef class="!min-w-[100px]">Time</th>
+                      <td mat-cell *matCellDef="let alert">
+                        <span class="text-sm text-gray-600" [matTooltip]="formatDate(alert.triggered_at)">
+                          {{ formatRelativeTime(alert.triggered_at) }}
+                        </span>
+                      </td>
+                    </ng-container>
+
+                    <!-- Actions Column -->
+                    <ng-container matColumnDef="actions">
+                      <th mat-header-cell *matHeaderCellDef class="!text-center !min-w-[100px]">Actions</th>
+                      <td mat-cell *matCellDef="let alert" class="!text-center">
+                        <div class="flex items-center justify-center gap-1">
+                          <button
+                            mat-icon-button
+                            (click)="viewAlertDetail(alert)"
+                            matTooltip="View Details"
+                          >
+                            <span class="material-symbols-outlined">visibility</span>
+                          </button>
+                          @if (alert.status === 'active') {
+                            <button
+                              mat-icon-button
+                              color="primary"
+                              (click)="markHelpArrived(alert.id)"
+                              matTooltip="Mark Help Arrived"
+                              class="!text-green-600"
+                            >
+                              <span class="material-symbols-outlined">check_circle</span>
+                            </button>
+                          }
+                        </div>
+                      </td>
+                    </ng-container>
+
+                    <!-- Header Row -->
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+
+                    <!-- Data Rows -->
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+                        [class.bg-red-50]="row.status === 'active'"></tr>
+
+                    <!-- Empty State -->
+                    <tr class="mat-row" *matNoDataRow>
+                      <td class="mat-cell text-center py-12" [attr.colspan]="displayedColumns.length">
+                        <div class="flex flex-col items-center gap-3">
+                          <span class="material-symbols-outlined text-gray-400 text-6xl">emergency</span>
+                          <div class="text-gray-500 text-lg">No SOS alerts found</div>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+
+                <!-- Paginator -->
+                <mat-paginator
+                  [length]="alerts().length"
+                  [pageSize]="pageSize"
+                  [pageSizeOptions]="[5, 10, 20]"
+                  [pageIndex]="page"
+                  (page)="onPageChange($event)"
+                  showFirstLastButtons
+                ></mat-paginator>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+          <!-- Activity Timeline (1/3 width) -->
+          <div class="lg:col-span-1">
+            <mat-card>
+              <mat-card-content class="!p-0">
+                <div class="px-6 py-4 border-b border-gray-200">
+                  <h2 class="text-lg font-semibold text-gray-900">Activity Timeline</h2>
+                </div>
+                <div class="p-4 max-h-96 overflow-y-auto">
+                  @if (timeline().length === 0) {
+                    <div class="text-center py-8 text-gray-500">
+                      No recent activity
+                    </div>
+                  }
+                  @for (item of timeline(); track item.timestamp) {
+                    <div class="flex gap-3 mb-4 last:mb-0">
+                      <div
+                        class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                        [ngClass]="{
+                          'bg-red-100 text-red-600': item.severity === 'critical',
+                          'bg-orange-100 text-orange-600': item.severity === 'high',
+                          'bg-blue-100 text-blue-600': item.severity === 'medium',
+                          'bg-gray-100 text-gray-600': item.severity === 'info'
+                        }"
+                      >
+                        <span class="material-symbols-outlined text-sm">{{ getTimelineIcon(item.type) }}</span>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900">{{ item.user_name }}</p>
+                        <p class="text-sm text-gray-600">{{ item.description }}</p>
+                        <p class="text-xs text-gray-400 mt-1">{{ formatRelativeTime(item.timestamp) }}</p>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <!-- Recent Crash Detections -->
+            <mat-card class="mt-6">
+              <mat-card-content class="!p-0">
+                <div class="px-6 py-4 border-b border-gray-200">
+                  <h2 class="text-lg font-semibold text-gray-900">Recent Crash Detections</h2>
+                </div>
+                <div class="p-4">
+                  @if (crashDetections().length === 0) {
+                    <div class="text-center py-4 text-gray-500">
+                      No crash detections
+                    </div>
+                  }
+                  @for (crash of crashDetections(); track crash.id) {
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                      <div class="flex items-center gap-2">
+                        <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                          @if (crash.user?.avatar_url) {
+                            <img
+                              [src]="crash.user?.avatar_url"
+                              [alt]="crash.user?.full_name || 'User'"
+                              class="w-10 h-10 rounded-full object-cover"
+                            />
+                          } @else {
+                            <span class="text-gray-500 font-medium">
+                              {{ getInitial(crash.user?.full_name) }}
+                            </span>
+                          }
+                        </div>
+                        <div>
+                          <p class="text-sm font-medium text-gray-900">{{ crash.user?.full_name || 'Unknown' }}</p>
+                          <p class="text-xs text-gray-500">{{ crash.impact_force_g | number:'1.1-1' }}G impact</p>
+                        </div>
+                      </div>
+                      <div class="text-right">
+                        @if (crash.false_positive) {
+                          <app-status-badge severity="secondary">FALSE</app-status-badge>
+                        } @else {
+                          <app-status-badge severity="warning">VALID</app-status-badge>
+                        }
+                        <p class="text-xs text-gray-400 mt-1">{{ formatRelativeTime(crash.detected_at) }}</p>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

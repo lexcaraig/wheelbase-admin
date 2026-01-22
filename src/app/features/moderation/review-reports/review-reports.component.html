@@ -1,279 +1,161 @@
-<div class="review-reports-container">
-  <p-toast></p-toast>
-  <p-confirmDialog></p-confirmDialog>
-
+<div class="p-4">
   <!-- Header -->
-  <div class="flex justify-between items-center mb-6">
+  <div class="flex justify-between items-center mb-4">
     <div>
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Review Reports</h1>
-      <p class="text-gray-600 dark:text-gray-400 mt-1">Moderate reported service provider reviews</p>
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Review Reports</h1>
+      <p class="text-gray-600">Moderate reported service provider reviews</p>
     </div>
   </div>
 
-  <!-- Filters -->
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
-    <div class="flex items-center gap-4">
-      <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Filter by Status:</label>
-      <select
-        [(ngModel)]="statusFilter"
-        (change)="onStatusFilterChange()"
-        class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        @for (option of statusOptions; track option.value) {
-          <option [value]="option.value">{{ option.label }}</option>
-        }
-      </select>
-    </div>
-  </div>
+  <!-- Filters Card -->
+  <mat-card class="mb-4">
+    <mat-card-content>
+      <div class="flex items-center gap-4">
+        <mat-form-field appearance="outline" class="w-64">
+          <mat-label>Filter by Status</mat-label>
+          <mat-select [value]="statusFilter" (selectionChange)="onStatusFilterChange($event.value)">
+            @for (option of statusOptions; track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+  </mat-card>
 
   <!-- Reports Table -->
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
-    <p-table
-      [value]="reports()"
-      [loading]="isLoading()"
-      [paginator]="true"
-      [rows]="pageSize"
-      [totalRecords]="totalRecords()"
-      [lazy]="true"
-      (onPage)="onPageChange($event)"
-      [rowHover]="true"
-      styleClass="p-datatable-sm"
-    >
-      <ng-template pTemplate="header">
-        <tr>
-          <th pSortableColumn="created_at">Reported <p-sortIcon field="created_at"></p-sortIcon></th>
-          <th>Review</th>
-          <th>Service Provider</th>
-          <th>Reporter</th>
-          <th>Reason</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="body" let-report>
-        <tr>
-          <!-- Reported Date -->
-          <td>
-            <div class="text-sm">
-              {{ report.created_at | relativeTime }}
-            </div>
-          </td>
-
-          <!-- Review Info -->
-          <td>
-            <div class="max-w-md">
-              <div class="flex items-center gap-2 mb-1">
-                <span class="font-medium text-yellow-500">{{ getRatingStars(report.review_rating) }}</span>
-                <span class="text-xs text-gray-500">by @{{ report.reviewer_username }}</span>
-              </div>
-              <p class="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
-                {{ report.review_text }}
-              </p>
-              <p class="text-xs text-gray-500 mt-1">
-                Posted {{ report.review_created_at | relativeTime }}
-              </p>
-            </div>
-          </td>
-
-          <!-- Service Provider -->
-          <td>
-            <div class="text-sm font-medium">
-              {{ report.provider_name }}
-            </div>
-          </td>
-
-          <!-- Reporter -->
-          <td>
-            <div class="flex items-center gap-2">
-              <img
-                [src]="report.reporter_username ? 'https://ui-avatars.com/api/?name=' + report.reporter_username : 'https://ui-avatars.com/api/?name=User'"
-                [alt]="report.reporter_username"
-                class="w-8 h-8 rounded-full"
-              />
-              <span class="text-sm">@{{ report.reporter_username }}</span>
-            </div>
-          </td>
-
-          <!-- Reason -->
-          <td>
-            <p-tag
-              [value]="report.reason"
-              [severity]="getReasonColor(report.reason)"
-              styleClass="text-xs"
-            ></p-tag>
-            @if (report.description) {
-              <p class="text-xs text-gray-500 mt-1 max-w-xs line-clamp-2">
-                {{ report.description }}
-              </p>
-            }
-          </td>
-
-          <!-- Status -->
-          <td>
-            <p-tag
-              [value]="report.status"
-              [severity]="getStatusColor(report.status)"
-              styleClass="text-xs"
-            ></p-tag>
-            @if (report.action_taken) {
-              <p class="text-xs text-gray-500 mt-1">
-                Action: {{ report.action_taken }}
-              </p>
-            }
-          </td>
-
-          <!-- Actions -->
-          <td>
-            <p-button
-              icon="pi pi-eye"
-              label="Review"
-              [outlined]="true"
-              size="small"
-              (onClick)="viewReport(report)"
-              [disabled]="report.status !== 'pending'"
-            ></p-button>
-          </td>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="emptymessage">
-        <tr>
-          <td colspan="7" class="text-center py-8 text-gray-500">
-            @if (isLoading()) {
-              <i class="pi pi-spin pi-spinner text-2xl"></i>
-              <p class="mt-2">Loading reports...</p>
-            } @else {
-              <i class="pi pi-inbox text-4xl"></i>
-              <p class="mt-2">No review reports found</p>
-            }
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
-  </div>
-
-  <!-- Action Dialog -->
-  <p-dialog
-    [(visible)]="showActionDialog"
-    [modal]="true"
-    [closable]="!isProcessing()"
-    [closeOnEscape]="!isProcessing()"
-    [style]="{ width: '700px' }"
-    header="Moderate Review Report"
-  >
-    @if (selectedReport(); as report) {
-      <div class="space-y-6">
-        <!-- Report Info -->
-        <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-          <h3 class="font-semibold text-gray-900 dark:text-white mb-3">Report Details</h3>
-          <div class="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span class="text-gray-600 dark:text-gray-400">Reported by:</span>
-              <span class="ml-2 font-medium">@{{ report.reporter_username }}</span>
-            </div>
-            <div>
-              <span class="text-gray-600 dark:text-gray-400">Reported at:</span>
-              <span class="ml-2">{{ report.created_at | relativeTime }}</span>
-            </div>
-            <div>
-              <span class="text-gray-600 dark:text-gray-400">Reason:</span>
-              <p-tag [value]="report.reason" [severity]="getReasonColor(report.reason)" styleClass="ml-2"></p-tag>
-            </div>
-            @if (report.description) {
-              <div class="col-span-2">
-                <span class="text-gray-600 dark:text-gray-400">Description:</span>
-                <p class="mt-1 text-gray-900 dark:text-white">{{ report.description }}</p>
-              </div>
-            }
-          </div>
+  <mat-card>
+    <mat-card-content class="!p-0">
+      @if (isLoading()) {
+        <div class="flex justify-center items-center py-12">
+          <mat-spinner diameter="48"></mat-spinner>
         </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table mat-table [dataSource]="reports()" class="w-full">
+            <!-- Reported Date Column -->
+            <ng-container matColumnDef="reported">
+              <th mat-header-cell *matHeaderCellDef class="!min-w-[100px]">Reported</th>
+              <td mat-cell *matCellDef="let report">
+                <span class="text-sm text-gray-700">{{ report.created_at | relativeTime }}</span>
+              </td>
+            </ng-container>
 
-        <!-- Review Info -->
-        <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-          <h3 class="font-semibold text-gray-900 dark:text-white mb-3">Reported Review</h3>
-          <div class="space-y-2">
-            <div class="flex items-center gap-4">
-              <img
-                [src]="'https://ui-avatars.com/api/?name=' + report.reviewer_username"
-                [alt]="report.reviewer_username"
-                class="w-10 h-10 rounded-full"
-              />
-              <div>
-                <p class="font-medium text-gray-900 dark:text-white">@{{ report.reviewer_username }}</p>
-                <div class="flex items-center gap-2">
-                  <span class="text-yellow-500">{{ getRatingStars(report.review_rating) }}</span>
-                  <span class="text-xs text-gray-500">{{ report.review_created_at | relativeTime }}</span>
+            <!-- Review Column -->
+            <ng-container matColumnDef="review">
+              <th mat-header-cell *matHeaderCellDef class="!min-w-[250px]">Review</th>
+              <td mat-cell *matCellDef="let report">
+                <div class="max-w-md py-2">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="font-medium text-yellow-500">{{ getRatingStars(report.review_rating) }}</span>
+                    <span class="text-xs text-gray-500">by &#64;{{ report.reviewer_username }}</span>
+                  </div>
+                  <p class="text-sm text-gray-700 line-clamp-2">
+                    {{ report.review_text }}
+                  </p>
+                  <p class="text-xs text-gray-500 mt-1">
+                    Posted {{ report.review_created_at | relativeTime }}
+                  </p>
                 </div>
-              </div>
-            </div>
-            <p class="text-gray-700 dark:text-gray-300 mt-3">{{ report.review_text }}</p>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-              Service Provider: <span class="font-medium">{{ report.provider_name }}</span>
-            </p>
-          </div>
+              </td>
+            </ng-container>
+
+            <!-- Service Provider Column -->
+            <ng-container matColumnDef="provider">
+              <th mat-header-cell *matHeaderCellDef class="!min-w-[150px]">Service Provider</th>
+              <td mat-cell *matCellDef="let report">
+                <span class="text-sm font-medium">{{ report.provider_name }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Reporter Column -->
+            <ng-container matColumnDef="reporter">
+              <th mat-header-cell *matHeaderCellDef class="!min-w-[150px]">Reporter</th>
+              <td mat-cell *matCellDef="let report">
+                <div class="flex items-center gap-2">
+                  <img
+                    [src]="report.reporter_username ? 'https://ui-avatars.com/api/?name=' + report.reporter_username : 'https://ui-avatars.com/api/?name=User'"
+                    [alt]="report.reporter_username"
+                    class="w-8 h-8 rounded-full"
+                  />
+                  <span class="text-sm">&#64;{{ report.reporter_username }}</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Reason Column -->
+            <ng-container matColumnDef="reason">
+              <th mat-header-cell *matHeaderCellDef class="!min-w-[120px]">Reason</th>
+              <td mat-cell *matCellDef="let report">
+                <app-status-badge [severity]="getReasonSeverity(report.reason)">
+                  {{ report.reason }}
+                </app-status-badge>
+                @if (report.description) {
+                  <p class="text-xs text-gray-500 mt-1 max-w-xs line-clamp-2">
+                    {{ report.description }}
+                  </p>
+                }
+              </td>
+            </ng-container>
+
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef class="!min-w-[100px]">Status</th>
+              <td mat-cell *matCellDef="let report">
+                <app-status-badge [severity]="getStatusSeverity(report.status)">
+                  {{ report.status }}
+                </app-status-badge>
+                @if (report.action_taken) {
+                  <p class="text-xs text-gray-500 mt-1">
+                    Action: {{ report.action_taken }}
+                  </p>
+                }
+              </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef class="!text-center !min-w-[100px]">Actions</th>
+              <td mat-cell *matCellDef="let report" class="!text-center">
+                <button
+                  mat-stroked-button
+                  (click)="viewReport(report)"
+                  [disabled]="report.status !== 'pending'"
+                >
+                  <span class="material-symbols-outlined mr-1">visibility</span>
+                  Review
+                </button>
+              </td>
+            </ng-container>
+
+            <!-- Header Row -->
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+
+            <!-- Data Rows -->
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+            <!-- Empty State -->
+            <tr class="mat-row" *matNoDataRow>
+              <td class="mat-cell text-center py-12" [attr.colspan]="displayedColumns.length">
+                <div class="flex flex-col items-center gap-3">
+                  <span class="material-symbols-outlined text-gray-400 text-6xl">inbox</span>
+                  <div class="text-gray-500 text-lg">No review reports found</div>
+                </div>
+              </td>
+            </tr>
+          </table>
         </div>
 
-        <!-- Action Selection -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Select Action *
-          </label>
-          <div class="grid grid-cols-1 gap-3">
-            @for (action of actionOptions; track action.value) {
-              <div
-                class="flex items-center p-3 border rounded-lg cursor-pointer transition-all"
-                [class.border-blue-500]="selectedAction() === action.value"
-                [class.bg-blue-50]="selectedAction() === action.value"
-                [class.dark:bg-blue-900]="selectedAction() === action.value"
-                (click)="selectedAction.set($any(action.value))"
-              >
-                <input
-                  type="radio"
-                  [name]="'action'"
-                  [value]="action.value"
-                  [checked]="selectedAction() === action.value"
-                  class="mr-3"
-                />
-                <i [class]="action.icon + ' mr-2'" [class.text-gray-600]="action.color === 'secondary'"
-                   [class.text-yellow-600]="action.color === 'warn'" [class.text-red-600]="action.color === 'danger'"></i>
-                <span class="font-medium">{{ action.label }}</span>
-              </div>
-            }
-          </div>
-        </div>
-
-        <!-- Admin Notes -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Admin Notes (Optional)
-          </label>
-          <textarea
-            [(ngModel)]="adminNotes"
-            rows="3"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Add any notes about this moderation action..."
-            [disabled]="isProcessing()"
-          ></textarea>
-        </div>
-      </div>
-
-      <!-- Dialog Footer -->
-      <div class="flex justify-end gap-3 mt-6">
-        <p-button
-          label="Cancel"
-          [outlined]="true"
-          (onClick)="showActionDialog.set(false)"
-          [disabled]="isProcessing()"
-        ></p-button>
-        <p-button
-          label="Confirm Action"
-          [severity]="selectedAction() ? getActionColor(selectedAction()!) : 'secondary'"
-          (onClick)="confirmAction()"
-          [disabled]="!selectedAction() || isProcessing()"
-          [loading]="isProcessing()"
-        ></p-button>
-      </div>
-    }
-  </p-dialog>
+        <!-- Paginator -->
+        <mat-paginator
+          [length]="totalRecords()"
+          [pageSize]="pageSize"
+          [pageSizeOptions]="[10, 25, 50]"
+          [pageIndex]="page"
+          (page)="onPageChange($event)"
+          showFirstLastButtons
+        ></mat-paginator>
+      }
+    </mat-card-content>
+  </mat-card>
 </div>

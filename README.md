@@ -9,6 +9,7 @@ Modern admin panel for Wheelbase - motorcycle riding community platform. Built w
 **Generated with**: Angular CLI 20.1.4
 
 **Features**:
+
 - User management (view, search, ban/unban)
 - Content moderation queue
 - Analytics dashboard (DAU, MAU, ride stats)
@@ -87,9 +88,9 @@ wheelbase-admin/
 ```typescript
 export const environment = {
   production: false,
-  supabaseUrl: 'https://hvwpdiyrqonuaomwkuxk.supabase.co',
-  supabaseAnonKey: '<anon-key>',
-  redirectUrl: 'http://localhost:4200/auth/callback',
+  supabaseUrl: "https://hvwpdiyrqonuaomwkuxk.supabase.co",
+  supabaseAnonKey: "<anon-key>",
+  redirectUrl: "http://localhost:4200/auth/callback",
 };
 ```
 
@@ -98,9 +99,9 @@ export const environment = {
 ```typescript
 export const environment = {
   production: true,
-  supabaseUrl: 'https://hvwpdiyrqonuaomwkuxk.supabase.co',
-  supabaseAnonKey: '<anon-key>',
-  redirectUrl: 'https://admin.ridewheelbase.app/auth/callback',
+  supabaseUrl: "https://hvwpdiyrqonuaomwkuxk.supabase.co",
+  supabaseAnonKey: "<anon-key>",
+  redirectUrl: "https://admin.ridewheelbase.app/auth/callback",
 };
 ```
 
@@ -111,11 +112,13 @@ export const environment = {
 ### Vercel Deployment
 
 1. **Connect Repository**:
+
    - Go to [Vercel Dashboard](https://vercel.com/dashboard)
    - Import `wheelbase-admin` Git repository
    - Framework: Angular (auto-detected)
 
 2. **Configure Domain**:
+
    - Add custom domain: `admin.ridewheelbase.app`
 
 3. **Deploy**:
@@ -124,6 +127,7 @@ export const environment = {
 ### Security Headers
 
 Configured in `vercel.json`:
+
 - ✅ X-Frame-Options: DENY
 - ✅ X-Content-Type-Options: nosniff
 - ✅ Strict-Transport-Security
@@ -138,6 +142,7 @@ Configured in `vercel.json`:
 All Edge Functions deployed at: `https://hvwpdiyrqonuaomwkuxk.supabase.co/functions/v1/`
 
 **Admin Functions**:
+
 1. `admin-login` - Email/password authentication
 2. `admin-verify-session` - Validate JWT
 3. `admin-get-users` - Paginated user list
@@ -152,18 +157,19 @@ All Edge Functions deployed at: `https://hvwpdiyrqonuaomwkuxk.supabase.co/functi
 
 ## Admin Roles & Permissions
 
-| Role | Description |
-|------|-------------|
-| `super_admin` | Full access to all features |
-| `admin` | User management, content moderation |
-| `moderator` | Content moderation only |
-| `support` | View-only access |
+| Role          | Description                         |
+| ------------- | ----------------------------------- |
+| `super_admin` | Full access to all features         |
+| `admin`       | User management, content moderation |
+| `moderator`   | Content moderation only             |
+| `support`     | View-only access                    |
 
 ---
 
 ## Development Status
 
 ### Completed ✅
+
 - [x] Angular 20 project setup
 - [x] Dependencies installed (PrimeNG 20, Supabase, Chart.js, TailwindCSS)
 - [x] TailwindCSS configured
@@ -174,10 +180,12 @@ All Edge Functions deployed at: `https://hvwpdiyrqonuaomwkuxk.supabase.co/functi
 - [x] Super admin user created
 
 ### In Progress 🔄
+
 - [ ] Core services (Supabase, Auth)
 - [ ] Route guards (auth, admin-role)
 
 ### Pending ⏳
+
 - [ ] Authentication features (login page)
 - [ ] Dashboard with analytics
 - [ ] User management (list, detail, ban/unban)
@@ -189,8 +197,9 @@ All Edge Functions deployed at: `https://hvwpdiyrqonuaomwkuxk.supabase.co/functi
 ## Support
 
 For issues or questions:
+
 - **Technical**: lexphicableme@gmail.com
-- **Documentation**: See `FLUTTER_APP/supabase/ADMIN_GOOGLE_OAUTH_SETUP.md`
+- **Documentation**: See `wheelbase-supabase/supabase/ADMIN_GOOGLE_OAUTH_SETUP.md`
 
 ---
 

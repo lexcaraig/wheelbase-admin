@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PromotionService } from '../../core/services/promotion.service';
-import { Promotion, PromotionPayload, LogoShape } from '../../core/models/promotion.model';
+import { Promotion, PromotionPayload, LogoShape, PlacementType, PLACEMENT_LABELS, ALL_PLACEMENTS } from '../../core/models/promotion.model';
 
 @Component({
   selector: 'app-promotion-editor',
@@ -101,27 +101,45 @@ import { Promotion, PromotionPayload, LogoShape } from '../../core/models/promot
                   placeholder="Premium motorcycle apparel"
                 />
               </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-400 mb-1">Logo URL</label>
-                <input
-                  type="url"
-                  [(ngModel)]="form.logo_url"
-                  name="logo_url"
-                  class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
-                  placeholder="https://example.com/logo.png"
-                />
+              <!-- Logo URLs -->
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-400 mb-1">Square Logo (1:1)</label>
+                  <input
+                    type="url"
+                    [(ngModel)]="form.logo_url"
+                    name="logo_url"
+                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                    placeholder="https://example.com/logo-square.png"
+                  />
+                  <p class="text-xs text-gray-500 mt-1">Used for circular overlays (dashboard)</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-400 mb-1">Horizontal Logo (Wide)</label>
+                  <input
+                    type="url"
+                    [(ngModel)]="form.logo_url_horizontal"
+                    name="logo_url_horizontal"
+                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                    placeholder="https://example.com/logo-wide.png"
+                  />
+                  <p class="text-xs text-gray-500 mt-1">Used for banner placements</p>
+                </div>
               </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-400 mb-1">Logo Shape</label>
-                <select
-                  [(ngModel)]="form.logo_shape"
-                  name="logo_shape"
-                  class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-yellow-400"
-                >
-                  <option value="square">Square / Circle</option>
-                  <option value="horizontal">Horizontal / Wide</option>
-                </select>
-                <p class="text-xs text-gray-500 mt-1">Affects logo positioning in the app</p>
+              <!-- Logo previews -->
+              <div class="flex gap-4 items-center">
+                @if (form.logo_url) {
+                  <div class="text-center">
+                    <img [src]="form.logo_url" class="w-12 h-12 rounded-full object-cover border-2 border-gray-600" alt="Square Logo" />
+                    <p class="text-xs text-gray-500 mt-1">Square</p>
+                  </div>
+                }
+                @if (form.logo_url_horizontal) {
+                  <div class="text-center">
+                    <img [src]="form.logo_url_horizontal" class="h-10 max-w-32 object-contain border-2 border-gray-600 rounded" alt="Horizontal Logo" />
+                    <p class="text-xs text-gray-500 mt-1">Horizontal</p>
+                  </div>
+                }
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-400 mb-1">Call-to-Action URL</label>
@@ -260,6 +278,29 @@ import { Promotion, PromotionPayload, LogoShape } from '../../core/models/promot
             </div>
           </div>
 
+          <!-- Placement Locations -->
+          <div class="bg-gray-800 rounded-lg p-6">
+            <h2 class="text-lg font-medium text-white mb-2">Ad Placements</h2>
+            <p class="text-gray-400 text-sm mb-4">Select where this promotion will appear. Brands pay per placement.</p>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+              @for (placement of allPlacements; track placement) {
+                <label class="flex items-center gap-2 text-white cursor-pointer p-2 rounded hover:bg-gray-700 transition-colors">
+                  <input
+                    type="checkbox"
+                    [checked]="selectedPlacements.has(placement)"
+                    (change)="togglePlacement(placement)"
+                    class="rounded bg-gray-700 border-gray-600 text-yellow-400"
+                  />
+                  <span class="text-sm">{{ getPlacementLabel(placement) }}</span>
+                </label>
+              }
+            </div>
+            <p class="text-gray-500 text-xs mt-3">
+              <i class="pi pi-info-circle mr-1"></i>
+              Pro+ users never see ads regardless of placement selection.
+            </p>
+          </div>
+
           <!-- Actions -->
           <div class="flex items-center justify-end gap-4">
             <a
@@ -301,6 +342,7 @@ export class PromotionEditorComponent implements OnInit {
     title: string;
     subtitle: string;
     logo_url: string;
+    logo_url_horizontal: string;
     logo_shape: LogoShape;
     background_color: string;
     text_color: string;
@@ -313,6 +355,7 @@ export class PromotionEditorComponent implements OnInit {
     title: '',
     subtitle: '',
     logo_url: '',
+    logo_url_horizontal: '',
     logo_shape: 'square',
     background_color: '#FFD535',
     text_color: '#000000',
@@ -326,6 +369,10 @@ export class PromotionEditorComponent implements OnInit {
   targetFree = true;
   targetPro = true;
   targetPremium = true;
+
+  // Placement selection
+  allPlacements = ALL_PLACEMENTS;
+  selectedPlacements = new Set<PlacementType>(['dashboard']); // Default to dashboard
 
   constructor(
     private promotionService: PromotionService,
@@ -351,6 +398,7 @@ export class PromotionEditorComponent implements OnInit {
         title: promo.title,
         subtitle: promo.subtitle || '',
         logo_url: promo.logo_url || '',
+        logo_url_horizontal: promo.logo_url_horizontal || '',
         logo_shape: promo.logo_shape || 'square',
         background_color: promo.background_color,
         text_color: promo.text_color,
@@ -364,6 +412,9 @@ export class PromotionEditorComponent implements OnInit {
       this.targetFree = promo.target_tiers.includes('free');
       this.targetPro = promo.target_tiers.includes('pro');
       this.targetPremium = promo.target_tiers.includes('premium');
+
+      // Load placements
+      this.selectedPlacements = new Set(promo.placement_types || ['dashboard']);
     } catch (err: any) {
       this.error.set(err.message || 'Failed to load promotion');
     } finally {
@@ -386,10 +437,16 @@ export class PromotionEditorComponent implements OnInit {
       if (this.targetPro) targetTiers.push('pro');
       if (this.targetPremium) targetTiers.push('premium');
 
+      // Ensure at least one placement is selected
+      if (this.selectedPlacements.size === 0) {
+        this.selectedPlacements.add('dashboard');
+      }
+
       const payload: PromotionPayload = {
         title: this.form.title,
         subtitle: this.form.subtitle || null,
         logo_url: this.form.logo_url || null,
+        logo_url_horizontal: this.form.logo_url_horizontal || null,
         logo_shape: this.form.logo_shape,
         background_color: this.form.background_color,
         text_color: this.form.text_color,
@@ -398,7 +455,8 @@ export class PromotionEditorComponent implements OnInit {
         is_active: this.form.is_active,
         start_date: this.form.start_date ? new Date(this.form.start_date).toISOString() : null,
         end_date: this.form.end_date ? new Date(this.form.end_date).toISOString() : null,
-        target_tiers: targetTiers
+        target_tiers: targetTiers,
+        placement_types: Array.from(this.selectedPlacements)
       };
 
       if (this.isEditMode() && this.promotionId) {
@@ -418,5 +476,17 @@ export class PromotionEditorComponent implements OnInit {
   private formatDateForInput(dateStr: string): string {
     const date = new Date(dateStr);
     return date.toISOString().slice(0, 16);
+  }
+
+  togglePlacement(placement: PlacementType): void {
+    if (this.selectedPlacements.has(placement)) {
+      this.selectedPlacements.delete(placement);
+    } else {
+      this.selectedPlacements.add(placement);
+    }
+  }
+
+  getPlacementLabel(placement: PlacementType): string {
+    return PLACEMENT_LABELS[placement];
   }
 }
