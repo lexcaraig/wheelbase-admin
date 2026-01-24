@@ -1,14 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatOptionModule } from '@angular/material/core';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { VerificationService } from '../../core/services/verification.service';
 import {
@@ -16,7 +8,7 @@ import {
   ClaimStatus
 } from '../../core/models/verification.model';
 import { NotificationService } from '../../core/services/notification.service';
-import { StatusBadgeComponent, BadgeSeverity } from '../../shared/components/status-badge/status-badge.component';
+import { BadgeSeverity } from '../../shared/components/status-badge/status-badge.component';
 import { formatDateTime } from '../../shared/utils';
 import { VerificationReviewDialogComponent } from './dialogs/verification-review-dialog.component';
 import { DocumentViewerDialogComponent } from './dialogs/document-viewer-dialog.component';
@@ -27,19 +19,10 @@ import { DocumentViewerDialogComponent } from './dialogs/document-viewer-dialog.
   imports: [
     CommonModule,
     FormsModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatOptionModule,
-    MatTooltipModule,
-    MatProgressSpinnerModule,
-    MatDialogModule,
-    StatusBadgeComponent
+    MatDialogModule
   ],
   templateUrl: './verification-queue.component.html',
-  styleUrl: './verification-queue.component.scss'
+  styles: []
 })
 export class VerificationQueueComponent implements OnInit {
   requests = signal<VerificationRequest[]>([]);
@@ -48,9 +31,6 @@ export class VerificationQueueComponent implements OnInit {
   pendingCount = signal(0);
   approvedCount = signal(0);
   rejectedCount = signal(0);
-
-  // Table columns
-  displayedColumns: string[] = ['business', 'owner', 'contact', 'location', 'documents', 'status', 'submitted', 'actions'];
 
   // Filters
   statusFilter = signal<ClaimStatus | 'all'>('all');
@@ -64,6 +44,7 @@ export class VerificationQueueComponent implements OnInit {
   // Pagination
   currentPage = signal(0);
   pageSize = 20;
+  pageSizeOptions = [10, 20, 50];
 
   constructor(
     private verificationService: VerificationService,
@@ -96,18 +77,47 @@ export class VerificationQueueComponent implements OnInit {
     }
   }
 
-  onPageChange(event: PageEvent) {
-    this.currentPage.set(event.pageIndex);
-    this.pageSize = event.pageSize;
-    this.loadVerificationQueue();
+  // Pagination methods
+  getTotalPages(): number {
+    return Math.ceil(this.totalRecords() / this.pageSize);
   }
 
-  onStatusFilterChange() {
+  getPageRangeLabel(): string {
+    const start = this.currentPage() * this.pageSize + 1;
+    const end = Math.min((this.currentPage() + 1) * this.pageSize, this.totalRecords());
+    return `${start} - ${end} of ${this.totalRecords()}`;
+  }
+
+  firstPage(): void {
     this.currentPage.set(0);
     this.loadVerificationQueue();
   }
 
-  onStatusFilterChanged(value: ClaimStatus | 'all') {
+  previousPage(): void {
+    if (this.currentPage() > 0) {
+      this.currentPage.set(this.currentPage() - 1);
+      this.loadVerificationQueue();
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage() < this.getTotalPages() - 1) {
+      this.currentPage.set(this.currentPage() + 1);
+      this.loadVerificationQueue();
+    }
+  }
+
+  lastPage(): void {
+    this.currentPage.set(this.getTotalPages() - 1);
+    this.loadVerificationQueue();
+  }
+
+  onPageSizeChange(): void {
+    this.currentPage.set(0);
+    this.loadVerificationQueue();
+  }
+
+  onStatusFilterChange(value: ClaimStatus | 'all') {
     this.statusFilter.set(value);
     this.currentPage.set(0);
     this.loadVerificationQueue();
@@ -157,6 +167,19 @@ export class VerificationQueueComponent implements OnInit {
         return 'danger';
       default:
         return 'warning';
+    }
+  }
+
+  getStatusBadgeClass(status: ClaimStatus): string {
+    switch (status) {
+      case 'approved':
+        return 'badge-success';
+      case 'pending':
+        return 'badge-warning';
+      case 'rejected':
+        return 'badge-error';
+      default:
+        return 'badge-warning';
     }
   }
 

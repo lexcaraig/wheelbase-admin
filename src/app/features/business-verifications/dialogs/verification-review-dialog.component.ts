@@ -1,19 +1,14 @@
 import { Component, Inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatRadioModule } from '@angular/material/radio';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { VerificationRequest } from '../../../core/models/verification.model';
 import { VerificationService } from '../../../core/services/verification.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ConfirmService } from '../../../core/services/confirm.service';
-import { StatusBadgeComponent, BadgeSeverity } from '../../../shared/components/status-badge/status-badge.component';
+import { BadgeSeverity } from '../../../shared/components/status-badge/status-badge.component';
 import { formatDateTime } from '../../../shared/utils';
 import { DocumentViewerDialogComponent } from './document-viewer-dialog.component';
-import { MatDialog } from '@angular/material/dialog';
 
 export interface VerificationReviewDialogData {
   request: VerificationRequest;
@@ -26,248 +21,303 @@ export interface VerificationReviewDialogData {
   imports: [
     CommonModule,
     FormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatRadioModule,
-    StatusBadgeComponent
+    MatDialogModule
   ],
   template: `
-    <h2 mat-dialog-title>Review Claim - {{ data.request.business_name }}</h2>
-    <mat-dialog-content class="max-h-[70vh]">
+    <div class="p-6 max-h-[85vh] overflow-y-auto">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-base-content">Review Claim - {{ data.request.business_name }}</h2>
+        <button class="btn btn-ghost btn-sm btn-square" (click)="onClose()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
       <div class="space-y-6">
         <!-- Business Information -->
-        <div class="bg-base-100 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold text-base-content mb-4">Business Information</h3>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="text-sm font-medium text-base-content/70">Business Name</label>
-              <div class="text-base-content mt-1">{{ data.request.business_name }}</div>
-            </div>
-            <div>
-              <label class="text-sm font-medium text-base-content/70">Category</label>
-              <div class="text-base-content mt-1">{{ data.request.service_provider?.category || 'N/A' }}</div>
-            </div>
-            <div>
-              <label class="text-sm font-medium text-base-content/70">Address</label>
-              <div class="text-base-content mt-1">{{ data.request.service_provider?.address || 'N/A' }}</div>
-            </div>
-            <div>
-              <label class="text-sm font-medium text-base-content/70">City</label>
-              <div class="text-base-content mt-1">{{ data.request.service_provider?.city || 'N/A' }}</div>
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body p-4">
+            <h3 class="text-lg font-semibold text-base-content mb-4 flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary">business</span>
+              Business Information
+            </h3>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-sm font-medium text-base-content/70">Business Name</label>
+                <div class="text-base-content mt-1">{{ data.request.business_name }}</div>
+              </div>
+              <div>
+                <label class="text-sm font-medium text-base-content/70">Category</label>
+                <div class="text-base-content mt-1">{{ data.request.service_provider?.category || 'N/A' }}</div>
+              </div>
+              <div>
+                <label class="text-sm font-medium text-base-content/70">Address</label>
+                <div class="text-base-content mt-1">{{ data.request.service_provider?.address || 'N/A' }}</div>
+              </div>
+              <div>
+                <label class="text-sm font-medium text-base-content/70">City</label>
+                <div class="text-base-content mt-1">{{ data.request.service_provider?.city || 'N/A' }}</div>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Owner Information -->
-        <div class="bg-base-100 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold text-base-content mb-4">Owner Information</h3>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="text-sm font-medium text-base-content/70">Owner Name</label>
-              <div class="text-base-content mt-1">{{ data.request.owner_name }}</div>
-            </div>
-            <div>
-              <label class="text-sm font-medium text-base-content/70">Contact Number</label>
-              <div class="text-base-content mt-1">{{ data.request.contact_number }}</div>
-            </div>
-            <div>
-              <label class="text-sm font-medium text-base-content/70">Email</label>
-              <div class="text-base-content mt-1">{{ data.request.email }}</div>
-            </div>
-            <div>
-              <label class="text-sm font-medium text-base-content/70">Business Reg #</label>
-              <div class="text-base-content mt-1">{{ data.request.business_registration_number || 'Not provided' }}</div>
-            </div>
-            <div>
-              <label class="text-sm font-medium text-base-content/70">Tax ID</label>
-              <div class="text-base-content mt-1">{{ data.request.tax_id || 'Not provided' }}</div>
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body p-4">
+            <h3 class="text-lg font-semibold text-base-content mb-4 flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary">person</span>
+              Owner Information
+            </h3>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-sm font-medium text-base-content/70">Owner Name</label>
+                <div class="text-base-content mt-1">{{ data.request.owner_name }}</div>
+              </div>
+              <div>
+                <label class="text-sm font-medium text-base-content/70">Contact Number</label>
+                <div class="text-base-content mt-1">{{ data.request.contact_number }}</div>
+              </div>
+              <div>
+                <label class="text-sm font-medium text-base-content/70">Email</label>
+                <div class="text-base-content mt-1">{{ data.request.email }}</div>
+              </div>
+              <div>
+                <label class="text-sm font-medium text-base-content/70">Business Reg #</label>
+                <div class="text-base-content mt-1">{{ data.request.business_registration_number || 'Not provided' }}</div>
+              </div>
+              <div>
+                <label class="text-sm font-medium text-base-content/70">Tax ID</label>
+                <div class="text-base-content mt-1">{{ data.request.tax_id || 'Not provided' }}</div>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Verification Documents -->
-        <div class="bg-base-100 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold text-base-content mb-4">Verification Documents</h3>
-          <div class="grid grid-cols-3 gap-4">
-            <!-- Business Permit -->
-            <div class="border border-base-300 rounded-lg p-4 bg-base-100">
-              <div class="flex items-center gap-2 mb-3">
-                <span class="material-symbols-outlined text-blue-600">description</span>
-                <span class="font-medium text-base-content">Business Permit</span>
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body p-4">
+            <h3 class="text-lg font-semibold text-base-content mb-4 flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary">folder_open</span>
+              Verification Documents
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <!-- Business Permit -->
+              <div class="card bg-base-200 shadow-sm">
+                <div class="card-body p-4">
+                  <div class="flex items-center gap-2 mb-3">
+                    <span class="material-symbols-outlined text-info">description</span>
+                    <span class="font-medium text-base-content">Business Permit</span>
+                  </div>
+                  @if (data.request.business_permit_url) {
+                    <button
+                      class="btn btn-outline btn-sm w-full mb-2"
+                      (click)="viewDocument(data.request.business_permit_url, 'Business Permit')"
+                    >
+                      <span class="material-symbols-outlined text-sm">visibility</span>
+                      View Document
+                    </button>
+                    <div class="flex items-center gap-1 text-success text-sm">
+                      <span class="material-symbols-outlined text-sm">check_circle</span> Uploaded
+                    </div>
+                  } @else {
+                    <div class="flex items-center gap-1 text-base-content/50 text-sm">
+                      <span class="material-symbols-outlined text-sm">cancel</span> Not uploaded
+                    </div>
+                  }
+                </div>
               </div>
-              @if (data.request.business_permit_url) {
-                <button
-                  mat-stroked-button
-                  class="w-full mb-2"
-                  (click)="viewDocument(data.request.business_permit_url, 'Business Permit')"
-                >
-                  <span class="material-symbols-outlined mr-2">visibility</span>
-                  View Document
-                </button>
-                <div class="flex items-center gap-1 text-green-600 text-sm">
-                  <span class="material-symbols-outlined text-sm">check_circle</span> Uploaded
-                </div>
-              } @else {
-                <div class="flex items-center gap-1 text-base-content/50 text-sm">
-                  <span class="material-symbols-outlined text-sm">cancel</span> Not uploaded
-                </div>
-              }
-            </div>
 
-            <!-- Tax ID Document -->
-            <div class="border border-base-300 rounded-lg p-4 bg-base-100">
-              <div class="flex items-center gap-2 mb-3">
-                <span class="material-symbols-outlined text-blue-600">description</span>
-                <span class="font-medium text-base-content">Tax ID Document</span>
+              <!-- Tax ID Document -->
+              <div class="card bg-base-200 shadow-sm">
+                <div class="card-body p-4">
+                  <div class="flex items-center gap-2 mb-3">
+                    <span class="material-symbols-outlined text-info">description</span>
+                    <span class="font-medium text-base-content">Tax ID Document</span>
+                  </div>
+                  @if (data.request.tax_id_document_url) {
+                    <button
+                      class="btn btn-outline btn-sm w-full mb-2"
+                      (click)="viewDocument(data.request.tax_id_document_url, 'Tax ID Document')"
+                    >
+                      <span class="material-symbols-outlined text-sm">visibility</span>
+                      View Document
+                    </button>
+                    <div class="flex items-center gap-1 text-success text-sm">
+                      <span class="material-symbols-outlined text-sm">check_circle</span> Uploaded
+                    </div>
+                  } @else {
+                    <div class="flex items-center gap-1 text-base-content/50 text-sm">
+                      <span class="material-symbols-outlined text-sm">cancel</span> Not uploaded
+                    </div>
+                  }
+                </div>
               </div>
-              @if (data.request.tax_id_document_url) {
-                <button
-                  mat-stroked-button
-                  class="w-full mb-2"
-                  (click)="viewDocument(data.request.tax_id_document_url, 'Tax ID Document')"
-                >
-                  <span class="material-symbols-outlined mr-2">visibility</span>
-                  View Document
-                </button>
-                <div class="flex items-center gap-1 text-green-600 text-sm">
-                  <span class="material-symbols-outlined text-sm">check_circle</span> Uploaded
-                </div>
-              } @else {
-                <div class="flex items-center gap-1 text-base-content/50 text-sm">
-                  <span class="material-symbols-outlined text-sm">cancel</span> Not uploaded
-                </div>
-              }
-            </div>
 
-            <!-- Proof of Ownership -->
-            <div class="border border-base-300 rounded-lg p-4 bg-base-100">
-              <div class="flex items-center gap-2 mb-3">
-                <span class="material-symbols-outlined text-blue-600">description</span>
-                <span class="font-medium text-base-content">Proof of Ownership</span>
+              <!-- Proof of Ownership -->
+              <div class="card bg-base-200 shadow-sm">
+                <div class="card-body p-4">
+                  <div class="flex items-center gap-2 mb-3">
+                    <span class="material-symbols-outlined text-info">description</span>
+                    <span class="font-medium text-base-content">Proof of Ownership</span>
+                  </div>
+                  @if (data.request.proof_of_ownership_url) {
+                    <button
+                      class="btn btn-outline btn-sm w-full mb-2"
+                      (click)="viewDocument(data.request.proof_of_ownership_url, 'Proof of Ownership')"
+                    >
+                      <span class="material-symbols-outlined text-sm">visibility</span>
+                      View Document
+                    </button>
+                    <div class="flex items-center gap-1 text-success text-sm">
+                      <span class="material-symbols-outlined text-sm">check_circle</span> Uploaded
+                    </div>
+                  } @else {
+                    <div class="flex items-center gap-1 text-base-content/50 text-sm">
+                      <span class="material-symbols-outlined text-sm">cancel</span> Not uploaded
+                    </div>
+                  }
+                </div>
               </div>
-              @if (data.request.proof_of_ownership_url) {
-                <button
-                  mat-stroked-button
-                  class="w-full mb-2"
-                  (click)="viewDocument(data.request.proof_of_ownership_url, 'Proof of Ownership')"
-                >
-                  <span class="material-symbols-outlined mr-2">visibility</span>
-                  View Document
-                </button>
-                <div class="flex items-center gap-1 text-green-600 text-sm">
-                  <span class="material-symbols-outlined text-sm">check_circle</span> Uploaded
-                </div>
-              } @else {
-                <div class="flex items-center gap-1 text-base-content/50 text-sm">
-                  <span class="material-symbols-outlined text-sm">cancel</span> Not uploaded
-                </div>
-              }
             </div>
           </div>
         </div>
 
         <!-- Admin Review Section (only if pending) -->
         @if (data.request.status === 'pending') {
-          <div class="bg-base-100 p-4 rounded-lg">
-            <h3 class="text-lg font-semibold text-base-content mb-4">Admin Review</h3>
+          <div class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+              <h3 class="text-lg font-semibold text-base-content mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">rate_review</span>
+                Admin Review
+              </h3>
 
-            <!-- Decision Radio Buttons -->
-            <div class="mb-4">
-              <label class="text-sm font-medium text-base-content/80 mb-2 block">Decision *</label>
-              <mat-radio-group [(ngModel)]="reviewAction" class="flex gap-6">
-                <mat-radio-button value="approve" class="text-green-600">
-                  <span class="flex items-center gap-2">
-                    <span class="material-symbols-outlined">check_circle</span> Approve
-                  </span>
-                </mat-radio-button>
-                <mat-radio-button value="reject" class="text-red-600">
-                  <span class="flex items-center gap-2">
-                    <span class="material-symbols-outlined">cancel</span> Reject
-                  </span>
-                </mat-radio-button>
-              </mat-radio-group>
-            </div>
+              <!-- Decision Radio Buttons -->
+              <div class="mb-4">
+                <label class="text-sm font-medium text-base-content/80 mb-3 block">Decision *</label>
+                <div class="flex gap-6">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="decision"
+                      value="approve"
+                      class="radio radio-success"
+                      [(ngModel)]="reviewAction"
+                    />
+                    <span class="flex items-center gap-1 text-success font-medium">
+                      <span class="material-symbols-outlined">check_circle</span> Approve
+                    </span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="decision"
+                      value="reject"
+                      class="radio radio-error"
+                      [(ngModel)]="reviewAction"
+                    />
+                    <span class="flex items-center gap-1 text-error font-medium">
+                      <span class="material-symbols-outlined">cancel</span> Reject
+                    </span>
+                  </label>
+                </div>
+              </div>
 
-            <!-- Rejection Reason -->
-            @if (reviewAction === 'reject') {
-              <mat-form-field appearance="outline" class="w-full mb-4">
-                <mat-label>Rejection Reason *</mat-label>
+              <!-- Rejection Reason -->
+              @if (reviewAction === 'reject') {
+                <div class="form-control mb-4">
+                  <label class="label">
+                    <span class="label-text font-medium">Rejection Reason *</span>
+                  </label>
+                  <textarea
+                    class="textarea textarea-bordered w-full"
+                    [(ngModel)]="rejectionReason"
+                    rows="3"
+                    placeholder="e.g., Business permit image is unclear, please resubmit"
+                  ></textarea>
+                  <label class="label">
+                    <span class="label-text-alt text-base-content/60">This will be sent to the business owner</span>
+                  </label>
+                </div>
+              }
+
+              <!-- Admin Notes -->
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-medium">Admin Notes (Internal)</span>
+                </label>
                 <textarea
-                  matInput
-                  [(ngModel)]="rejectionReason"
-                  rows="3"
-                  placeholder="e.g., Business permit image is unclear, please resubmit"
+                  class="textarea textarea-bordered w-full"
+                  [(ngModel)]="adminNotes"
+                  rows="2"
+                  placeholder="e.g., Verified with DTI database"
                 ></textarea>
-                <mat-hint>This will be sent to the business owner</mat-hint>
-              </mat-form-field>
-            }
-
-            <!-- Admin Notes -->
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Admin Notes (Internal)</mat-label>
-              <textarea
-                matInput
-                [(ngModel)]="adminNotes"
-                rows="2"
-                placeholder="e.g., Verified with DTI database"
-              ></textarea>
-              <mat-hint>Internal notes, not visible to user</mat-hint>
-            </mat-form-field>
+                <label class="label">
+                  <span class="label-text-alt text-base-content/60">Internal notes, not visible to user</span>
+                </label>
+              </div>
+            </div>
           </div>
         }
 
         <!-- Already Reviewed Section -->
         @if (data.request.status !== 'pending') {
-          <div class="bg-base-100 p-4 rounded-lg">
-            <h3 class="text-lg font-semibold text-base-content mb-4">Review Details</h3>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="text-sm font-medium text-base-content/70">Status</label>
-                <div class="mt-1">
-                  <app-status-badge [severity]="getStatusSeverity(data.request.status)">
-                    {{ getStatusLabel(data.request.status) }}
-                  </app-status-badge>
+          <div class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+              <h3 class="text-lg font-semibold text-base-content mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">info</span>
+                Review Details
+              </h3>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="text-sm font-medium text-base-content/70">Status</label>
+                  <div class="mt-1">
+                    <span class="badge" [ngClass]="getStatusBadgeClass(data.request.status)">
+                      {{ getStatusLabel(data.request.status) }}
+                    </span>
+                  </div>
                 </div>
+                <div>
+                  <label class="text-sm font-medium text-base-content/70">Reviewed At</label>
+                  <div class="text-base-content mt-1">{{ formatDate(data.request.reviewed_at) }}</div>
+                </div>
+                @if (data.request.rejection_reason) {
+                  <div class="col-span-2">
+                    <label class="text-sm font-medium text-base-content/70">Rejection Reason</label>
+                    <div class="alert alert-error mt-1">
+                      <span>{{ data.request.rejection_reason }}</span>
+                    </div>
+                  </div>
+                }
+                @if (data.request.admin_notes) {
+                  <div class="col-span-2">
+                    <label class="text-sm font-medium text-base-content/70">Admin Notes</label>
+                    <div class="text-base-content mt-1">{{ data.request.admin_notes }}</div>
+                  </div>
+                }
               </div>
-              <div>
-                <label class="text-sm font-medium text-base-content/70">Reviewed At</label>
-                <div class="text-base-content mt-1">{{ formatDate(data.request.reviewed_at) }}</div>
-              </div>
-              @if (data.request.rejection_reason) {
-                <div class="col-span-2">
-                  <label class="text-sm font-medium text-base-content/70">Rejection Reason</label>
-                  <div class="bg-red-50 border border-red-200 rounded p-3 text-red-900 mt-1">{{ data.request.rejection_reason }}</div>
-                </div>
-              }
-              @if (data.request.admin_notes) {
-                <div class="col-span-2">
-                  <label class="text-sm font-medium text-base-content/70">Admin Notes</label>
-                  <div class="text-base-content mt-1">{{ data.request.admin_notes }}</div>
-                </div>
-              }
             </div>
           </div>
         }
       </div>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button [disabled]="isProcessing()" (click)="onClose()">Cancel</button>
-      @if (data.request.status === 'pending') {
-        <button
-          mat-raised-button
-          color="primary"
-          [disabled]="!reviewAction || isProcessing()"
-          (click)="submitReview()"
-        >
-          @if (isProcessing()) {
-            <span class="material-symbols-outlined animate-spin mr-2">progress_activity</span>
-          }
-          Submit Review
-        </button>
-      }
-    </mat-dialog-actions>
+
+      <!-- Footer Actions -->
+      <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-base-300">
+        <button class="btn btn-ghost" [disabled]="isProcessing()" (click)="onClose()">Cancel</button>
+        @if (data.request.status === 'pending') {
+          <button
+            class="btn btn-primary"
+            [disabled]="!reviewAction || isProcessing()"
+            (click)="submitReview()"
+          >
+            @if (isProcessing()) {
+              <span class="loading loading-spinner loading-sm"></span>
+            }
+            Submit Review
+          </button>
+        }
+      </div>
+    </div>
   `
 })
 export class VerificationReviewDialogComponent {
@@ -357,6 +407,19 @@ export class VerificationReviewDialogComponent {
         return 'danger';
       default:
         return 'warning';
+    }
+  }
+
+  getStatusBadgeClass(status: string): string {
+    switch (status) {
+      case 'approved':
+        return 'badge-success';
+      case 'pending':
+        return 'badge-warning';
+      case 'rejected':
+        return 'badge-error';
+      default:
+        return 'badge-warning';
     }
   }
 
