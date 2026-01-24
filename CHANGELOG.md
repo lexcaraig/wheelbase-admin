@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Action Button Icon Contrast** - Fixed ghost button icons (`text-info`, `text-warning`, `text-error`, `text-success`, `text-primary`) blending into dark theme background in table action columns. Applied brighter color values (e.g., blue-400, amber-400, red-400) with enhanced hover states for better visibility across all admin tables (promotions, users, businesses, moderation, etc.)
+
+---
+
 ### Planned for BACKOFFICE-002 (Q1-Q2 2025)
 
 #### Advanced Analytics

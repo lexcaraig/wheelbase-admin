@@ -47,17 +47,6 @@
   }
 }
 
-// Fix mat-select Tailwind button reset
-.mat-mdc-select-trigger {
-  background: transparent;
-  border: none;
-}
-
-// Fix mat-option Tailwind list reset
-.mat-mdc-option {
-  list-style: none;
-}
-
 // CRITICAL: Override Tailwind's @layer base that clips elements
 // This ensures mat-form-field labels are never clipped
 .mdc-notched-outline__notch {
@@ -98,8 +87,7 @@ body {
 }
 
 body {
-  background-color: #f3f4f6;
-  color: #1f2937;
+  @apply bg-base-300 text-base-content;
   overflow-x: hidden;
 }
 
@@ -139,23 +127,98 @@ body {
   margin-top: 0.5rem;
 }
 
-// Scrollbar styling
+// Scrollbar styling (theme-aware)
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  @apply bg-base-200;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
+  @apply bg-base-content/30 rounded;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  @apply bg-base-content/50;
+}
+
+// =============================================================================
+// DAISYUI TABLE ENHANCEMENTS
+// =============================================================================
+.table {
+  // Ensure table text is visible in dark mode
+  th, td {
+    @apply text-base-content;
+  }
+
+  thead tr {
+    @apply bg-base-200;
+
+    th {
+      @apply text-base-content font-semibold;
+    }
+  }
+
+  tbody tr {
+    @apply border-base-300;
+  }
+
+  // Zebra stripe override for dark mode
+  &.table-zebra tbody tr:nth-child(even) {
+    @apply bg-base-200/50;
+  }
+
+  // Action button icon contrast fix
+  // Ghost buttons with semantic colors need higher contrast in dark theme
+  .btn-ghost {
+    &.text-info {
+      color: #60a5fa; // Brighter blue (blue-400)
+
+      &:hover {
+        @apply bg-info/20;
+        color: #93c5fd; // Even brighter on hover (blue-300)
+      }
+    }
+
+    &.text-warning {
+      color: #fbbf24; // Brighter amber (amber-400)
+
+      &:hover {
+        @apply bg-warning/20;
+        color: #fcd34d; // Even brighter on hover (amber-300)
+      }
+    }
+
+    &.text-error {
+      color: #f87171; // Brighter red (red-400)
+
+      &:hover {
+        @apply bg-error/20;
+        color: #fca5a5; // Even brighter on hover (red-300)
+      }
+    }
+
+    &.text-success {
+      color: #4ade80; // Brighter green (green-400)
+
+      &:hover {
+        @apply bg-success/20;
+        color: #86efac; // Even brighter on hover (green-300)
+      }
+    }
+
+    &.text-primary {
+      color: #FFD535; // Primary yellow
+
+      &:hover {
+        @apply bg-primary/20;
+        color: #ffe066; // Brighter yellow on hover
+      }
+    }
+  }
 }
 
 // =============================================================================
@@ -218,6 +281,7 @@ body {
 }
 
 // Status badge colors (shared across verification, moderation, etc.)
+// Uses standard CSS since DaisyUI classes aren't available in SCSS @apply context
 .stat-badge {
   padding: 0.5rem 1rem;
   border-radius: 8px;
@@ -247,19 +311,16 @@ body {
   }
 }
 
-// Angular Material DataTable shared styling
+// Angular Material DataTable shared styling (theme-aware)
 .admin-datatable {
   width: 100%;
 
   .mat-mdc-header-row {
-    background-color: #f9fafb;
+    @apply bg-base-200;
   }
 
   .mat-mdc-header-cell {
-    color: #374151;
-    font-weight: 600;
-    font-size: 0.875rem;
-    border-bottom: 1px solid #e5e7eb;
+    @apply text-base-content font-semibold text-sm border-b border-base-300;
     padding: 0.75rem 1rem;
   }
 
@@ -267,67 +328,60 @@ body {
     transition: background-color 0.15s ease;
 
     &:hover {
-      background-color: #f9fafb;
+      @apply bg-base-200/50;
     }
   }
 
   .mat-mdc-cell {
+    @apply text-base-content text-sm border-b border-base-300;
     padding: 0.75rem 1rem;
-    font-size: 0.875rem;
-    border-bottom: 1px solid #e5e7eb;
   }
 }
 
-// Compact table variant
+// Compact table variant (theme-aware)
 .compact-table {
   width: 100%;
 
   .mat-mdc-header-cell {
-    background: #f9fafb;
-    color: #6b7280;
-    font-weight: 600;
-    font-size: 0.875rem;
+    @apply bg-base-200 text-base-content/70 font-semibold text-sm border-b border-base-300;
     padding: 0.75rem 1rem;
-    border-bottom: 1px solid #e5e7eb;
   }
 
   .mat-mdc-row {
     transition: background-color 0.15s ease;
 
     &:hover {
-      background-color: #f9fafb;
+      @apply bg-base-200/50;
     }
   }
 
   .mat-mdc-cell {
+    @apply text-base-content text-sm border-b border-base-300;
     padding: 0.75rem 1rem;
-    font-size: 0.875rem;
-    border-bottom: 1px solid #e5e7eb;
   }
 }
 
-// Text utilities
+// Text utilities (theme-aware)
 .text-muted {
-  color: var(--text-color-secondary, #6b7280);
+  @apply text-base-content/60;
 }
 
 .text-sm {
   font-size: 0.875rem;
 }
 
-// Form field pattern
+// Form field pattern (theme-aware)
 .form-field {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 
   label {
-    font-weight: 600;
+    @apply font-semibold text-base-content;
   }
 
   .field-hint {
-    color: var(--text-color-secondary, #6b7280);
-    font-size: 0.875rem;
+    @apply text-base-content/60 text-sm;
   }
 
   .full-width {
@@ -349,20 +403,17 @@ body {
   gap: 0.5rem;
 }
 
-// Empty state pattern
+// Empty state pattern (theme-aware)
 .empty-state {
   padding: 3rem;
   text-align: center;
 
   .material-symbols-outlined {
-    font-size: 3rem;
-    color: var(--text-color-secondary, #9ca3af);
+    @apply text-5xl text-base-content/40;
   }
 
   p {
-    margin-top: 1rem;
-    color: var(--text-color-secondary, #6b7280);
-    font-size: 1.125rem;
+    @apply mt-4 text-base-content/60 text-lg;
   }
 }
 
@@ -375,20 +426,18 @@ body {
   }
 }
 
-// Card header pattern
+// Card header pattern (theme-aware)
 .card-header {
   padding: 1.25rem;
   padding-bottom: 0.75rem;
 
   .card-title {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #111827;
+    @apply text-lg font-semibold text-base-content;
     margin: 0;
   }
 }
 
-// Info grid pattern (for detail views)
+// Info grid pattern (for detail views, theme-aware)
 .info-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -404,9 +453,7 @@ body {
     }
 
     label {
-      font-weight: 600;
-      color: var(--text-color-secondary, #6b7280);
-      font-size: 0.875rem;
+      @apply font-semibold text-base-content/60 text-sm;
     }
   }
 }
@@ -421,6 +468,163 @@ body {
   canvas {
     max-height: 100%;
     max-width: 100%;
+  }
+}
+
+// =============================================================================
+// SHARED ANIMATIONS
+// =============================================================================
+
+// Loading spinner - standard CSS spinner
+// Use DaisyUI's "loading loading-spinner" classes directly in templates for new components
+.loading-spinner {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  border: 4px solid #e5e7eb;
+  border-top-color: var(--primary, #FFD535);
+  animation: spin 1s linear infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// =============================================================================
+// MARKDOWN CONTENT STYLES (shared across content-viewer, content-editor)
+// =============================================================================
+.markdown-content {
+  line-height: 1.6;
+  color: #333;
+
+  h1 {
+    font-size: 28px;
+    margin-top: 24px;
+    margin-bottom: 16px;
+    font-weight: 700;
+    color: #212121;
+  }
+
+  h2 {
+    font-size: 24px;
+    margin-top: 20px;
+    margin-bottom: 12px;
+    font-weight: 600;
+    color: #212121;
+  }
+
+  h3 {
+    font-size: 20px;
+    margin-top: 16px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #212121;
+  }
+
+  h4 {
+    font-size: 18px;
+    margin-top: 14px;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #212121;
+  }
+
+  p {
+    margin-bottom: 16px;
+  }
+
+  ul,
+  ol {
+    margin-bottom: 16px;
+    padding-left: 24px;
+  }
+
+  li {
+    margin-bottom: 8px;
+  }
+
+  strong {
+    font-weight: 700;
+  }
+
+  em {
+    font-style: italic;
+  }
+
+  code {
+    background: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    color: #d63384;
+  }
+
+  pre {
+    background: #f5f5f5;
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin-bottom: 16px;
+
+    code {
+      background: none;
+      padding: 0;
+      color: #333;
+    }
+  }
+
+  blockquote {
+    border-left: 4px solid #1976d2;
+    padding-left: 16px;
+    margin: 16px 0;
+    color: #666;
+    font-style: italic;
+  }
+
+  a {
+    color: #1976d2;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    margin: 24px 0;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 16px 0;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border: 1px solid #e0e0e0;
+    }
+
+    th {
+      background: #f5f5f5;
+      font-weight: 600;
+    }
   }
 }
 
