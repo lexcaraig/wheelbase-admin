@@ -3,7 +3,7 @@
   "framework": null,
   "installCommand": "npm install --legacy-peer-deps",
   "buildCommand": "npm run build",
-  "outputDirectory": "dist/wheelbase-admin/browser",
+  "outputDirectory": "dist/wheelbase-admin",
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
