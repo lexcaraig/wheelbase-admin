@@ -23,6 +23,7 @@ import { PromotionReportComponent } from './features/promotions/promotion-report
 import { AnnouncementsComponent } from './features/announcements/announcements.component';
 import { BusinessListComponent } from './features/businesses/business-list.component';
 import { EmergencyDashboardComponent } from './features/emergency/emergency-dashboard.component';
+import { AuthCallbackComponent } from './features/auth/callback/auth-callback.component';
 
 export const routes: Routes = [
   // Root redirect to dashboard (will trigger AuthGuard if not authenticated)
@@ -30,6 +31,12 @@ export const routes: Routes = [
     path: '',
     redirectTo: 'dashboard',
     pathMatch: 'full'
+  },
+
+  // OAuth callback route (no guard - handles Google OAuth redirect)
+  {
+    path: 'auth/callback',
+    component: AuthCallbackComponent
   },
 
   // Login route (no guard)
