@@ -144,8 +144,9 @@ export class AdminUsersListComponent implements OnInit {
 
   openCreateDialog() {
     const dialogRef = this.dialog.open(CreateAdminDialogComponent, {
-      width: '500px',
-      disableClose: true
+      width: '450px',
+      disableClose: true,
+      panelClass: 'daisyui-dialog'
     });
 
     dialogRef.afterClosed().subscribe(result => {

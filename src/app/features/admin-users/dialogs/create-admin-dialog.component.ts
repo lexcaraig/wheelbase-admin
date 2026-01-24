@@ -2,12 +2,6 @@ import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatOptionModule } from '@angular/material/core';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { NotificationService } from '../../../core/services/notification.service';
 
@@ -17,59 +11,99 @@ import { NotificationService } from '../../../core/services/notification.service
   imports: [
     CommonModule,
     FormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatOptionModule,
-    MatProgressSpinnerModule
+    MatDialogModule
   ],
   template: `
-    <h2 mat-dialog-title>Create Admin User</h2>
-    <mat-dialog-content class="!pt-4">
-      <div class="space-y-4">
+    <div class="bg-base-100 rounded-lg w-full max-w-md">
+      <!-- Header -->
+      <div class="flex items-center justify-between p-4 border-b border-base-300">
+        <h3 class="text-lg font-semibold text-base-content">Create Admin User</h3>
+        <button
+          class="btn btn-ghost btn-sm btn-circle"
+          [disabled]="isProcessing()"
+          (click)="onCancel()"
+        >
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+      </div>
+
+      <!-- Content -->
+      <div class="p-4 space-y-4">
         <!-- Email -->
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Email</mat-label>
-          <input matInput type="email" [(ngModel)]="email" placeholder="admin@example.com" required>
-        </mat-form-field>
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text font-medium">Email</span>
+          </label>
+          <input
+            type="email"
+            [(ngModel)]="email"
+            placeholder="admin@example.com"
+            class="input input-bordered w-full"
+            [class.input-error]="email && !isValidEmail()"
+            required
+          />
+          @if (email && !isValidEmail()) {
+            <label class="label">
+              <span class="label-text-alt text-error">Please enter a valid email address</span>
+            </label>
+          }
+        </div>
 
         <!-- Role -->
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Role</mat-label>
-          <mat-select [(ngModel)]="role" required>
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text font-medium">Role</span>
+          </label>
+          <select
+            [(ngModel)]="role"
+            class="select select-bordered w-full"
+            required
+          >
             @for (option of roleOptions; track option.value) {
-              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              <option [value]="option.value">{{ option.label }}</option>
             }
-          </mat-select>
-          <mat-hint>Super Admin role can only be assigned by editing database directly.</mat-hint>
-        </mat-form-field>
+          </select>
+          <label class="label">
+            <span class="label-text-alt text-base-content/60">
+              Super Admin role can only be assigned by editing database directly.
+            </span>
+          </label>
+        </div>
 
-        <!-- Info -->
-        <div class="flex items-start gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <span class="material-symbols-outlined text-blue-600 mt-0.5">info</span>
-          <div class="text-sm text-blue-800">
-            A temporary password will be generated. The admin user will need to change it on first login.
-          </div>
+        <!-- Info Alert -->
+        <div class="alert alert-info">
+          <span class="material-symbols-outlined">info</span>
+          <span>A temporary password will be generated. The admin user will need to change it on first login.</span>
         </div>
       </div>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button [disabled]="isProcessing()" (click)="onCancel()">Cancel</button>
-      <button
-        mat-raised-button
-        color="primary"
-        [disabled]="!email || !role || isProcessing()"
-        (click)="onCreate()"
-      >
-        @if (isProcessing()) {
-          <span class="material-symbols-outlined animate-spin mr-2">progress_activity</span>
-        }
-        Create Admin
-      </button>
-    </mat-dialog-actions>
-  `
+
+      <!-- Footer -->
+      <div class="flex justify-end gap-2 p-4 border-t border-base-300">
+        <button
+          class="btn btn-ghost"
+          [disabled]="isProcessing()"
+          (click)="onCancel()"
+        >
+          Cancel
+        </button>
+        <button
+          class="btn btn-primary"
+          [disabled]="!email || !role || !isValidEmail() || isProcessing()"
+          (click)="onCreate()"
+        >
+          @if (isProcessing()) {
+            <span class="loading loading-spinner loading-sm"></span>
+          }
+          Create Admin
+        </button>
+      </div>
+    </div>
+  `,
+  styles: [`
+    :host {
+      display: block;
+    }
+  `]
 })
 export class CreateAdminDialogComponent {
   email = '';
@@ -88,6 +122,11 @@ export class CreateAdminDialogComponent {
     private notificationService: NotificationService
   ) {}
 
+  isValidEmail(): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(this.email);
+  }
+
   onCancel(): void {
     this.dialogRef.close(false);
   }
@@ -95,6 +134,11 @@ export class CreateAdminDialogComponent {
   async onCreate(): Promise<void> {
     if (!this.email || !this.role) {
       this.notificationService.warn('Validation Error', 'Email and role are required');
+      return;
+    }
+
+    if (!this.isValidEmail()) {
+      this.notificationService.warn('Validation Error', 'Please enter a valid email address');
       return;
     }
 

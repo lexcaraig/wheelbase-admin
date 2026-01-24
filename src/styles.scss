@@ -629,6 +629,39 @@ body {
 }
 
 // =============================================================================
+// DAISYUI DIALOG STYLES (for Material Dialog integration)
+// =============================================================================
+
+.daisyui-dialog {
+  // Remove Material's default padding and background
+  .mat-mdc-dialog-container {
+    padding: 0 !important;
+    background: transparent !important;
+    border-radius: 0.5rem !important;
+    overflow: hidden;
+  }
+
+  .mdc-dialog__surface {
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0.5rem !important;
+    overflow: hidden;
+  }
+
+  .mat-mdc-dialog-surface {
+    background: transparent !important;
+    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25) !important;
+    border-radius: 0.5rem !important;
+    overflow: hidden;
+  }
+}
+
+// Dark backdrop for dialogs
+.cdk-overlay-dark-backdrop {
+  background: rgba(0, 0, 0, 0.6) !important;
+}
+
+// =============================================================================
 // PRINT STYLES
 // =============================================================================
 
