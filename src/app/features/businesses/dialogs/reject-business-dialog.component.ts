@@ -30,7 +30,7 @@ export interface RejectBusinessDialogData {
     <h2 mat-dialog-title>Reject Business</h2>
     <mat-dialog-content class="!pt-4">
       <div class="space-y-4">
-        <p class="text-gray-600">
+        <p class="text-base-content/70">
           Are you sure you want to reject <strong>{{ data.business.business_name }}</strong>?
         </p>
         <mat-form-field appearance="outline" class="w-full">

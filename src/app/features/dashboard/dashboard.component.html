@@ -2,14 +2,14 @@
   <!-- Header -->
   <div class="dashboard-header">
     <div>
-      <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
-      <p class="text-gray-600 mt-1">Overview of Wheelbase platform metrics</p>
+      <h1 class="text-3xl font-bold text-base-content">Dashboard</h1>
+      <p class="text-base-content/60 mt-1">Overview of Wheelbase platform metrics</p>
     </div>
     <div class="flex items-center gap-4">
       <button
-        mat-icon-button
+        class="btn btn-circle btn-ghost tooltip tooltip-bottom"
+        data-tip="Refresh data"
         (click)="loadAnalytics()"
-        matTooltip="Refresh data"
       >
         <span class="material-symbols-outlined">refresh</span>
       </button>
@@ -17,19 +17,54 @@
   </div>
 
   <!-- Tabs -->
-  <mat-tab-group (selectedIndexChange)="onTabChange($event)" [selectedIndex]="activeTabIndex()">
-    <!-- ==================== OVERVIEW TAB ==================== -->
-    <mat-tab label="Overview">
+  <div role="tablist" class="tabs tabs-boxed bg-base-200 w-fit mt-6">
+    <button
+      role="tab"
+      class="tab"
+      [class.tab-active]="activeTabIndex() === 0"
+      (click)="onTabChange(0)"
+    >
+      Overview
+    </button>
+    <button
+      role="tab"
+      class="tab"
+      [class.tab-active]="activeTabIndex() === 1"
+      (click)="onTabChange(1)"
+    >
+      Detailed Analytics
+    </button>
+  </div>
+
+  <!-- ==================== OVERVIEW TAB ==================== -->
+  @if (activeTabIndex() === 0) {
       <!-- Loading State -->
       @if (isLoading() && !analytics()) {
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
         @for (i of [1,2,3,4]; track i) {
-        <mat-card>
-          <mat-card-content>
-            <div class="skeleton skeleton-card"></div>
-          </mat-card-content>
-        </mat-card>
+        <div class="card bg-base-200 shadow-lg">
+          <div class="card-body">
+            <div class="skeleton h-32 w-full"></div>
+          </div>
+        </div>
         }
+      </div>
+      }
+
+      <!-- Error State -->
+      @if (!isLoading() && loadError() && !analytics()) {
+      <div class="mt-6">
+        <div class="alert alert-error">
+          <span class="material-symbols-outlined">error</span>
+          <div>
+            <h3 class="font-bold">Failed to load dashboard data</h3>
+            <div class="text-sm">{{ loadError() }}</div>
+          </div>
+          <button class="btn btn-sm btn-ghost" (click)="loadAnalytics()">
+            <span class="material-symbols-outlined">refresh</span>
+            Retry
+          </button>
+        </div>
       </div>
       }
 
@@ -41,359 +76,361 @@
           <!-- KPI Metrics Row -->
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <!-- Total Users -->
-            <mat-card class="metric-card">
-              <mat-card-content>
-                <div class="metric-header">
-                  <span class="metric-label">Total Users</span>
-                  <span class="material-symbols-outlined text-blue-600">group</span>
+            <div class="card bg-base-200 shadow-lg">
+              <div class="card-body p-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-base-content/70">Total Users</span>
+                  <span class="material-symbols-outlined text-primary">group</span>
                 </div>
-                <div class="metric-value">
+                <div class="text-2xl font-bold text-base-content mt-2">
                   {{ data.metrics.total_users | number }}
                 </div>
-                <div class="metric-trend positive">
-                  <span class="material-symbols-outlined">arrow_upward</span>
+                <div class="flex items-center gap-1 text-success text-sm mt-1">
+                  <span class="material-symbols-outlined text-sm">arrow_upward</span>
                   <span>+{{ data.metrics.new_users_today }}</span>
                 </div>
-                <div class="metric-sparkline">
+                <div class="h-12 mt-2">
                   <canvas id="spark-users"></canvas>
                 </div>
-              </mat-card-content>
-            </mat-card>
+              </div>
+            </div>
 
             <!-- Total Posts -->
-            <mat-card class="metric-card">
-              <mat-card-content>
-                <div class="metric-header">
-                  <span class="metric-label">Total Posts</span>
-                  <span class="material-symbols-outlined text-green-600">chat</span>
+            <div class="card bg-base-200 shadow-lg">
+              <div class="card-body p-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-base-content/70">Total Posts</span>
+                  <span class="material-symbols-outlined text-success">chat</span>
                 </div>
-                <div class="metric-value">
+                <div class="text-2xl font-bold text-base-content mt-2">
                   @if (infrastructureMetrics()) {
                     {{ infrastructureMetrics()!.content.total_posts | number }}
                   } @else {
                     {{ data.metrics.posts_this_month | number }}
                   }
                 </div>
-                <div class="metric-trend" [class.positive]="growthPercentages().posts >= 0" [class.negative]="growthPercentages().posts < 0">
+                <div class="flex items-center gap-1 text-sm mt-1" [class.text-success]="growthPercentages().posts >= 0" [class.text-error]="growthPercentages().posts < 0">
                   @if (growthPercentages().posts >= 0) {
-                    <span class="material-symbols-outlined">arrow_upward</span>
+                    <span class="material-symbols-outlined text-sm">arrow_upward</span>
                     <span>+{{ growthPercentages().posts }}%</span>
                   } @else {
-                    <span class="material-symbols-outlined">arrow_downward</span>
+                    <span class="material-symbols-outlined text-sm">arrow_downward</span>
                     <span>{{ growthPercentages().posts }}%</span>
                   }
                 </div>
-                <div class="metric-sparkline">
+                <div class="h-12 mt-2">
                   <canvas id="spark-posts"></canvas>
                 </div>
-              </mat-card-content>
-            </mat-card>
+              </div>
+            </div>
 
             <!-- Active Rides -->
-            <mat-card class="metric-card">
-              <mat-card-content>
-                <div class="metric-header">
-                  <span class="metric-label">Active Rides</span>
-                  <span class="material-symbols-outlined text-purple-600">location_on</span>
+            <div class="card bg-base-200 shadow-lg">
+              <div class="card-body p-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-base-content/70">Active Rides</span>
+                  <span class="material-symbols-outlined text-secondary">location_on</span>
                 </div>
-                <div class="metric-value">
+                <div class="text-2xl font-bold text-base-content mt-2">
                   @if (infrastructureMetrics()) {
                     {{ infrastructureMetrics()!.content.active_rides | number }}
                   } @else {
                     {{ data.metrics.rides_this_month | number }}
                   }
                 </div>
-                <div class="metric-trend" [class.positive]="growthPercentages().rides >= 0" [class.negative]="growthPercentages().rides < 0">
+                <div class="flex items-center gap-1 text-sm mt-1" [class.text-success]="growthPercentages().rides >= 0" [class.text-error]="growthPercentages().rides < 0">
                   @if (growthPercentages().rides >= 0) {
-                    <span class="material-symbols-outlined">arrow_upward</span>
+                    <span class="material-symbols-outlined text-sm">arrow_upward</span>
                     <span>+{{ growthPercentages().rides }}%</span>
                   } @else {
-                    <span class="material-symbols-outlined">arrow_downward</span>
+                    <span class="material-symbols-outlined text-sm">arrow_downward</span>
                     <span>{{ growthPercentages().rides }}%</span>
                   }
                 </div>
-                <div class="metric-sparkline">
+                <div class="h-12 mt-2">
                   <canvas id="spark-rides"></canvas>
                 </div>
-              </mat-card-content>
-            </mat-card>
+              </div>
+            </div>
 
             <!-- Active Groups -->
-            <mat-card class="metric-card">
-              <mat-card-content>
-                <div class="metric-header">
-                  <span class="metric-label">Active Groups</span>
-                  <span class="material-symbols-outlined text-orange-600">groups</span>
+            <div class="card bg-base-200 shadow-lg">
+              <div class="card-body p-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-base-content/70">Active Groups</span>
+                  <span class="material-symbols-outlined text-warning">groups</span>
                 </div>
-                <div class="metric-value">
+                <div class="text-2xl font-bold text-base-content mt-2">
                   @if (infrastructureMetrics()) {
                     {{ infrastructureMetrics()!.content.active_groups | number }}
                   } @else {
                     {{ data.metrics.active_groups | number }}
                   }
                 </div>
-                <div class="metric-trend" [class.positive]="growthPercentages().groups >= 0" [class.negative]="growthPercentages().groups < 0">
+                <div class="flex items-center gap-1 text-sm mt-1" [class.text-success]="growthPercentages().groups >= 0" [class.text-error]="growthPercentages().groups < 0">
                   @if (growthPercentages().groups >= 0) {
-                    <span class="material-symbols-outlined">arrow_upward</span>
+                    <span class="material-symbols-outlined text-sm">arrow_upward</span>
                     <span>+{{ growthPercentages().groups }}%</span>
                   } @else {
-                    <span class="material-symbols-outlined">arrow_downward</span>
+                    <span class="material-symbols-outlined text-sm">arrow_downward</span>
                     <span>{{ growthPercentages().groups }}%</span>
                   }
                 </div>
-                <div class="metric-sparkline">
+                <div class="h-12 mt-2">
                   <canvas id="spark-groups"></canvas>
                 </div>
-              </mat-card-content>
-            </mat-card>
+              </div>
+            </div>
           </div>
 
           <!-- Charts Row -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Subscription Distribution -->
-            <mat-card>
-              <mat-card-header>
-                <mat-card-title>Subscription Tiers</mat-card-title>
-              </mat-card-header>
-              <mat-card-content>
-                <div class="grid grid-cols-3 gap-4">
+            <div class="card bg-base-200 shadow-lg">
+              <div class="card-body">
+                <h2 class="card-title text-base-content">Subscription Tiers</h2>
+                <div class="grid grid-cols-3 gap-4 mt-4">
                   <!-- Free -->
-                  <div class="text-center p-4 bg-blue-50 rounded-lg">
+                  <div class="text-center p-4 bg-info/10 rounded-lg">
                     <div class="flex justify-center mb-2">
-                      <span class="material-symbols-outlined text-2xl text-blue-600">person</span>
+                      <span class="material-symbols-outlined text-2xl text-info">person</span>
                     </div>
-                    <p class="text-2xl font-bold text-blue-600">
+                    <p class="text-2xl font-bold text-info">
                       {{ (analytics()?.subscription_tiers?.free ?? 0) | number }}
                     </p>
-                    <p class="text-sm text-gray-600 mt-1">Free</p>
+                    <p class="text-sm text-base-content/70 mt-1">Free</p>
                     @if (getSubscriptionPercentage('free'); as pct) {
-                      <p class="text-xs text-gray-500 mt-1">{{ pct }}%</p>
+                      <p class="text-xs text-base-content/50 mt-1">{{ pct }}%</p>
                     }
                   </div>
                   <!-- Pro -->
-                  <div class="text-center p-4 bg-purple-50 rounded-lg">
+                  <div class="text-center p-4 bg-secondary/10 rounded-lg">
                     <div class="flex justify-center mb-2">
-                      <span class="material-symbols-outlined text-2xl text-purple-600">star</span>
+                      <span class="material-symbols-outlined text-2xl text-secondary">star</span>
                     </div>
-                    <p class="text-2xl font-bold text-purple-600">
+                    <p class="text-2xl font-bold text-secondary">
                       {{ (analytics()?.subscription_tiers?.pro ?? 0) | number }}
                     </p>
-                    <p class="text-sm text-gray-600 mt-1">Pro</p>
+                    <p class="text-sm text-base-content/70 mt-1">Pro</p>
                     @if (getSubscriptionPercentage('pro'); as pct) {
-                      <p class="text-xs text-gray-500 mt-1">{{ pct }}%</p>
+                      <p class="text-xs text-base-content/50 mt-1">{{ pct }}%</p>
                     }
                   </div>
                   <!-- Premium -->
-                  <div class="text-center p-4 bg-amber-50 rounded-lg">
+                  <div class="text-center p-4 bg-warning/10 rounded-lg">
                     <div class="flex justify-center mb-2">
-                      <span class="material-symbols-outlined text-2xl text-amber-600">workspace_premium</span>
+                      <span class="material-symbols-outlined text-2xl text-warning">workspace_premium</span>
                     </div>
-                    <p class="text-2xl font-bold text-amber-600">
+                    <p class="text-2xl font-bold text-warning">
                       {{ (analytics()?.subscription_tiers?.premium ?? 0) | number }}
                     </p>
-                    <p class="text-sm text-gray-600 mt-1">Premium</p>
+                    <p class="text-sm text-base-content/70 mt-1">Premium</p>
                     @if (getSubscriptionPercentage('premium'); as pct) {
-                      <p class="text-xs text-gray-500 mt-1">{{ pct }}%</p>
+                      <p class="text-xs text-base-content/50 mt-1">{{ pct }}%</p>
                     }
                   </div>
                 </div>
-              </mat-card-content>
-            </mat-card>
+              </div>
+            </div>
 
             <!-- User Activity Chart -->
-            <mat-card>
-              <mat-card-header>
-                <mat-card-title>User Activity (7 Days)</mat-card-title>
-              </mat-card-header>
-              <mat-card-content>
-                <div class="chart-container" style="height: 250px">
+            <div class="card bg-base-200 shadow-lg">
+              <div class="card-body">
+                <h2 class="card-title text-base-content">User Activity (7 Days)</h2>
+                <div class="chart-container mt-4" style="height: 200px">
                   <canvas id="activityChart"></canvas>
                 </div>
-              </mat-card-content>
-            </mat-card>
+              </div>
+            </div>
           </div>
 
           <!-- Recent Users Table -->
-          <mat-card>
-            <mat-card-header>
-              <mat-card-title>Recent Users</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <table mat-table [dataSource]="recentUsers()" class="dashboard-table w-full">
-                <!-- ID Column -->
-                <ng-container matColumnDef="id">
-                  <th mat-header-cell *matHeaderCellDef style="width: 80px">ID</th>
-                  <td mat-cell *matCellDef="let user">#{{ user.id.substring(0, 6) }}</td>
-                </ng-container>
-
-                <!-- User Column -->
-                <ng-container matColumnDef="user">
-                  <th mat-header-cell *matHeaderCellDef>User</th>
-                  <td mat-cell *matCellDef="let user">
-                    <div class="user-cell">
-                      <app-avatar
-                        [image]="user.avatar_url"
-                        [label]="user.username"
-                        shape="circle"
-                        size="normal"
-                      ></app-avatar>
-                      <div class="user-info">
-                        <div class="user-name">{{ user.username }}</div>
-                        <div class="user-email">{{ user.email }}</div>
-                      </div>
-                    </div>
-                  </td>
-                </ng-container>
-
-                <!-- Joined Column -->
-                <ng-container matColumnDef="joined">
-                  <th mat-header-cell *matHeaderCellDef>Joined</th>
-                  <td mat-cell *matCellDef="let user">{{ user.created_at | relativeTime }}</td>
-                </ng-container>
-
-                <!-- Subscription Column -->
-                <ng-container matColumnDef="subscription">
-                  <th mat-header-cell *matHeaderCellDef>Subscription</th>
-                  <td mat-cell *matCellDef="let user">
-                    <app-status-badge
-                      [value]="user.subscription_tier.toUpperCase()"
-                      [severity]="getSubscriptionSeverity(user.subscription_tier)"
-                      [rounded]="true"
-                    ></app-status-badge>
-                  </td>
-                </ng-container>
-
-                <tr mat-header-row *matHeaderRowDef="recentUsersColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: recentUsersColumns;"></tr>
-              </table>
-            </mat-card-content>
-          </mat-card>
+          <div class="card bg-base-200 shadow-lg">
+            <div class="card-body">
+              <h2 class="card-title text-base-content">Recent Users</h2>
+              <div class="overflow-x-auto mt-4">
+                <table class="table table-zebra">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>User</th>
+                      <th>Joined</th>
+                      <th>Subscription</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (user of recentUsers(); track user.id) {
+                    <tr>
+                      <td>#{{ user.id.substring(0, 6) }}</td>
+                      <td>
+                        <div class="flex items-center gap-3">
+                          <app-avatar
+                            [image]="user.avatar_url"
+                            [label]="user.username"
+                            shape="circle"
+                            size="normal"
+                          ></app-avatar>
+                          <div>
+                            <div class="font-bold">{{ user.username }}</div>
+                            <div class="text-sm opacity-50">{{ user.email }}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>{{ user.created_at | relativeTime }}</td>
+                      <td>
+                        <app-status-badge
+                          [value]="user.subscription_tier.toUpperCase()"
+                          [severity]="getSubscriptionSeverity(user.subscription_tier)"
+                          [rounded]="true"
+                        ></app-status-badge>
+                      </td>
+                    </tr>
+                    }
+                    @empty {
+                    <tr>
+                      <td colspan="4" class="text-center text-base-content/50">No recent users</td>
+                    </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Right Column - Quick Stats -->
         <div class="space-y-6">
           <!-- Daily/Monthly Active Users -->
-          <mat-card>
-            <mat-card-header>
-              <mat-card-title>Active Users</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="stats-grid">
-                <div class="stat-item">
-                  <div class="stat-label">Daily Active</div>
-                  <div class="stat-value">{{ data.metrics.dau | number }}</div>
-                  <div class="stat-percentage">
+          <div class="card bg-base-200 shadow-lg">
+            <div class="card-body">
+              <h2 class="card-title text-base-content">Active Users</h2>
+              <div class="stats stats-vertical shadow mt-4">
+                <div class="stat">
+                  <div class="stat-title">Daily Active</div>
+                  <div class="stat-value text-primary">{{ data.metrics.dau | number }}</div>
+                  <div class="stat-desc">
                     {{ (data.metrics.dau / data.metrics.total_users) * 100 | number : "1.1-1" }}% of total
                   </div>
                 </div>
-                <div class="stat-divider"></div>
-                <div class="stat-item">
-                  <div class="stat-label">Monthly Active</div>
-                  <div class="stat-value">{{ data.metrics.mau | number }}</div>
-                  <div class="stat-percentage">
+                <div class="stat">
+                  <div class="stat-title">Monthly Active</div>
+                  <div class="stat-value text-secondary">{{ data.metrics.mau | number }}</div>
+                  <div class="stat-desc">
                     {{ (data.metrics.mau / data.metrics.total_users) * 100 | number : "1.1-1" }}% of total
                   </div>
                 </div>
               </div>
-            </mat-card-content>
-          </mat-card>
+            </div>
+          </div>
 
           <!-- Top Countries -->
-          <mat-card>
-            <mat-card-header>
-              <mat-card-title>Top Countries</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="country-list">
+          <div class="card bg-base-200 shadow-lg">
+            <div class="card-body">
+              <h2 class="card-title text-base-content">Top Countries</h2>
+              <div class="space-y-3 mt-4">
                 @if (data.top_countries.length > 0) {
                   @for (country of data.top_countries; track country.country_code) {
-                  <div class="country-item">
+                  <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                      <app-status-badge
-                        [value]="country.country_code"
-                        severity="secondary"
-                        [rounded]="true"
-                      ></app-status-badge>
-                      <span class="country-name">{{ getCountryName(country.country_code) }}</span>
+                      <span class="badge badge-neutral">{{ country.country_code }}</span>
+                      <span class="text-base-content">{{ getCountryName(country.country_code) }}</span>
                     </div>
-                    <span class="country-count">{{ country.user_count | number }}</span>
+                    <span class="font-semibold">{{ country.user_count | number }}</span>
                   </div>
                   }
                 } @else {
-                <div class="text-center text-gray-500 py-4">
+                <div class="text-center text-base-content/50 py-4">
                   No country data available
                 </div>
                 }
               </div>
-            </mat-card-content>
-          </mat-card>
+            </div>
+          </div>
 
           <!-- Recent Activity -->
-          <mat-card>
-            <mat-card-header>
-              <mat-card-title>Recent Activity</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="activity-list">
+          <div class="card bg-base-200 shadow-lg">
+            <div class="card-body">
+              <h2 class="card-title text-base-content">Recent Activity</h2>
+              <div class="space-y-3 mt-4">
                 @if (recentUsers().length > 0) {
                   @for (user of recentUsers().slice(0, 4); track user.id) {
-                    <div class="activity-item">
-                      <div class="activity-icon bg-blue-100">
-                        <span class="material-symbols-outlined text-blue-600">person_add</span>
+                    <div class="flex items-center gap-3">
+                      <div class="btn btn-circle btn-sm btn-info btn-outline">
+                        <span class="material-symbols-outlined text-sm">person_add</span>
                       </div>
-                      <div class="activity-content">
-                        <div class="activity-text">{{ user.username }} registered</div>
-                        <div class="activity-time">{{ user.created_at | relativeTime }}</div>
+                      <div class="flex-1">
+                        <div class="text-sm font-medium">{{ user.username }} registered</div>
+                        <div class="text-xs text-base-content/50">{{ user.created_at | relativeTime }}</div>
                       </div>
                     </div>
                   }
                 } @else {
-                  <div class="text-center text-gray-500 py-4">
+                  <div class="text-center text-base-content/50 py-4">
                     No recent activity
                   </div>
                 }
               </div>
-            </mat-card-content>
-          </mat-card>
+            </div>
+          </div>
         </div>
       </div>
       }
-    </mat-tab>
+  }
 
-    <!-- ==================== DETAILED ANALYTICS TAB ==================== -->
-    <mat-tab label="Detailed Analytics">
-      <!-- Date Range Controls -->
-      <div class="flex items-center justify-between mt-6 mb-6">
-        <div class="flex items-center gap-3">
-          <mat-form-field appearance="outline" class="date-range-select">
-            <mat-label>Date Range</mat-label>
-            <mat-select [(value)]="selectedPreset" (selectionChange)="onPresetChange($event.value)">
-              @for (preset of dateRangePresets; track preset.label) {
-                <mat-option [value]="preset">{{ preset.label }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Custom Range</mat-label>
-            <mat-date-range-input [rangePicker]="picker">
-              <input matStartDate [(ngModel)]="customDateRange.start" placeholder="Start date">
-              <input matEndDate [(ngModel)]="customDateRange.end" placeholder="End date" (dateChange)="onCustomDateRangeChange()">
-            </mat-date-range-input>
-            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-            <mat-date-range-picker #picker></mat-date-range-picker>
-          </mat-form-field>
-        </div>
+  <!-- ==================== DETAILED ANALYTICS TAB ==================== -->
+  @if (activeTabIndex() === 1) {
+    <!-- Date Range Controls -->
+    <div class="flex flex-wrap items-center justify-between mt-6 mb-6 gap-4">
+      <div class="flex flex-wrap items-center gap-3">
+        <label class="form-control w-full max-w-xs">
+          <div class="label">
+            <span class="label-text">Date Range</span>
+          </div>
+          <select class="select select-bordered" [(ngModel)]="selectedPreset" (ngModelChange)="onPresetChange($event)">
+            @for (preset of dateRangePresets; track preset.label) {
+              <option [ngValue]="preset">{{ preset.label }}</option>
+            }
+          </select>
+        </label>
 
         <div class="flex items-center gap-2">
-          <button mat-icon-button matTooltip="Export CSV" (click)="exportCSV()">
+          <label class="form-control">
+            <div class="label">
+              <span class="label-text">Start Date</span>
+            </div>
+            <input
+              type="date"
+              class="input input-bordered"
+              [ngModel]="customDateRange.start | date:'yyyy-MM-dd'"
+              (ngModelChange)="onStartDateChange($event)"
+            />
+          </label>
+          <label class="form-control">
+            <div class="label">
+              <span class="label-text">End Date</span>
+            </div>
+            <input
+              type="date"
+              class="input input-bordered"
+              [ngModel]="customDateRange.end | date:'yyyy-MM-dd'"
+              (ngModelChange)="onEndDateChange($event)"
+            />
+          </label>
+        </div>
+      </div>
+
+        <div class="flex items-center gap-2">
+          <button class="btn btn-ghost btn-sm" (click)="exportCSV()">
             <span class="material-symbols-outlined">description</span>
+            CSV
           </button>
-          <button mat-icon-button matTooltip="Export JSON" (click)="exportJSON()">
+          <button class="btn btn-ghost btn-sm" (click)="exportJSON()">
             <span class="material-symbols-outlined">data_object</span>
+            JSON
           </button>
-          <button mat-icon-button matTooltip="Export PDF" (click)="exportPDF()">
+          <button class="btn btn-ghost btn-sm" (click)="exportPDF()">
             <span class="material-symbols-outlined">picture_as_pdf</span>
+            PDF
           </button>
         </div>
       </div>
@@ -401,16 +438,16 @@
       <!-- Loading State -->
       @if (isLoadingAdvanced()) {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <mat-card>
-          <mat-card-content>
-            <div class="skeleton" style="height: 300px"></div>
-          </mat-card-content>
-        </mat-card>
-        <mat-card>
-          <mat-card-content>
-            <div class="skeleton" style="height: 300px"></div>
-          </mat-card-content>
-        </mat-card>
+        <div class="card bg-base-200 shadow-lg">
+          <div class="card-body">
+            <div class="skeleton h-72 w-full"></div>
+          </div>
+        </div>
+        <div class="card bg-base-200 shadow-lg">
+          <div class="card-body">
+            <div class="skeleton h-72 w-full"></div>
+          </div>
+        </div>
       </div>
       }
 
@@ -420,272 +457,255 @@
         <!-- Row 1: Device Breakdown & Active by Hour -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Device Breakdown -->
-          <mat-card>
-            <mat-card-header>
-              <mat-card-title>Device Breakdown</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="grid grid-cols-2 gap-4">
+          <div class="card bg-base-200 shadow-lg">
+            <div class="card-body">
+              <h2 class="card-title text-base-content">Device Breakdown</h2>
+              <div class="grid grid-cols-2 gap-4 mt-4">
                 <!-- iOS -->
-                <div class="text-center p-6 bg-blue-50 rounded-lg">
+                <div class="text-center p-6 bg-info/10 rounded-lg">
                   <div class="flex justify-center mb-3">
-                    <span class="material-symbols-outlined text-4xl text-blue-600">phone_iphone</span>
+                    <span class="material-symbols-outlined text-4xl text-info">phone_iphone</span>
                   </div>
-                  <p class="text-3xl font-bold text-blue-600">
+                  <p class="text-3xl font-bold text-info">
                     {{ data.device_breakdown.ios | number }}
                   </p>
-                  <p class="text-sm text-gray-600 mt-2">iOS Users</p>
+                  <p class="text-sm text-base-content/70 mt-2">iOS Users</p>
                   @if (getMobilePercentage('ios'); as pct) {
-                    <p class="text-xs text-gray-500 mt-1">{{ pct }}% of mobile users</p>
+                    <p class="text-xs text-base-content/50 mt-1">{{ pct }}% of mobile users</p>
                   }
                 </div>
                 <!-- Android -->
-                <div class="text-center p-6 bg-green-50 rounded-lg">
+                <div class="text-center p-6 bg-success/10 rounded-lg">
                   <div class="flex justify-center mb-3">
-                    <span class="material-symbols-outlined text-4xl text-green-600">android</span>
+                    <span class="material-symbols-outlined text-4xl text-success">android</span>
                   </div>
-                  <p class="text-3xl font-bold text-green-600">
+                  <p class="text-3xl font-bold text-success">
                     {{ data.device_breakdown.android | number }}
                   </p>
-                  <p class="text-sm text-gray-600 mt-2">Android Users</p>
+                  <p class="text-sm text-base-content/70 mt-2">Android Users</p>
                   @if (getMobilePercentage('android'); as pct) {
-                    <p class="text-xs text-gray-500 mt-1">{{ pct }}% of mobile users</p>
+                    <p class="text-xs text-base-content/50 mt-1">{{ pct }}% of mobile users</p>
                   }
                 </div>
               </div>
-            </mat-card-content>
-          </mat-card>
+            </div>
+          </div>
 
           <!-- Active Users by Hour -->
-          <mat-card>
-            <mat-card-header>
-              <mat-card-title>Active Users by Hour</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="chart-container" style="height: 250px">
+          <div class="card bg-base-200 shadow-lg">
+            <div class="card-body">
+              <h2 class="card-title text-base-content">Active Users by Hour</h2>
+              <div class="chart-container mt-4" style="height: 220px">
                 <canvas id="activeByHourChart"></canvas>
               </div>
-            </mat-card-content>
-          </mat-card>
+            </div>
+          </div>
         </div>
 
         <!-- Row 2: Retention Cohort Analysis -->
-        <mat-card>
-          <mat-card-header>
-            <mat-card-title>User Retention Cohort Analysis</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <table mat-table [dataSource]="data.retention_cohorts || []" class="compact-table w-full">
-              <ng-container matColumnDef="cohort">
-                <th mat-header-cell *matHeaderCellDef style="width: 120px">Cohort</th>
-                <td mat-cell *matCellDef="let cohort">{{ cohort.cohort_month }}</td>
-              </ng-container>
-
-              <ng-container matColumnDef="users">
-                <th mat-header-cell *matHeaderCellDef style="width: 100px">Users</th>
-                <td mat-cell *matCellDef="let cohort">{{ cohort.users | number }}</td>
-              </ng-container>
-
-              <ng-container matColumnDef="day0">
-                <th mat-header-cell *matHeaderCellDef style="width: 80px">Day 0</th>
-                <td mat-cell *matCellDef="let cohort">
-                  <app-status-badge [value]="(cohort.day_0 || 0) + '%'" [severity]="getRetentionSeverity(cohort.day_0)" [rounded]="true"></app-status-badge>
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="day1">
-                <th mat-header-cell *matHeaderCellDef style="width: 80px">Day 1</th>
-                <td mat-cell *matCellDef="let cohort">
-                  <app-status-badge [value]="(cohort.day_1 || 0) + '%'" [severity]="getRetentionSeverity(cohort.day_1)" [rounded]="true"></app-status-badge>
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="day7">
-                <th mat-header-cell *matHeaderCellDef style="width: 80px">Day 7</th>
-                <td mat-cell *matCellDef="let cohort">
-                  <app-status-badge [value]="(cohort.day_7 || 0) + '%'" [severity]="getRetentionSeverity(cohort.day_7)" [rounded]="true"></app-status-badge>
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="day30">
-                <th mat-header-cell *matHeaderCellDef style="width: 80px">Day 30</th>
-                <td mat-cell *matCellDef="let cohort">
-                  <app-status-badge [value]="(cohort.day_30 || 0) + '%'" [severity]="getRetentionSeverity(cohort.day_30)" [rounded]="true"></app-status-badge>
-                </td>
-              </ng-container>
-
-              <tr mat-header-row *matHeaderRowDef="retentionColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: retentionColumns;"></tr>
-            </table>
-            @if (!data.retention_cohorts || data.retention_cohorts.length === 0) {
-              <div class="text-center text-gray-500 py-4">No retention data available</div>
-            }
-          </mat-card-content>
-        </mat-card>
+        <div class="card bg-base-200 shadow-lg">
+          <div class="card-body">
+            <h2 class="card-title text-base-content">User Retention Cohort Analysis</h2>
+            <div class="overflow-x-auto mt-4">
+              <table class="table table-zebra">
+                <thead>
+                  <tr>
+                    <th>Cohort</th>
+                    <th>Users</th>
+                    <th>Day 0</th>
+                    <th>Day 1</th>
+                    <th>Day 7</th>
+                    <th>Day 30</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (cohort of data.retention_cohorts || []; track cohort.cohort_month) {
+                  <tr>
+                    <td>{{ cohort.cohort_month }}</td>
+                    <td>{{ cohort.users | number }}</td>
+                    <td>
+                      <app-status-badge [value]="(cohort.day_0 || 0) + '%'" [severity]="getRetentionSeverity(cohort.day_0)" [rounded]="true"></app-status-badge>
+                    </td>
+                    <td>
+                      <app-status-badge [value]="(cohort.day_1 || 0) + '%'" [severity]="getRetentionSeverity(cohort.day_1)" [rounded]="true"></app-status-badge>
+                    </td>
+                    <td>
+                      <app-status-badge [value]="(cohort.day_7 || 0) + '%'" [severity]="getRetentionSeverity(cohort.day_7)" [rounded]="true"></app-status-badge>
+                    </td>
+                    <td>
+                      <app-status-badge [value]="(cohort.day_30 || 0) + '%'" [severity]="getRetentionSeverity(cohort.day_30)" [rounded]="true"></app-status-badge>
+                    </td>
+                  </tr>
+                  }
+                  @empty {
+                  <tr>
+                    <td colspan="6" class="text-center text-base-content/50">No retention data available</td>
+                  </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
 
         <!-- Row 3: Popular Routes & Trending Hashtags -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Popular Routes -->
-          <mat-card>
-            <mat-card-header>
-              <mat-card-title>Popular Routes</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <table mat-table [dataSource]="data.popular_routes || []" class="compact-table w-full">
-                <ng-container matColumnDef="route">
-                  <th mat-header-cell *matHeaderCellDef>Route</th>
-                  <td mat-cell *matCellDef="let route; let i = index">
-                    <span class="text-gray-500 mr-2">#{{ i + 1 }}</span>
-                    <span class="font-medium">{{ route.route_name }}</span>
-                  </td>
-                </ng-container>
-
-                <ng-container matColumnDef="rides">
-                  <th mat-header-cell *matHeaderCellDef style="width: 80px">Rides</th>
-                  <td mat-cell *matCellDef="let route">{{ route.ride_count | number }}</td>
-                </ng-container>
-
-                <ng-container matColumnDef="distance">
-                  <th mat-header-cell *matHeaderCellDef style="width: 100px">Distance</th>
-                  <td mat-cell *matCellDef="let route">{{ route.avg_distance_km | number:'1.1-1' }} km</td>
-                </ng-container>
-
-                <tr mat-header-row *matHeaderRowDef="routesColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: routesColumns;"></tr>
-              </table>
-              @if (!data.popular_routes || data.popular_routes.length === 0) {
-                <div class="text-center text-gray-500 py-4">No routes data available</div>
-              }
-            </mat-card-content>
-          </mat-card>
+          <div class="card bg-base-200 shadow-lg">
+            <div class="card-body">
+              <h2 class="card-title text-base-content">Popular Routes</h2>
+              <div class="overflow-x-auto mt-4">
+                <table class="table table-zebra">
+                  <thead>
+                    <tr>
+                      <th>Route</th>
+                      <th>Rides</th>
+                      <th>Distance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (route of data.popular_routes || []; track route.route_name; let i = $index) {
+                    <tr>
+                      <td>
+                        <span class="text-base-content/50 mr-2">#{{ i + 1 }}</span>
+                        <span class="font-medium">{{ route.route_name }}</span>
+                      </td>
+                      <td>{{ route.ride_count | number }}</td>
+                      <td>{{ route.avg_distance_km | number:'1.1-1' }} km</td>
+                    </tr>
+                    }
+                    @empty {
+                    <tr>
+                      <td colspan="3" class="text-center text-base-content/50">No routes data available</td>
+                    </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
 
           <!-- Trending Hashtags -->
-          <mat-card>
-            <mat-card-header>
-              <mat-card-title>Trending Hashtags</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <table mat-table [dataSource]="(data.trending_hashtags || []).slice(0, 10)" class="compact-table w-full">
-                <ng-container matColumnDef="hashtag">
-                  <th mat-header-cell *matHeaderCellDef>Hashtag</th>
-                  <td mat-cell *matCellDef="let tag; let i = index">
-                    <span class="text-gray-500 mr-2">#{{ i + 1 }}</span>
-                    <span class="font-medium">#{{ tag.hashtag }}</span>
-                  </td>
-                </ng-container>
-
-                <ng-container matColumnDef="posts">
-                  <th mat-header-cell *matHeaderCellDef style="width: 80px">Posts</th>
-                  <td mat-cell *matCellDef="let tag">{{ tag.post_count | number }}</td>
-                </ng-container>
-
-                <ng-container matColumnDef="growth">
-                  <th mat-header-cell *matHeaderCellDef style="width: 90px">Growth</th>
-                  <td mat-cell *matCellDef="let tag">
-                    <span [class]="tag.growth_rate > 0 ? 'text-green-600' : 'text-red-600'" class="font-medium">
-                      {{ tag.growth_rate > 0 ? '+' : '' }}{{ tag.growth_rate | number:'1.1-1' }}%
-                    </span>
-                  </td>
-                </ng-container>
-
-                <tr mat-header-row *matHeaderRowDef="hashtagsColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: hashtagsColumns;"></tr>
-              </table>
-              @if (!data.trending_hashtags || data.trending_hashtags.length === 0) {
-                <div class="text-center text-gray-500 py-4">No hashtags data available</div>
-              }
-            </mat-card-content>
-          </mat-card>
+          <div class="card bg-base-200 shadow-lg">
+            <div class="card-body">
+              <h2 class="card-title text-base-content">Trending Hashtags</h2>
+              <div class="overflow-x-auto mt-4">
+                <table class="table table-zebra">
+                  <thead>
+                    <tr>
+                      <th>Hashtag</th>
+                      <th>Posts</th>
+                      <th>Growth</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (tag of (data.trending_hashtags || []).slice(0, 10); track tag.hashtag; let i = $index) {
+                    <tr>
+                      <td>
+                        <span class="text-base-content/50 mr-2">#{{ i + 1 }}</span>
+                        <span class="font-medium text-primary">#{{ tag.hashtag }}</span>
+                      </td>
+                      <td>{{ tag.post_count | number }}</td>
+                      <td>
+                        <span [class]="tag.growth_rate > 0 ? 'text-success' : 'text-error'" class="font-medium">
+                          {{ tag.growth_rate > 0 ? '+' : '' }}{{ tag.growth_rate | number:'1.1-1' }}%
+                        </span>
+                      </td>
+                    </tr>
+                    }
+                    @empty {
+                    <tr>
+                      <td colspan="3" class="text-center text-base-content/50">No hashtags data available</td>
+                    </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Row 4: Ride Participation & Post Engagement -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Ride Participation -->
-          <mat-card>
-            <mat-card-header>
-              <mat-card-title>Ride Participation</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="chart-container" style="height: 250px">
+          <div class="card bg-base-200 shadow-lg">
+            <div class="card-body">
+              <h2 class="card-title text-base-content">Ride Participation</h2>
+              <div class="chart-container mt-4" style="height: 220px">
                 <canvas id="rideParticipationChart"></canvas>
               </div>
-            </mat-card-content>
-          </mat-card>
+            </div>
+          </div>
 
           <!-- Post Engagement -->
-          <mat-card>
-            <mat-card-header>
-              <mat-card-title>Post Engagement (30 Days)</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="chart-container" style="height: 250px">
+          <div class="card bg-base-200 shadow-lg">
+            <div class="card-body">
+              <h2 class="card-title text-base-content">Post Engagement (30 Days)</h2>
+              <div class="chart-container mt-4" style="height: 220px">
                 <canvas id="engagementChart"></canvas>
               </div>
-            </mat-card-content>
-          </mat-card>
+            </div>
+          </div>
         </div>
 
         <!-- Row 5: Top Active Users -->
-        <mat-card>
-          <mat-card-header>
-            <mat-card-title>Top Active Users</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <table mat-table [dataSource]="data.top_active_users || []" class="compact-table w-full">
-              <ng-container matColumnDef="user">
-                <th mat-header-cell *matHeaderCellDef>User</th>
-                <td mat-cell *matCellDef="let user; let i = index">
-                  <div class="flex items-center gap-3">
-                    <span class="text-gray-500">#{{ i + 1 }}</span>
-                    <app-avatar
-                      [image]="user.avatar_url"
-                      [label]="user.full_name || 'U'"
-                      shape="circle"
-                      size="normal"
-                    ></app-avatar>
-                    <div>
-                      <div class="font-medium text-gray-900">{{ user.full_name }}</div>
-                      <div class="text-sm text-gray-500">&#64;{{ user.username }}</div>
-                    </div>
-                  </div>
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="posts">
-                <th mat-header-cell *matHeaderCellDef style="width: 80px">Posts</th>
-                <td mat-cell *matCellDef="let user">{{ user.post_count | number }}</td>
-              </ng-container>
-
-              <ng-container matColumnDef="rides">
-                <th mat-header-cell *matHeaderCellDef style="width: 80px">Rides</th>
-                <td mat-cell *matCellDef="let user">{{ user.ride_count | number }}</td>
-              </ng-container>
-
-              <ng-container matColumnDef="score">
-                <th mat-header-cell *matHeaderCellDef style="width: 120px">Score</th>
-                <td mat-cell *matCellDef="let user">
-                  <app-status-badge [value]="(user.engagement_score | number:'1.0-0') || '0'" severity="success" [rounded]="true"></app-status-badge>
-                </td>
-              </ng-container>
-
-              <tr mat-header-row *matHeaderRowDef="topUsersColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: topUsersColumns;"></tr>
-            </table>
-            @if (!data.top_active_users || data.top_active_users.length === 0) {
-              <div class="text-center text-gray-500 py-4">No user activity data available</div>
-            }
-          </mat-card-content>
-        </mat-card>
+        <div class="card bg-base-200 shadow-lg">
+          <div class="card-body">
+            <h2 class="card-title text-base-content">Top Active Users</h2>
+            <div class="overflow-x-auto mt-4">
+              <table class="table table-zebra">
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    <th>Posts</th>
+                    <th>Rides</th>
+                    <th>Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (user of data.top_active_users || []; track user.username; let i = $index) {
+                  <tr>
+                    <td>
+                      <div class="flex items-center gap-3">
+                        <span class="badge badge-ghost">{{ i + 1 }}</span>
+                        <app-avatar
+                          [image]="user.avatar_url"
+                          [label]="user.full_name || 'U'"
+                          shape="circle"
+                          size="normal"
+                        ></app-avatar>
+                        <div>
+                          <div class="font-bold">{{ user.full_name }}</div>
+                          <div class="text-sm opacity-50">&#64;{{ user.username }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>{{ user.post_count | number }}</td>
+                    <td>{{ user.ride_count | number }}</td>
+                    <td>
+                      <app-status-badge [value]="(user.engagement_score | number:'1.0-0') || '0'" severity="success" [rounded]="true"></app-status-badge>
+                    </td>
+                  </tr>
+                  }
+                  @empty {
+                  <tr>
+                    <td colspan="4" class="text-center text-base-content/50">No user activity data available</td>
+                  </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
       }
 
       <!-- Empty State for Advanced Analytics -->
       @if (!isLoadingAdvanced() && !advancedData()) {
       <div class="text-center py-12">
-        <span class="material-symbols-outlined text-gray-400 text-6xl mb-4">bar_chart</span>
-        <p class="text-gray-500">Click "Detailed Analytics" tab to load analytics data</p>
+        <span class="material-symbols-outlined text-base-content/30 text-6xl mb-4">bar_chart</span>
+        <p class="text-base-content/50">Click "Detailed Analytics" tab to load analytics data</p>
       </div>
       }
-    </mat-tab>
-  </mat-tab-group>
+  }
 </div>

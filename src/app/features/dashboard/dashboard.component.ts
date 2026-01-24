@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AnalyticsService } from '../../core/services/analytics.service';
 import { UsersService } from '../../core/services/users.service';
@@ -12,17 +12,7 @@ import {
 } from '../../core/models/analytics.model';
 import { AppUser } from '../../core/models/user.model';
 
-// Angular Material imports
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatTableModule } from '@angular/material/table';
-import { MatSelectModule } from '@angular/material/select';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatIconModule } from '@angular/material/icon';
+// Angular Material imports removed - now using DaisyUI
 
 // Shared components
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
@@ -39,21 +29,11 @@ Chart.register(...registerables);
   imports: [
     CommonModule,
     FormsModule,
-    // Angular Material
-    MatCardModule,
-    MatButtonModule,
-    MatTabsModule,
-    MatTableModule,
-    MatSelectModule,
-    MatFormFieldModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    MatTooltipModule,
-    MatIconModule,
     // Shared components
     StatusBadgeComponent,
     AvatarComponent,
-    RelativeTimePipe
+    RelativeTimePipe,
+    DatePipe
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
@@ -63,6 +43,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   analytics = signal<AnalyticsResponse | null>(null);
   recentUsers = signal<AppUser[]>([]);
   isLoading = signal(true);
+  loadError = signal<string | null>(null);
 
   // Monitoring metrics
   infrastructureMetrics = signal<InfrastructureMetrics | null>(null);
@@ -138,6 +119,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   async loadAnalytics() {
     try {
       this.isLoading.set(true);
+      this.loadError.set(null);
       const data = await this.analyticsService.getDashboardMetrics();
       this.analytics.set(data);
 
@@ -147,6 +129,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.renderActivityChart();
       }, 100);
     } catch (error: any) {
+      this.loadError.set(error.message || 'Failed to load analytics');
       this.notificationService.error('Error', error.message || 'Failed to load analytics');
     } finally {
       this.isLoading.set(false);
@@ -261,6 +244,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.selectedPreset = null;
       this.loadAdvancedAnalytics();
     }
+  }
+
+  onStartDateChange(dateString: string) {
+    this.customDateRange.start = dateString ? new Date(dateString) : null;
+  }
+
+  onEndDateChange(dateString: string) {
+    this.customDateRange.end = dateString ? new Date(dateString) : null;
+    this.onCustomDateRangeChange();
   }
 
   getMobilePercentage(device: 'ios' | 'android'): string | null {

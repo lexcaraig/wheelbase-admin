@@ -10,8 +10,8 @@ Chart.register(...registerables);
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="bg-white rounded-lg shadow p-6">
-      <h2 class="text-xl font-bold text-gray-900 mb-4">User Growth Trends</h2>
+    <div class="card bg-base-200 shadow p-6">
+      <h2 class="text-xl font-bold text-base-content mb-4">User Growth Trends</h2>
       <div class="relative" style="height: 300px;">
         <canvas #chartCanvas></canvas>
       </div>

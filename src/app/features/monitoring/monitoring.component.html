@@ -1,29 +1,28 @@
-<div class="min-h-screen bg-gray-50 p-6">
+<div class="min-h-screen bg-base-100 p-6">
   <div class="max-w-7xl mx-auto">
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900">Growth Monitoring</h1>
-        <p class="text-gray-600 mt-1">Real-time infrastructure and usage metrics</p>
+        <h1 class="text-3xl font-bold text-base-content">Growth Monitoring</h1>
+        <p class="text-base-content/70 mt-1">Real-time infrastructure and usage metrics</p>
       </div>
       <div class="flex gap-3">
         <button
           (click)="toggleAutoRefresh()"
-          [class.bg-yellow-500]="autoRefreshEnabled()"
-          [class.bg-gray-300]="!autoRefreshEnabled()"
-          class="px-4 py-2 rounded-lg text-white font-medium hover:opacity-90 transition"
+          class="btn"
+          [ngClass]="autoRefreshEnabled() ? 'btn-primary' : 'btn-ghost'"
         >
           {{ autoRefreshEnabled() ? 'Auto-Refresh ON' : 'Auto-Refresh OFF' }}
         </button>
         <button
           (click)="refresh()"
-          class="px-4 py-2 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-700 transition"
+          class="btn btn-neutral"
         >
           Refresh Now
         </button>
         <button
           (click)="copyStatsToClipboard()"
-          class="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition flex items-center gap-2"
+          class="btn btn-success gap-2"
           title="Copy all stats as GitHub markdown"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -33,7 +32,7 @@
         </button>
         <button
           (click)="captureSnapshot()"
-          class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+          class="btn btn-info"
         >
           Capture Snapshot
         </button>
@@ -41,18 +40,21 @@
     </div>
 
     <!-- Last Refresh Time -->
-    <div class="mb-4 text-sm text-gray-600" *ngIf="lastRefreshTime()">
+    <div class="mb-4 text-sm text-base-content/70" *ngIf="lastRefreshTime()">
       Last updated: {{ lastRefreshTime() | date:'medium' }}
     </div>
 
     <!-- Loading State -->
     <div *ngIf="loading()" class="flex justify-center items-center py-12">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+      <span class="loading loading-spinner loading-lg text-primary"></span>
     </div>
 
     <!-- Error State -->
-    <div *ngIf="error()" class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">
-      {{ error() }}
+    <div *ngIf="error()" class="alert alert-error mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span>{{ error() }}</span>
     </div>
 
     <!-- Content -->
@@ -89,34 +91,40 @@
       <!-- Quick Stats Row -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6" *ngIf="infrastructureMetrics()">
         <!-- Total Posts -->
-        <div class="bg-white rounded-lg shadow p-6">
-          <h3 class="text-gray-600 text-sm font-medium">Total Posts</h3>
-          <p class="text-3xl font-bold text-gray-900 mt-2">
-            {{ infrastructureMetrics()!.content.total_posts | number }}
-          </p>
-          <p class="text-green-600 text-sm mt-1">Active content</p>
+        <div class="card bg-base-200 shadow">
+          <div class="card-body p-6">
+            <h3 class="text-base-content/70 text-sm font-medium">Total Posts</h3>
+            <p class="text-3xl font-bold text-base-content mt-2">
+              {{ infrastructureMetrics()!.content.total_posts | number }}
+            </p>
+            <p class="text-success text-sm mt-1">Active content</p>
+          </div>
         </div>
 
         <!-- Active Rides -->
-        <div class="bg-white rounded-lg shadow p-6">
-          <h3 class="text-gray-600 text-sm font-medium">Active Rides (7d)</h3>
-          <p class="text-3xl font-bold text-gray-900 mt-2">
-            {{ infrastructureMetrics()!.content.active_rides | number }}
-          </p>
-          <p class="text-gray-600 text-sm mt-1">
-            of {{ infrastructureMetrics()!.content.total_rides | number }} total
-          </p>
+        <div class="card bg-base-200 shadow">
+          <div class="card-body p-6">
+            <h3 class="text-base-content/70 text-sm font-medium">Active Rides (7d)</h3>
+            <p class="text-3xl font-bold text-base-content mt-2">
+              {{ infrastructureMetrics()!.content.active_rides | number }}
+            </p>
+            <p class="text-base-content/70 text-sm mt-1">
+              of {{ infrastructureMetrics()!.content.total_rides | number }} total
+            </p>
+          </div>
         </div>
 
         <!-- Active Groups -->
-        <div class="bg-white rounded-lg shadow p-6">
-          <h3 class="text-gray-600 text-sm font-medium">Active Groups (30d)</h3>
-          <p class="text-3xl font-bold text-gray-900 mt-2">
-            {{ infrastructureMetrics()!.content.active_groups | number }}
-          </p>
-          <p class="text-gray-600 text-sm mt-1">
-            of {{ infrastructureMetrics()!.content.total_groups | number }} total
-          </p>
+        <div class="card bg-base-200 shadow">
+          <div class="card-body p-6">
+            <h3 class="text-base-content/70 text-sm font-medium">Active Groups (30d)</h3>
+            <p class="text-3xl font-bold text-base-content mt-2">
+              {{ infrastructureMetrics()!.content.active_groups | number }}
+            </p>
+            <p class="text-base-content/70 text-sm mt-1">
+              of {{ infrastructureMetrics()!.content.total_groups | number }} total
+            </p>
+          </div>
         </div>
       </div>
     </div>

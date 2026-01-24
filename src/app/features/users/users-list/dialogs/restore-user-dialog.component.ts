@@ -26,7 +26,7 @@ export interface RestoreUserDialogData {
     <mat-dialog-content>
       <div class="space-y-4">
         <!-- User Info -->
-        <div class="p-4 bg-gray-50 rounded-lg">
+        <div class="p-4 bg-base-100 rounded-lg">
           <div class="flex items-center gap-3">
             <app-avatar
               [image]="data.user.avatar_url"
@@ -35,8 +35,8 @@ export interface RestoreUserDialogData {
               size="large"
             ></app-avatar>
             <div>
-              <div class="font-semibold text-gray-900">{{ data.user.username }}</div>
-              <div class="text-sm text-gray-500">{{ data.user.email }}</div>
+              <div class="font-semibold text-base-content">{{ data.user.username }}</div>
+              <div class="text-sm text-base-content/60">{{ data.user.email }}</div>
             </div>
           </div>
         </div>

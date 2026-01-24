@@ -11,13 +11,13 @@ Chart.register(...registerables);
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="card bg-base-200 shadow p-6">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold text-gray-900">API Usage Breakdown</h2>
+        <h2 class="text-xl font-bold text-base-content">API Usage Breakdown</h2>
         <select
           [(ngModel)]="selectedPeriod"
           (ngModelChange)="onPeriodChange($event)"
-          class="border border-gray-300 rounded px-3 py-1 text-sm"
+          class="border border-base-300 rounded px-3 py-1 text-sm"
         >
           <option value="7d">Last 7 days</option>
           <option value="30d">Last 30 days</option>
@@ -27,12 +27,12 @@ Chart.register(...registerables);
 
       <!-- Quick Stats -->
       <div class="grid grid-cols-2 gap-4 mb-4">
-        <div class="bg-gray-50 rounded p-3">
-          <p class="text-xs text-gray-600">Total Calls</p>
+        <div class="bg-base-300 rounded p-3">
+          <p class="text-xs text-base-content/70">Total Calls</p>
           <p class="text-2xl font-bold">{{ metrics.total_calls | number }}</p>
         </div>
-        <div class="bg-gray-50 rounded p-3">
-          <p class="text-xs text-gray-600">Avg Calls/Day</p>
+        <div class="bg-base-300 rounded p-3">
+          <p class="text-xs text-base-content/70">Avg Calls/Day</p>
           <p class="text-2xl font-bold">{{ metrics.avg_calls_per_day | number }}</p>
         </div>
       </div>
@@ -44,16 +44,16 @@ Chart.register(...registerables);
 
       <!-- Top Endpoints -->
       <div class="mt-4">
-        <h3 class="text-sm font-semibold text-gray-700 mb-2">Top Endpoints</h3>
+        <h3 class="text-sm font-semibold text-base-content/80 mb-2">Top Endpoints</h3>
         <div class="space-y-2">
           <div
             *ngFor="let endpoint of metrics.top_endpoints.slice(0, 5)"
             class="flex justify-between items-center text-sm"
           >
-            <span class="text-gray-700">{{ endpoint.name }}</span>
+            <span class="text-base-content/80">{{ endpoint.name }}</span>
             <div class="flex items-center gap-2">
-              <span class="text-gray-600">{{ endpoint.calls | number }}</span>
-              <span class="text-gray-500">({{ endpoint.percentage }}%)</span>
+              <span class="text-base-content/70">{{ endpoint.calls | number }}</span>
+              <span class="text-base-content/60">({{ endpoint.percentage }}%)</span>
             </div>
           </div>
         </div>

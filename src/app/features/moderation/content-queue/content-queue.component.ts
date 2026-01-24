@@ -1,18 +1,11 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ModerationService } from '../../../core/services/moderation.service';
 import { FlaggedContent, ModerationAction } from '../../../core/models/content.model';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ConfirmService } from '../../../core/services/confirm.service';
-import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { AvatarComponent } from '../../../shared/components/avatar/avatar.component';
 import { RelativeTimePipe } from '../../../shared/pipes/relative-time.pipe';
 import { ContentPreviewDialogComponent } from './dialogs/content-preview-dialog.component';
@@ -23,14 +16,7 @@ import { ContentPreviewDialogComponent } from './dialogs/content-preview-dialog.
   imports: [
     CommonModule,
     FormsModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatTooltipModule,
     MatDialogModule,
-    StatusBadgeComponent,
     AvatarComponent,
     RelativeTimePipe
   ],
@@ -41,9 +27,6 @@ export class ContentQueueComponent implements OnInit {
   flaggedContent = signal<FlaggedContent[]>([]);
   isLoading = signal(true);
   totalRecords = signal(0);
-
-  // Table columns
-  displayedColumns: string[] = ['type', 'content', 'author', 'flagReason', 'flaggedDate', 'actions'];
 
   // Filters
   contentTypeFilter = signal<'all' | 'post' | 'comment'>('all');
@@ -56,6 +39,7 @@ export class ContentQueueComponent implements OnInit {
   // Pagination
   currentPage = signal(0);
   pageSize = 25;
+  pageSizeOptions = [10, 25, 50, 100];
 
   constructor(
     private moderationService: ModerationService,
@@ -86,9 +70,43 @@ export class ContentQueueComponent implements OnInit {
     }
   }
 
-  onPageChange(event: PageEvent) {
-    this.currentPage.set(event.pageIndex);
-    this.pageSize = event.pageSize;
+  // Pagination methods
+  getTotalPages(): number {
+    return Math.ceil(this.totalRecords() / this.pageSize);
+  }
+
+  getPageRangeLabel(): string {
+    const start = this.currentPage() * this.pageSize + 1;
+    const end = Math.min((this.currentPage() + 1) * this.pageSize, this.totalRecords());
+    return `${start} - ${end} of ${this.totalRecords()}`;
+  }
+
+  firstPage(): void {
+    this.currentPage.set(0);
+    this.loadFlaggedContent();
+  }
+
+  previousPage(): void {
+    if (this.currentPage() > 0) {
+      this.currentPage.update(p => p - 1);
+      this.loadFlaggedContent();
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage() < this.getTotalPages() - 1) {
+      this.currentPage.update(p => p + 1);
+      this.loadFlaggedContent();
+    }
+  }
+
+  lastPage(): void {
+    this.currentPage.set(this.getTotalPages() - 1);
+    this.loadFlaggedContent();
+  }
+
+  onPageSizeChange(): void {
+    this.currentPage.set(0);
     this.loadFlaggedContent();
   }
 

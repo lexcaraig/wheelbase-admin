@@ -47,12 +47,12 @@ export interface EditSettingDialogData {
     <mat-dialog-content class="!pt-4">
       <div class="space-y-4">
         <!-- Setting Info -->
-        <div class="p-4 bg-gray-50 rounded-lg">
+        <div class="p-4 bg-base-100 rounded-lg">
           <div class="flex items-center gap-2 mb-2">
-            <span class="material-symbols-outlined text-gray-600">{{ getTypeIcon(data.setting.value_type) }}</span>
-            <span class="font-semibold text-gray-900">{{ data.setting.key }}</span>
+            <span class="material-symbols-outlined text-base-content/70">{{ getTypeIcon(data.setting.value_type) }}</span>
+            <span class="font-semibold text-base-content">{{ data.setting.key }}</span>
           </div>
-          <div class="text-sm text-gray-600">{{ data.setting.description }}</div>
+          <div class="text-sm text-base-content/70">{{ data.setting.description }}</div>
           <div class="flex items-center gap-2 mt-2">
             <app-status-badge severity="secondary">{{ data.setting.category }}</app-status-badge>
             <app-status-badge severity="info">{{ data.setting.value_type.toUpperCase() }}</app-status-badge>
@@ -61,7 +61,7 @@ export interface EditSettingDialogData {
 
         <!-- Value Input -->
         <div class="flex flex-col gap-2">
-          <label class="font-semibold text-gray-700">
+          <label class="font-semibold text-base-content/80">
             New Value <span class="text-red-500">*</span>
           </label>
 

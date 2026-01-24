@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { PromotionService } from '../../core/services/promotion.service';
 import { Promotion, PromotionReport, PlacementType, PLACEMENT_LABELS } from '../../core/models/promotion.model';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 @Component({
   selector: 'app-promotion-report',
@@ -35,7 +37,7 @@ import { Promotion, PromotionReport, PlacementType, PLACEMENT_LABELS } from '../
       }
 
       /* Override dark theme for print */
-      .bg-gray-800 {
+      .bg-neutral {
         background: #f5f5f5 !important;
         border: 1px solid #e0e0e0 !important;
       }
@@ -44,7 +46,7 @@ import { Promotion, PromotionReport, PlacementType, PLACEMENT_LABELS } from '../
         color: #1a1a1a !important;
       }
 
-      .text-gray-400, .text-gray-500 {
+      .text-base-content\\/50, .text-base-content\\/60 {
         color: #666 !important;
       }
 
@@ -60,12 +62,12 @@ import { Promotion, PromotionReport, PlacementType, PLACEMENT_LABELS } from '../
         color: #2563eb !important;
       }
 
-      .border-gray-700, .border-gray-700\\/50 {
+      .border-neutral, .border-neutral\\/50 {
         border-color: #e0e0e0 !important;
       }
 
       /* Progress bars for print */
-      .bg-gray-700 {
+      .bg-neutral {
         background: #e0e0e0 !important;
       }
 
@@ -81,7 +83,7 @@ import { Promotion, PromotionReport, PlacementType, PLACEMENT_LABELS } from '../
       }
 
       /* Tier badges */
-      .bg-gray-600, .bg-blue-600, .bg-yellow-500 {
+      .bg-neutral, .bg-blue-600, .bg-yellow-500 {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
@@ -132,28 +134,28 @@ import { Promotion, PromotionReport, PlacementType, PLACEMENT_LABELS } from '../
       <!-- Screen Header (hidden in print) -->
       <div class="flex items-center justify-between mb-6 no-print">
         <div class="flex items-center gap-4">
-          <a routerLink="/promotions" class="p-2 text-gray-400 hover:text-white">
-            <i class="pi pi-arrow-left"></i>
+          <a routerLink="/promotions" class="p-2 text-base-content/50 hover:text-white">
+            <span class="material-symbols-outlined">arrow_back</span>
           </a>
           <div>
             <h1 class="text-2xl font-bold text-white">Campaign Report</h1>
-            <p class="text-gray-400 mt-1">
+            <p class="text-base-content/50 mt-1">
               {{ promotion()?.title || 'Loading...' }}
             </p>
           </div>
         </div>
         <button
           (click)="exportReport()"
-          class="px-4 py-2 bg-yellow-400 text-gray-900 rounded-lg font-medium hover:bg-yellow-300 transition-colors flex items-center gap-2"
+          class="px-4 py-2 bg-yellow-400 text-base-content rounded-lg font-medium hover:bg-yellow-300 transition-colors flex items-center gap-2"
         >
-          <i class="pi pi-download"></i>
+          <span class="material-symbols-outlined text-xl">download</span>
           Export PDF
         </button>
       </div>
 
       @if (loading()) {
-        <div class="p-8 text-center text-gray-400">
-          <i class="pi pi-spin pi-spinner text-2xl"></i>
+        <div class="p-8 text-center text-base-content/50">
+          <span class="material-symbols-outlined text-3xl animate-spin">progress_activity</span>
           <p class="mt-2">Loading report...</p>
         </div>
       } @else if (error()) {
@@ -162,12 +164,12 @@ import { Promotion, PromotionReport, PlacementType, PLACEMENT_LABELS } from '../
         </div>
       } @else {
         <!-- Campaign Info -->
-        <div class="bg-gray-800 rounded-lg p-6 mb-6">
+        <div class="bg-neutral rounded-lg p-6 mb-6">
           <div class="flex items-start justify-between">
             <div>
               <h2 class="text-lg font-semibold text-white">{{ promotion()?.title }}</h2>
               @if (promotion()?.subtitle) {
-                <p class="text-gray-400 mt-1">{{ promotion()?.subtitle }}</p>
+                <p class="text-base-content/50 mt-1">{{ promotion()?.subtitle }}</p>
               }
               @if (promotion()?.cta_url) {
                 <a [href]="promotion()?.cta_url" target="_blank" class="text-yellow-400 text-sm hover:underline mt-2 inline-block">
@@ -175,7 +177,7 @@ import { Promotion, PromotionReport, PlacementType, PLACEMENT_LABELS } from '../
                 </a>
               }
             </div>
-            <div class="text-right text-sm text-gray-400">
+            <div class="text-right text-sm text-base-content/50">
               <p>{{ formatDateRange() }}</p>
               <p class="mt-1">Target: {{ promotion()?.target_tiers?.join(', ') || 'All' }}</p>
             </div>
@@ -184,51 +186,51 @@ import { Promotion, PromotionReport, PlacementType, PLACEMENT_LABELS } from '../
 
         <!-- Summary Cards -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div class="bg-gray-800 rounded-lg p-4">
+          <div class="bg-neutral rounded-lg p-4">
             <div class="text-3xl font-bold text-white">{{ formatNumber(report()?.summary?.total_impressions || 0) }}</div>
-            <div class="text-gray-400 text-sm">Total Impressions</div>
+            <div class="text-base-content/50 text-sm">Total Impressions</div>
           </div>
-          <div class="bg-gray-800 rounded-lg p-4">
+          <div class="bg-neutral rounded-lg p-4">
             <div class="text-3xl font-bold text-yellow-400">{{ formatNumber(report()?.summary?.total_clicks || 0) }}</div>
-            <div class="text-gray-400 text-sm">Total Clicks</div>
+            <div class="text-base-content/50 text-sm">Total Clicks</div>
           </div>
-          <div class="bg-gray-800 rounded-lg p-4">
+          <div class="bg-neutral rounded-lg p-4">
             <div class="text-3xl font-bold text-green-400">{{ report()?.summary?.ctr?.toFixed(2) || '0.00' }}%</div>
-            <div class="text-gray-400 text-sm">Click-Through Rate</div>
+            <div class="text-base-content/50 text-sm">Click-Through Rate</div>
           </div>
-          <div class="bg-gray-800 rounded-lg p-4">
+          <div class="bg-neutral rounded-lg p-4">
             <div class="text-3xl font-bold text-blue-400">{{ formatNumber(report()?.summary?.unique_viewers || 0) }}</div>
-            <div class="text-gray-400 text-sm">Unique Viewers</div>
+            <div class="text-base-content/50 text-sm">Unique Viewers</div>
           </div>
         </div>
 
         <!-- Additional Metrics -->
         <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-          <div class="bg-gray-800 rounded-lg p-4">
+          <div class="bg-neutral rounded-lg p-4">
             <div class="text-2xl font-bold text-white">{{ formatNumber(report()?.summary?.unique_clickers || 0) }}</div>
-            <div class="text-gray-400 text-sm">Unique Clickers</div>
+            <div class="text-base-content/50 text-sm">Unique Clickers</div>
           </div>
-          <div class="bg-gray-800 rounded-lg p-4">
+          <div class="bg-neutral rounded-lg p-4">
             <div class="text-2xl font-bold text-white">{{ report()?.summary?.campaign_days || 0 }}</div>
-            <div class="text-gray-400 text-sm">Campaign Days</div>
+            <div class="text-base-content/50 text-sm">Campaign Days</div>
           </div>
-          <div class="bg-gray-800 rounded-lg p-4">
+          <div class="bg-neutral rounded-lg p-4">
             <div class="text-2xl font-bold text-white">
               {{ calculateAvgDaily(report()?.summary?.total_impressions || 0, report()?.summary?.campaign_days || 1) }}
             </div>
-            <div class="text-gray-400 text-sm">Avg. Daily Impressions</div>
+            <div class="text-base-content/50 text-sm">Avg. Daily Impressions</div>
           </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- Daily Performance -->
-          <div class="bg-gray-800 rounded-lg p-6">
+          <div class="bg-neutral rounded-lg p-6">
             <h3 class="text-lg font-semibold text-white mb-4">Daily Performance</h3>
             @if (report()?.daily_breakdown?.length) {
               <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                   <thead>
-                    <tr class="text-gray-400 border-b border-gray-700">
+                    <tr class="text-base-content/50 border-b border-neutral">
                       <th class="text-left py-2">Date</th>
                       <th class="text-right py-2">Impressions</th>
                       <th class="text-right py-2">Clicks</th>
@@ -237,7 +239,7 @@ import { Promotion, PromotionReport, PlacementType, PLACEMENT_LABELS } from '../
                   </thead>
                   <tbody>
                     @for (day of report()?.daily_breakdown?.slice(0, 10); track day.date) {
-                      <tr class="border-b border-gray-700/50 text-white">
+                      <tr class="border-b border-neutral/50 text-white">
                         <td class="py-2">{{ formatDate(day.date) }}</td>
                         <td class="text-right py-2">{{ formatNumber(day.impressions) }}</td>
                         <td class="text-right py-2 text-yellow-400">{{ formatNumber(day.clicks) }}</td>
@@ -248,12 +250,12 @@ import { Promotion, PromotionReport, PlacementType, PLACEMENT_LABELS } from '../
                 </table>
               </div>
             } @else {
-              <p class="text-gray-500 text-center py-4">No daily data available yet</p>
+              <p class="text-base-content/60 text-center py-4">No daily data available yet</p>
             }
           </div>
 
           <!-- Geographic Breakdown -->
-          <div class="bg-gray-800 rounded-lg p-6">
+          <div class="bg-neutral rounded-lg p-6">
             <h3 class="text-lg font-semibold text-white mb-4">Geographic Performance</h3>
             @if (report()?.geographic_breakdown?.length) {
               <div class="space-y-3">
@@ -265,19 +267,19 @@ import { Promotion, PromotionReport, PlacementType, PLACEMENT_LABELS } from '../
                     </div>
                     <div class="text-right">
                       <span class="text-white">{{ formatNumber(geo.impressions) }} views</span>
-                      <span class="text-gray-400 mx-2">|</span>
+                      <span class="text-base-content/50 mx-2">|</span>
                       <span class="text-yellow-400">{{ geo.ctr.toFixed(2) }}% CTR</span>
                     </div>
                   </div>
                 }
               </div>
             } @else {
-              <p class="text-gray-500 text-center py-4">No geographic data available yet</p>
+              <p class="text-base-content/60 text-center py-4">No geographic data available yet</p>
             }
           </div>
 
           <!-- Platform Breakdown -->
-          <div class="bg-gray-800 rounded-lg p-6">
+          <div class="bg-neutral rounded-lg p-6">
             <h3 class="text-lg font-semibold text-white mb-4">Platform Performance</h3>
             @if (report()?.platform_breakdown?.length) {
               <div class="space-y-4">
@@ -285,31 +287,31 @@ import { Promotion, PromotionReport, PlacementType, PLACEMENT_LABELS } from '../
                   <div>
                     <div class="flex items-center justify-between mb-1">
                       <span class="text-white flex items-center gap-2">
-                        <i [class]="platform.device_platform === 'ios' ? 'pi pi-apple' : 'pi pi-android'"></i>
+                        <span class="material-symbols-outlined text-lg">{{ platform.device_platform === 'ios' ? 'phone_iphone' : 'android' }}</span>
                         {{ platform.device_platform === 'ios' ? 'iOS' : 'Android' }}
                       </span>
-                      <span class="text-gray-400">{{ formatNumber(platform.impressions) }} impressions</span>
+                      <span class="text-base-content/50">{{ formatNumber(platform.impressions) }} impressions</span>
                     </div>
-                    <div class="w-full bg-gray-700 rounded-full h-2">
+                    <div class="w-full bg-neutral rounded-full h-2">
                       <div
                         class="h-2 rounded-full"
                         [class]="platform.device_platform === 'ios' ? 'bg-blue-400' : 'bg-green-400'"
                         [style.width.%]="calculatePercentage(platform.impressions, getTotalPlatformImpressions())"
                       ></div>
                     </div>
-                    <div class="text-sm text-gray-400 mt-1">
+                    <div class="text-sm text-base-content/50 mt-1">
                       {{ formatNumber(platform.clicks) }} clicks ({{ platform.ctr.toFixed(2) }}% CTR)
                     </div>
                   </div>
                 }
               </div>
             } @else {
-              <p class="text-gray-500 text-center py-4">No platform data available yet</p>
+              <p class="text-base-content/60 text-center py-4">No platform data available yet</p>
             }
           </div>
 
           <!-- User Tier Breakdown -->
-          <div class="bg-gray-800 rounded-lg p-6">
+          <div class="bg-neutral rounded-lg p-6">
             <h3 class="text-lg font-semibold text-white mb-4">Audience Tier Performance</h3>
             @if (report()?.tier_breakdown?.length) {
               <div class="space-y-4">
@@ -319,60 +321,60 @@ import { Promotion, PromotionReport, PlacementType, PLACEMENT_LABELS } from '../
                       <span class="text-white capitalize flex items-center gap-2">
                         <span [class]="getTierBadgeClass(tier.user_tier)">{{ tier.user_tier }}</span>
                       </span>
-                      <span class="text-gray-400">{{ formatNumber(tier.impressions) }} impressions</span>
+                      <span class="text-base-content/50">{{ formatNumber(tier.impressions) }} impressions</span>
                     </div>
-                    <div class="w-full bg-gray-700 rounded-full h-2">
+                    <div class="w-full bg-neutral rounded-full h-2">
                       <div
                         class="h-2 rounded-full"
                         [class]="getTierBarClass(tier.user_tier)"
                         [style.width.%]="calculatePercentage(tier.impressions, getTotalTierImpressions())"
                       ></div>
                     </div>
-                    <div class="text-sm text-gray-400 mt-1">
+                    <div class="text-sm text-base-content/50 mt-1">
                       {{ formatNumber(tier.clicks) }} clicks ({{ tier.ctr.toFixed(2) }}% CTR)
                     </div>
                   </div>
                 }
               </div>
             } @else {
-              <p class="text-gray-500 text-center py-4">No tier data available yet</p>
+              <p class="text-base-content/60 text-center py-4">No tier data available yet</p>
             }
           </div>
         </div>
 
         <!-- Placement Breakdown -->
-        <div class="bg-gray-800 rounded-lg p-6 mt-6">
+        <div class="bg-neutral rounded-lg p-6 mt-6">
           <h3 class="text-lg font-semibold text-white mb-4">Placement Performance</h3>
           @if (report()?.placement_breakdown?.length) {
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               @for (placement of report()?.placement_breakdown; track placement.placement_type) {
-                <div class="bg-gray-700/50 rounded-lg p-4">
+                <div class="bg-neutral/50 rounded-lg p-4">
                   <div class="flex items-center justify-between mb-2">
                     <span class="text-white font-medium flex items-center gap-2">
-                      <i [class]="getPlacementIcon(placement.placement_type)"></i>
+                      <span class="material-symbols-outlined text-lg">{{ getPlacementIcon(placement.placement_type) }}</span>
                       {{ getPlacementLabel(placement.placement_type) }}
                     </span>
                   </div>
                   <div class="grid grid-cols-2 gap-2 text-sm">
                     <div>
-                      <div class="text-gray-400">Impressions</div>
+                      <div class="text-base-content/50">Impressions</div>
                       <div class="text-white font-semibold">{{ formatNumber(placement.impressions) }}</div>
                     </div>
                     <div>
-                      <div class="text-gray-400">Clicks</div>
+                      <div class="text-base-content/50">Clicks</div>
                       <div class="text-yellow-400 font-semibold">{{ formatNumber(placement.clicks) }}</div>
                     </div>
                     <div>
-                      <div class="text-gray-400">CTR</div>
+                      <div class="text-base-content/50">CTR</div>
                       <div class="text-green-400 font-semibold">{{ placement.ctr.toFixed(2) }}%</div>
                     </div>
                     <div>
-                      <div class="text-gray-400">Unique Views</div>
+                      <div class="text-base-content/50">Unique Views</div>
                       <div class="text-blue-400 font-semibold">{{ formatNumber(placement.unique_viewers) }}</div>
                     </div>
                   </div>
                   <div class="mt-3">
-                    <div class="w-full bg-gray-600 rounded-full h-1.5">
+                    <div class="w-full bg-neutral rounded-full h-1.5">
                       <div
                         class="h-1.5 rounded-full bg-yellow-400"
                         [style.width.%]="calculatePercentage(placement.impressions, getTotalPlacementImpressions())"
@@ -383,12 +385,12 @@ import { Promotion, PromotionReport, PlacementType, PLACEMENT_LABELS } from '../
               }
             </div>
           } @else {
-            <p class="text-gray-500 text-center py-4">No placement data available yet</p>
+            <p class="text-base-content/60 text-center py-4">No placement data available yet</p>
           }
         </div>
 
         <!-- Hourly Performance -->
-        <div class="bg-gray-800 rounded-lg p-6 mt-6">
+        <div class="bg-neutral rounded-lg p-6 mt-6">
           <h3 class="text-lg font-semibold text-white mb-4">Hourly Performance (Best Times to Engage)</h3>
           @if (report()?.hourly_breakdown?.length) {
             <div class="flex items-end justify-between h-32 gap-1">
@@ -399,11 +401,11 @@ import { Promotion, PromotionReport, PlacementType, PLACEMENT_LABELS } from '../
                     [style.height.%]="calculateHourlyHeight(hour.impressions)"
                     [title]="hour.hour + ':00 - ' + hour.impressions + ' impressions'"
                   ></div>
-                  <span class="text-xs text-gray-500 mt-1">{{ hour.hour }}</span>
+                  <span class="text-xs text-base-content/60 mt-1">{{ hour.hour }}</span>
                 </div>
               }
             </div>
-            <div class="flex justify-between mt-2 text-xs text-gray-400">
+            <div class="flex justify-between mt-2 text-xs text-base-content/50">
               <span>12 AM</span>
               <span>6 AM</span>
               <span>12 PM</span>
@@ -411,12 +413,12 @@ import { Promotion, PromotionReport, PlacementType, PLACEMENT_LABELS } from '../
               <span>11 PM</span>
             </div>
           } @else {
-            <p class="text-gray-500 text-center py-4">No hourly data available yet</p>
+            <p class="text-base-content/60 text-center py-4">No hourly data available yet</p>
           }
         </div>
 
         <!-- Report Generated -->
-        <div class="mt-6 text-center text-gray-500 text-sm">
+        <div class="mt-6 text-center text-base-content/60 text-sm">
           Report generated: {{ formatDateTime(report()?.generated_at) }}
         </div>
       }
@@ -536,15 +538,15 @@ export class PromotionReportComponent implements OnInit {
 
   getPlacementIcon(placement: PlacementType): string {
     const icons: Record<PlacementType, string> = {
-      dashboard: 'pi pi-home',
-      services: 'pi pi-map-marker',
-      events: 'pi pi-calendar',
-      marketplace_browse: 'pi pi-shopping-bag',
-      marketplace_detail: 'pi pi-tag',
-      post_ride: 'pi pi-flag',
-      routes: 'pi pi-map'
+      dashboard: 'home',
+      services: 'location_on',
+      events: 'calendar_today',
+      marketplace_browse: 'shopping_bag',
+      marketplace_detail: 'sell',
+      post_ride: 'flag',
+      routes: 'map'
     };
-    return icons[placement] || 'pi pi-circle';
+    return icons[placement] || 'circle';
   }
 
   getCountryFlag(code: string): string {
@@ -573,7 +575,7 @@ export class PromotionReportComponent implements OnInit {
 
   getTierBadgeClass(tier: string): string {
     const classes: Record<string, string> = {
-      'free': 'px-2 py-0.5 rounded text-xs bg-gray-600 text-gray-300',
+      'free': 'px-2 py-0.5 rounded text-xs bg-neutral text-base-content/40',
       'pro': 'px-2 py-0.5 rounded text-xs bg-blue-600 text-blue-100',
       'premium': 'px-2 py-0.5 rounded text-xs bg-yellow-500 text-yellow-900'
     };
@@ -582,11 +584,11 @@ export class PromotionReportComponent implements OnInit {
 
   getTierBarClass(tier: string): string {
     const classes: Record<string, string> = {
-      'free': 'bg-gray-400',
+      'free': 'bg-neutral',
       'pro': 'bg-blue-400',
       'premium': 'bg-yellow-400'
     };
-    return classes[tier] || 'bg-gray-400';
+    return classes[tier] || 'bg-neutral';
   }
 
   getHourlyData(): { hour: number; impressions: number }[] {
@@ -610,8 +612,362 @@ export class PromotionReportComponent implements OnInit {
   }
 
   exportReport(): void {
-    // TODO: Implement PDF export
-    // For now, just open print dialog
-    window.print();
+    const promo = this.promotion();
+    const reportData = this.report();
+    if (!promo || !reportData) return;
+
+    const doc = new jsPDF();
+    let yOffset = 20;
+
+    // Colors matching the app theme
+    const colors = {
+      background: [30, 35, 41] as [number, number, number],      // #1E2329
+      cardBg: [55, 65, 81] as [number, number, number],          // gray-800 equivalent
+      yellow: [251, 191, 36] as [number, number, number],        // #FBBF24
+      green: [74, 222, 128] as [number, number, number],         // green-400
+      blue: [96, 165, 250] as [number, number, number],          // blue-400
+      white: [255, 255, 255] as [number, number, number],
+      gray: [156, 163, 175] as [number, number, number],         // gray-400
+      darkGray: [75, 85, 99] as [number, number, number],        // gray-600
+    };
+
+    // Set background color for the whole page
+    doc.setFillColor(...colors.background);
+    doc.rect(0, 0, 210, 297, 'F');
+
+    // Header
+    doc.setFontSize(24);
+    doc.setTextColor(...colors.white);
+    doc.text('Campaign Performance Report', 105, yOffset, { align: 'center' });
+    yOffset += 8;
+
+    // Yellow accent line
+    doc.setDrawColor(...colors.yellow);
+    doc.setLineWidth(0.5);
+    doc.line(40, yOffset, 170, yOffset);
+    yOffset += 10;
+
+    // Campaign title
+    doc.setFontSize(14);
+    doc.setTextColor(...colors.gray);
+    doc.text(promo.title || 'Untitled Campaign', 105, yOffset, { align: 'center' });
+    yOffset += 6;
+
+    // Date range
+    doc.setFontSize(10);
+    doc.text(this.formatDateRange(), 105, yOffset, { align: 'center' });
+    yOffset += 15;
+
+    // Summary Cards Section
+    doc.setFontSize(14);
+    doc.setTextColor(...colors.yellow);
+    doc.text('Summary Metrics', 14, yOffset);
+    yOffset += 8;
+
+    // Summary table with dark theme
+    autoTable(doc, {
+      startY: yOffset,
+      head: [['Metric', 'Value']],
+      body: [
+        ['Total Impressions', this.formatNumber(reportData.summary?.total_impressions || 0)],
+        ['Total Clicks', this.formatNumber(reportData.summary?.total_clicks || 0)],
+        ['Click-Through Rate (CTR)', `${reportData.summary?.ctr?.toFixed(2) || '0.00'}%`],
+        ['Unique Viewers', this.formatNumber(reportData.summary?.unique_viewers || 0)],
+        ['Unique Clickers', this.formatNumber(reportData.summary?.unique_clickers || 0)],
+        ['Campaign Days', reportData.summary?.campaign_days?.toString() || '0'],
+        ['Avg. Daily Impressions', this.calculateAvgDaily(reportData.summary?.total_impressions || 0, reportData.summary?.campaign_days || 1)],
+      ],
+      theme: 'plain',
+      styles: {
+        fillColor: colors.cardBg,
+        textColor: colors.white,
+        fontSize: 10,
+        cellPadding: 4,
+      },
+      headStyles: {
+        fillColor: colors.darkGray,
+        textColor: colors.yellow,
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [45, 55, 72] as [number, number, number],
+      },
+    });
+
+    yOffset = (doc as any).lastAutoTable.finalY + 15;
+
+    // Daily Performance Section
+    if (reportData.daily_breakdown?.length) {
+      doc.setFontSize(14);
+      doc.setTextColor(...colors.yellow);
+      doc.text('Daily Performance', 14, yOffset);
+      yOffset += 8;
+
+      autoTable(doc, {
+        startY: yOffset,
+        head: [['Date', 'Impressions', 'Clicks', 'CTR']],
+        body: reportData.daily_breakdown.slice(0, 10).map(day => [
+          this.formatDate(day.date),
+          this.formatNumber(day.impressions),
+          this.formatNumber(day.clicks),
+          `${day.ctr.toFixed(2)}%`,
+        ]),
+        theme: 'plain',
+        styles: {
+          fillColor: colors.cardBg,
+          textColor: colors.white,
+          fontSize: 9,
+          cellPadding: 3,
+        },
+        headStyles: {
+          fillColor: colors.darkGray,
+          textColor: colors.yellow,
+          fontStyle: 'bold',
+        },
+        alternateRowStyles: {
+          fillColor: [45, 55, 72] as [number, number, number],
+        },
+      });
+
+      yOffset = (doc as any).lastAutoTable.finalY + 15;
+    }
+
+    // Check if we need a new page
+    if (yOffset > 200) {
+      doc.addPage();
+      doc.setFillColor(...colors.background);
+      doc.rect(0, 0, 210, 297, 'F');
+      yOffset = 20;
+    }
+
+    // Geographic Performance Section
+    if (reportData.geographic_breakdown?.length) {
+      doc.setFontSize(14);
+      doc.setTextColor(...colors.yellow);
+      doc.text('Geographic Performance', 14, yOffset);
+      yOffset += 8;
+
+      autoTable(doc, {
+        startY: yOffset,
+        head: [['Country', 'Impressions', 'Clicks', 'CTR']],
+        body: reportData.geographic_breakdown.map(geo => [
+          this.getCountryName(geo.country_code),
+          this.formatNumber(geo.impressions),
+          this.formatNumber(geo.clicks),
+          `${geo.ctr.toFixed(2)}%`,
+        ]),
+        theme: 'plain',
+        styles: {
+          fillColor: colors.cardBg,
+          textColor: colors.white,
+          fontSize: 9,
+          cellPadding: 3,
+        },
+        headStyles: {
+          fillColor: colors.darkGray,
+          textColor: colors.yellow,
+          fontStyle: 'bold',
+        },
+        alternateRowStyles: {
+          fillColor: [45, 55, 72] as [number, number, number],
+        },
+      });
+
+      yOffset = (doc as any).lastAutoTable.finalY + 15;
+    }
+
+    // Check if we need a new page
+    if (yOffset > 200) {
+      doc.addPage();
+      doc.setFillColor(...colors.background);
+      doc.rect(0, 0, 210, 297, 'F');
+      yOffset = 20;
+    }
+
+    // Platform Performance Section
+    if (reportData.platform_breakdown?.length) {
+      doc.setFontSize(14);
+      doc.setTextColor(...colors.yellow);
+      doc.text('Platform Performance', 14, yOffset);
+      yOffset += 8;
+
+      const totalPlatformImpressions = this.getTotalPlatformImpressions();
+      autoTable(doc, {
+        startY: yOffset,
+        head: [['Platform', 'Impressions', 'Clicks', 'CTR', 'Share']],
+        body: reportData.platform_breakdown.map(platform => [
+          platform.device_platform === 'ios' ? 'iOS' : 'Android',
+          this.formatNumber(platform.impressions),
+          this.formatNumber(platform.clicks),
+          `${platform.ctr.toFixed(2)}%`,
+          `${this.calculatePercentage(platform.impressions, totalPlatformImpressions).toFixed(1)}%`,
+        ]),
+        theme: 'plain',
+        styles: {
+          fillColor: colors.cardBg,
+          textColor: colors.white,
+          fontSize: 9,
+          cellPadding: 3,
+        },
+        headStyles: {
+          fillColor: colors.darkGray,
+          textColor: colors.yellow,
+          fontStyle: 'bold',
+        },
+        alternateRowStyles: {
+          fillColor: [45, 55, 72] as [number, number, number],
+        },
+      });
+
+      yOffset = (doc as any).lastAutoTable.finalY + 15;
+    }
+
+    // Check if we need a new page
+    if (yOffset > 200) {
+      doc.addPage();
+      doc.setFillColor(...colors.background);
+      doc.rect(0, 0, 210, 297, 'F');
+      yOffset = 20;
+    }
+
+    // Audience Tier Performance Section
+    if (reportData.tier_breakdown?.length) {
+      doc.setFontSize(14);
+      doc.setTextColor(...colors.yellow);
+      doc.text('Audience Tier Performance', 14, yOffset);
+      yOffset += 8;
+
+      const totalTierImpressions = this.getTotalTierImpressions();
+      autoTable(doc, {
+        startY: yOffset,
+        head: [['Tier', 'Impressions', 'Clicks', 'CTR', 'Share']],
+        body: reportData.tier_breakdown.map(tier => [
+          tier.user_tier.charAt(0).toUpperCase() + tier.user_tier.slice(1),
+          this.formatNumber(tier.impressions),
+          this.formatNumber(tier.clicks),
+          `${tier.ctr.toFixed(2)}%`,
+          `${this.calculatePercentage(tier.impressions, totalTierImpressions).toFixed(1)}%`,
+        ]),
+        theme: 'plain',
+        styles: {
+          fillColor: colors.cardBg,
+          textColor: colors.white,
+          fontSize: 9,
+          cellPadding: 3,
+        },
+        headStyles: {
+          fillColor: colors.darkGray,
+          textColor: colors.yellow,
+          fontStyle: 'bold',
+        },
+        alternateRowStyles: {
+          fillColor: [45, 55, 72] as [number, number, number],
+        },
+      });
+
+      yOffset = (doc as any).lastAutoTable.finalY + 15;
+    }
+
+    // Check if we need a new page
+    if (yOffset > 180) {
+      doc.addPage();
+      doc.setFillColor(...colors.background);
+      doc.rect(0, 0, 210, 297, 'F');
+      yOffset = 20;
+    }
+
+    // Placement Performance Section
+    if (reportData.placement_breakdown?.length) {
+      doc.setFontSize(14);
+      doc.setTextColor(...colors.yellow);
+      doc.text('Placement Performance', 14, yOffset);
+      yOffset += 8;
+
+      const totalPlacementImpressions = this.getTotalPlacementImpressions();
+      autoTable(doc, {
+        startY: yOffset,
+        head: [['Placement', 'Impressions', 'Clicks', 'CTR', 'Unique Views']],
+        body: reportData.placement_breakdown.map(placement => [
+          this.getPlacementLabel(placement.placement_type),
+          this.formatNumber(placement.impressions),
+          this.formatNumber(placement.clicks),
+          `${placement.ctr.toFixed(2)}%`,
+          this.formatNumber(placement.unique_viewers),
+        ]),
+        theme: 'plain',
+        styles: {
+          fillColor: colors.cardBg,
+          textColor: colors.white,
+          fontSize: 9,
+          cellPadding: 3,
+        },
+        headStyles: {
+          fillColor: colors.darkGray,
+          textColor: colors.yellow,
+          fontStyle: 'bold',
+        },
+        alternateRowStyles: {
+          fillColor: [45, 55, 72] as [number, number, number],
+        },
+      });
+
+      yOffset = (doc as any).lastAutoTable.finalY + 15;
+    }
+
+    // Check if we need a new page
+    if (yOffset > 220) {
+      doc.addPage();
+      doc.setFillColor(...colors.background);
+      doc.rect(0, 0, 210, 297, 'F');
+      yOffset = 20;
+    }
+
+    // Hourly Performance Section
+    if (reportData.hourly_breakdown?.length) {
+      doc.setFontSize(14);
+      doc.setTextColor(...colors.yellow);
+      doc.text('Hourly Performance (Best Times to Engage)', 14, yOffset);
+      yOffset += 8;
+
+      // Draw a simple bar chart
+      const hourlyData = this.getHourlyData();
+      const maxImpressions = Math.max(...hourlyData.map(h => h.impressions));
+      const chartWidth = 180;
+      const chartHeight = 40;
+      const barWidth = chartWidth / 24;
+
+      // Chart background
+      doc.setFillColor(...colors.cardBg);
+      doc.rect(14, yOffset, chartWidth, chartHeight, 'F');
+
+      // Draw bars
+      hourlyData.forEach((hour, i) => {
+        const barHeight = maxImpressions > 0 ? (hour.impressions / maxImpressions) * (chartHeight - 5) : 0;
+        doc.setFillColor(...colors.yellow);
+        doc.rect(14 + (i * barWidth), yOffset + chartHeight - barHeight, barWidth - 1, barHeight, 'F');
+      });
+
+      // Hour labels
+      doc.setFontSize(6);
+      doc.setTextColor(...colors.gray);
+      doc.text('12AM', 14, yOffset + chartHeight + 6);
+      doc.text('6AM', 14 + (6 * barWidth), yOffset + chartHeight + 6);
+      doc.text('12PM', 14 + (12 * barWidth), yOffset + chartHeight + 6);
+      doc.text('6PM', 14 + (18 * barWidth), yOffset + chartHeight + 6);
+      doc.text('11PM', 14 + (23 * barWidth), yOffset + chartHeight + 6);
+
+      yOffset += chartHeight + 15;
+    }
+
+    // Footer
+    doc.setFontSize(8);
+    doc.setTextColor(...colors.gray);
+    doc.text(`Report generated: ${this.formatDateTime(reportData.generated_at)}`, 105, 285, { align: 'center' });
+    doc.text('Wheelbase - ridewheelbase.app', 105, 290, { align: 'center' });
+
+    // Open PDF in new tab for preview (user can download from there)
+    const pdfBlob = doc.output('blob');
+    const blobUrl = URL.createObjectURL(pdfBlob);
+    window.open(blobUrl, '_blank');
   }
 }

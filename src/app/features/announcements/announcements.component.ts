@@ -1,12 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { NotificationService } from '../../core/services/notification.service';
 
@@ -25,116 +19,113 @@ interface Announcement {
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
-    MatCardModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatSlideToggleModule
+    FormsModule
   ],
   template: `
     <div class="p-6">
       <div class="flex items-center justify-between mb-6">
         <div>
-          <h1 class="text-2xl font-bold text-white">App Announcements</h1>
-          <p class="text-gray-400 mt-1">Display notices to users on the login page</p>
+          <h1 class="text-3xl font-bold text-base-content mb-2">App Announcements</h1>
+          <p class="text-base-content/70">Display notices to users on the login page</p>
         </div>
       </div>
 
       <!-- Loading State -->
       @if (isLoading()) {
         <div class="flex items-center justify-center h-64">
-          <span class="material-symbols-outlined animate-spin text-4xl text-yellow-400">progress_activity</span>
+          <span class="loading loading-spinner loading-lg text-primary"></span>
         </div>
       } @else {
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- Editor Card -->
-          <mat-card class="bg-gray-800 border border-gray-700">
-            <mat-card-header>
-              <mat-card-title class="flex items-center justify-between w-full">
-                <span class="text-lg font-semibold text-white">Announcement Editor</span>
+          <div class="card bg-base-200 shadow">
+            <div class="card-body">
+              <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-base-content">Announcement Editor</h2>
                 <div class="flex items-center gap-2">
-                  <span class="text-sm" [class]="announcement().is_active ? 'text-green-400' : 'text-gray-400'">
+                  <span class="text-sm" [class]="announcement().is_active ? 'text-success' : 'text-base-content/50'">
                     {{ announcement().is_active ? 'Active' : 'Inactive' }}
                   </span>
-                  <mat-slide-toggle
+                  <input
+                    type="checkbox"
+                    class="toggle toggle-primary"
                     [checked]="announcement().is_active"
-                    (change)="updateField('is_active', $event.checked)"
-                    color="primary"
-                  ></mat-slide-toggle>
+                    (change)="updateField('is_active', $any($event.target).checked)"
+                  />
                 </div>
-              </mat-card-title>
-            </mat-card-header>
+              </div>
 
-            <mat-card-content>
-              <div class="space-y-4 pt-4">
+              <div class="space-y-4">
                 <!-- Type Selector -->
-                <mat-form-field appearance="outline" class="w-full">
-                  <mat-label>Type</mat-label>
-                  <mat-select
-                    [value]="announcement().type"
-                    (selectionChange)="updateField('type', $event.value)"
+                <label class="form-control w-full">
+                  <div class="label">
+                    <span class="label-text text-base-content/70">Type</span>
+                  </div>
+                  <select
+                    class="select select-bordered w-full"
+                    [ngModel]="announcement().type"
+                    (ngModelChange)="updateField('type', $event)"
                   >
                     @for (option of typeOptions; track option.value) {
-                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      <option [value]="option.value">{{ option.label }}</option>
                     }
-                  </mat-select>
-                </mat-form-field>
+                  </select>
+                </label>
 
                 <!-- Title -->
-                <mat-form-field appearance="outline" class="w-full">
-                  <mat-label>Title</mat-label>
+                <label class="form-control w-full">
+                  <div class="label">
+                    <span class="label-text text-base-content/70">Title</span>
+                  </div>
                   <input
-                    matInput
-                    [value]="announcement().title"
-                    (input)="updateField('title', $any($event.target).value)"
+                    type="text"
+                    class="input input-bordered w-full"
+                    [ngModel]="announcement().title"
+                    (ngModelChange)="updateField('title', $event)"
                     placeholder="e.g., Scheduled Maintenance"
                   />
-                </mat-form-field>
+                </label>
 
                 <!-- Message -->
-                <mat-form-field appearance="outline" class="w-full">
-                  <mat-label>Message</mat-label>
+                <label class="form-control w-full">
+                  <div class="label">
+                    <span class="label-text text-base-content/70">Message</span>
+                  </div>
                   <textarea
-                    matInput
-                    [value]="announcement().message"
-                    (input)="updateField('message', $any($event.target).value)"
+                    class="textarea textarea-bordered w-full"
                     rows="4"
+                    [ngModel]="announcement().message"
+                    (ngModelChange)="updateField('message', $event)"
                     placeholder="Enter the message to display to users..."
                   ></textarea>
-                </mat-form-field>
+                </label>
 
                 <!-- Save Button -->
                 <button
-                  mat-raised-button
-                  color="primary"
-                  class="w-full"
+                  class="btn btn-primary w-full"
                   [disabled]="isSaving()"
                   (click)="saveAnnouncement()"
                 >
                   @if (isSaving()) {
-                    <span class="material-symbols-outlined animate-spin mr-2">progress_activity</span>
+                    <span class="loading loading-spinner loading-sm"></span>
                   } @else {
-                    <span class="material-symbols-outlined mr-2">save</span>
+                    <span class="material-symbols-outlined text-sm">save</span>
                   }
                   Save Announcement
                 </button>
               </div>
-            </mat-card-content>
-          </mat-card>
+            </div>
+          </div>
 
           <!-- Preview Card -->
-          <mat-card class="bg-gray-800 border border-gray-700">
-            <mat-card-header>
-              <mat-card-title>
-                <span class="text-lg font-semibold text-white">Preview</span>
-              </mat-card-title>
-              <mat-card-subtitle class="text-gray-400">How it will appear on the login page</mat-card-subtitle>
-            </mat-card-header>
+          <div class="card bg-base-200 shadow">
+            <div class="card-body">
+              <div class="mb-4">
+                <h2 class="text-lg font-semibold text-base-content">Preview</h2>
+                <p class="text-sm text-base-content/60">How it will appear on the login page</p>
+              </div>
 
-            <mat-card-content>
-              <div class="space-y-4 pt-4">
+              <div class="space-y-4">
                 @if (announcement().is_active) {
                   <div
                     class="p-4 rounded-lg border"
@@ -151,7 +142,7 @@ interface Announcement {
                     </p>
                   </div>
                 } @else {
-                  <div class="text-center py-8 text-gray-500">
+                  <div class="text-center py-8 text-base-content/60">
                     <span class="material-symbols-outlined text-4xl mb-2">visibility_off</span>
                     <p>Announcement is currently inactive</p>
                     <p class="text-sm">Toggle the switch above to activate</p>
@@ -159,23 +150,23 @@ interface Announcement {
                 }
 
                 <!-- Quick Templates -->
-                <div class="border-t border-gray-700 pt-4 mt-4">
-                  <h3 class="text-sm font-medium text-gray-300 mb-3">Quick Templates</h3>
+                <div class="border-t border-base-300 pt-4 mt-4">
+                  <h3 class="text-sm font-medium text-base-content/60 mb-3">Quick Templates</h3>
                   <div class="flex flex-wrap gap-2">
                     <button
-                      mat-stroked-button
+                      class="btn btn-outline btn-sm"
                       (click)="applyTemplate('maintenance')"
                     >
                       Maintenance
                     </button>
                     <button
-                      mat-stroked-button
+                      class="btn btn-outline btn-sm"
                       (click)="applyTemplate('issues')"
                     >
                       Server Issues
                     </button>
                     <button
-                      mat-stroked-button
+                      class="btn btn-outline btn-sm"
                       (click)="applyTemplate('update')"
                     >
                       Update Available
@@ -183,13 +174,13 @@ interface Announcement {
                   </div>
                 </div>
               </div>
-            </mat-card-content>
-          </mat-card>
+            </div>
+          </div>
         </div>
 
         <!-- Last Updated Info -->
         @if (announcement().updated_at) {
-          <div class="mt-4 text-sm text-gray-500 text-right">
+          <div class="mt-4 text-sm text-base-content/60 text-right">
             Last updated: {{ formatDate(announcement().updated_at) }}
           </div>
         }

@@ -1,1 +1,3 @@
-/* Custom styles for monitoring component */
+:host {
+  display: block;
+}

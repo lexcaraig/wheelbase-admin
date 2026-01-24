@@ -29,7 +29,7 @@ export interface ContentPreviewDialogData {
     <mat-dialog-content>
       <div class="space-y-4">
         <!-- Content Type & Author -->
-        <div class="flex items-center justify-between pb-4 border-b border-gray-200">
+        <div class="flex items-center justify-between pb-4 border-b border-base-300">
           <div class="flex items-center gap-3">
             <app-avatar
               [image]="data.content.author_avatar_url"
@@ -38,8 +38,8 @@ export interface ContentPreviewDialogData {
               size="large"
             ></app-avatar>
             <div>
-              <p class="font-medium text-gray-800">{{ data.content.author_username }}</p>
-              <p class="text-sm text-gray-600">{{ data.content.flagged_at | relativeTime }}</p>
+              <p class="font-medium text-base-content">{{ data.content.author_username }}</p>
+              <p class="text-sm text-base-content/70">{{ data.content.flagged_at | relativeTime }}</p>
             </div>
           </div>
           <app-status-badge [severity]="getContentTypeSeverity(data.content.content_type)">
@@ -49,15 +49,15 @@ export interface ContentPreviewDialogData {
 
         <!-- Content -->
         <div>
-          <h3 class="font-medium text-gray-700 mb-2">Content:</h3>
-          <div class="p-4 bg-gray-50 rounded-lg">
-            <p class="text-gray-800 whitespace-pre-wrap">{{ data.content.content }}</p>
+          <h3 class="font-medium text-base-content/80 mb-2">Content:</h3>
+          <div class="p-4 bg-base-100 rounded-lg">
+            <p class="text-base-content whitespace-pre-wrap">{{ data.content.content }}</p>
           </div>
         </div>
 
         <!-- Flag Reason -->
         <div>
-          <h3 class="font-medium text-gray-700 mb-2">Flag Reason:</h3>
+          <h3 class="font-medium text-base-content/80 mb-2">Flag Reason:</h3>
           <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
             <p class="text-red-800">{{ data.content.flag_reason }}</p>
           </div>

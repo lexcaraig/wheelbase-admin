@@ -13,28 +13,28 @@ import { Promotion, PromotionPayload, LogoShape, PlacementType, PLACEMENT_LABELS
     <div class="p-6 max-w-4xl mx-auto">
       <!-- Header -->
       <div class="flex items-center gap-4 mb-6">
-        <a routerLink="/promotions" class="p-2 text-gray-400 hover:text-white">
-          <i class="pi pi-arrow-left"></i>
+        <a routerLink="/promotions" class="p-2 text-base-content/50 hover:text-white">
+          <span class="material-symbols-outlined">arrow_back</span>
         </a>
         <div>
           <h1 class="text-2xl font-bold text-white">
             {{ isEditMode() ? 'Edit Promotion' : 'Create Promotion' }}
           </h1>
-          <p class="text-gray-400 mt-1">
+          <p class="text-base-content/50 mt-1">
             {{ isEditMode() ? 'Update the promotion details below' : 'Fill in the details for the new promotion' }}
           </p>
         </div>
       </div>
 
       @if (loading()) {
-        <div class="p-8 text-center text-gray-400">
-          <i class="pi pi-spin pi-spinner text-2xl"></i>
+        <div class="p-8 text-center text-base-content/50">
+          <span class="material-symbols-outlined text-3xl animate-spin">progress_activity</span>
           <p class="mt-2">Loading...</p>
         </div>
       } @else {
         <form (ngSubmit)="savePromotion()" class="space-y-6">
           <!-- Preview -->
-          <div class="bg-gray-800 rounded-lg p-6">
+          <div class="bg-neutral rounded-lg p-6">
             <h2 class="text-lg font-medium text-white mb-4">Preview</h2>
             <div class="max-w-sm mx-auto">
               <!-- Banner preview -->
@@ -62,12 +62,12 @@ import { Promotion, PromotionPayload, LogoShape, PlacementType, PLACEMENT_LABELS
                       </p>
                     }
                   </div>
-                  <i class="pi pi-arrow-right text-xs" [style.color]="form.text_color + '99'"></i>
+                  <span class="material-symbols-outlined text-sm" [style.color]="form.text_color + '99'">arrow_forward</span>
                 </div>
               </div>
               <!-- Mock stats row -->
-              <div class="bg-gray-900 rounded-b-xl p-3">
-                <div class="flex items-center justify-between text-gray-400 text-xs">
+              <div class="bg-neutral rounded-b-xl p-3">
+                <div class="flex items-center justify-between text-base-content/50 text-xs">
                   <span class="text-red-500 font-bold">SOS</span>
                   <span>123 Rides | 432.5km | 299 km/h</span>
                   <span class="text-yellow-400 font-bold">START</span>
@@ -77,77 +77,77 @@ import { Promotion, PromotionPayload, LogoShape, PlacementType, PLACEMENT_LABELS
           </div>
 
           <!-- Basic Info -->
-          <div class="bg-gray-800 rounded-lg p-6">
+          <div class="bg-neutral rounded-lg p-6">
             <h2 class="text-lg font-medium text-white mb-4">Basic Information</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-400 mb-1">Title *</label>
+                <label class="block text-sm font-medium text-base-content/50 mb-1">Title *</label>
                 <input
                   type="text"
                   [(ngModel)]="form.title"
                   name="title"
                   required
-                  class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                  class="w-full px-4 py-2 bg-neutral border border-neutral rounded-lg text-white placeholder-base-content/50 focus:outline-none focus:border-yellow-400"
                   placeholder="Elevate your wardrobe with Imprint Customs"
                 />
               </div>
               <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-400 mb-1">Subtitle</label>
+                <label class="block text-sm font-medium text-base-content/50 mb-1">Subtitle</label>
                 <input
                   type="text"
                   [(ngModel)]="form.subtitle"
                   name="subtitle"
-                  class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                  class="w-full px-4 py-2 bg-neutral border border-neutral rounded-lg text-white placeholder-base-content/50 focus:outline-none focus:border-yellow-400"
                   placeholder="Premium motorcycle apparel"
                 />
               </div>
               <!-- Logo URLs -->
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-sm font-medium text-gray-400 mb-1">Square Logo (1:1)</label>
+                  <label class="block text-sm font-medium text-base-content/50 mb-1">Square Logo (1:1)</label>
                   <input
                     type="url"
                     [(ngModel)]="form.logo_url"
                     name="logo_url"
-                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                    class="w-full px-4 py-2 bg-neutral border border-neutral rounded-lg text-white placeholder-base-content/50 focus:outline-none focus:border-yellow-400"
                     placeholder="https://example.com/logo-square.png"
                   />
-                  <p class="text-xs text-gray-500 mt-1">Used for circular overlays (dashboard)</p>
+                  <p class="text-xs text-base-content/60 mt-1">Used for circular overlays (dashboard)</p>
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-400 mb-1">Horizontal Logo (Wide)</label>
+                  <label class="block text-sm font-medium text-base-content/50 mb-1">Horizontal Logo (Wide)</label>
                   <input
                     type="url"
                     [(ngModel)]="form.logo_url_horizontal"
                     name="logo_url_horizontal"
-                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                    class="w-full px-4 py-2 bg-neutral border border-neutral rounded-lg text-white placeholder-base-content/50 focus:outline-none focus:border-yellow-400"
                     placeholder="https://example.com/logo-wide.png"
                   />
-                  <p class="text-xs text-gray-500 mt-1">Used for banner placements</p>
+                  <p class="text-xs text-base-content/60 mt-1">Used for banner placements</p>
                 </div>
               </div>
               <!-- Logo previews -->
               <div class="flex gap-4 items-center">
                 @if (form.logo_url) {
                   <div class="text-center">
-                    <img [src]="form.logo_url" class="w-12 h-12 rounded-full object-cover border-2 border-gray-600" alt="Square Logo" />
-                    <p class="text-xs text-gray-500 mt-1">Square</p>
+                    <img [src]="form.logo_url" class="w-12 h-12 rounded-full object-cover border-2 border-neutral" alt="Square Logo" />
+                    <p class="text-xs text-base-content/60 mt-1">Square</p>
                   </div>
                 }
                 @if (form.logo_url_horizontal) {
                   <div class="text-center">
-                    <img [src]="form.logo_url_horizontal" class="h-10 max-w-32 object-contain border-2 border-gray-600 rounded" alt="Horizontal Logo" />
-                    <p class="text-xs text-gray-500 mt-1">Horizontal</p>
+                    <img [src]="form.logo_url_horizontal" class="h-10 max-w-32 object-contain border-2 border-neutral rounded" alt="Horizontal Logo" />
+                    <p class="text-xs text-base-content/60 mt-1">Horizontal</p>
                   </div>
                 }
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-400 mb-1">Call-to-Action URL</label>
+                <label class="block text-sm font-medium text-base-content/50 mb-1">Call-to-Action URL</label>
                 <input
                   type="url"
                   [(ngModel)]="form.cta_url"
                   name="cta_url"
-                  class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                  class="w-full px-4 py-2 bg-neutral border border-neutral rounded-lg text-white placeholder-base-content/50 focus:outline-none focus:border-yellow-400"
                   placeholder="https://example.com"
                 />
               </div>
@@ -155,11 +155,11 @@ import { Promotion, PromotionPayload, LogoShape, PlacementType, PLACEMENT_LABELS
           </div>
 
           <!-- Appearance -->
-          <div class="bg-gray-800 rounded-lg p-6">
+          <div class="bg-neutral rounded-lg p-6">
             <h2 class="text-lg font-medium text-white mb-4">Appearance</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-400 mb-1">Background Color</label>
+                <label class="block text-sm font-medium text-base-content/50 mb-1">Background Color</label>
                 <div class="flex items-center gap-2">
                   <input
                     type="color"
@@ -170,13 +170,13 @@ import { Promotion, PromotionPayload, LogoShape, PlacementType, PLACEMENT_LABELS
                   <input
                     type="text"
                     [(ngModel)]="form.background_color"
-                    class="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white uppercase focus:outline-none focus:border-yellow-400"
+                    class="flex-1 px-4 py-2 bg-neutral border border-neutral rounded-lg text-white uppercase focus:outline-none focus:border-yellow-400"
                     placeholder="#FFD535"
                   />
                 </div>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-400 mb-1">Text Color</label>
+                <label class="block text-sm font-medium text-base-content/50 mb-1">Text Color</label>
                 <div class="flex items-center gap-2">
                   <input
                     type="color"
@@ -187,7 +187,7 @@ import { Promotion, PromotionPayload, LogoShape, PlacementType, PLACEMENT_LABELS
                   <input
                     type="text"
                     [(ngModel)]="form.text_color"
-                    class="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white uppercase focus:outline-none focus:border-yellow-400"
+                    class="flex-1 px-4 py-2 bg-neutral border border-neutral rounded-lg text-white uppercase focus:outline-none focus:border-yellow-400"
                     placeholder="#000000"
                   />
                 </div>
@@ -196,19 +196,19 @@ import { Promotion, PromotionPayload, LogoShape, PlacementType, PLACEMENT_LABELS
           </div>
 
           <!-- Scheduling -->
-          <div class="bg-gray-800 rounded-lg p-6">
+          <div class="bg-neutral rounded-lg p-6">
             <h2 class="text-lg font-medium text-white mb-4">Scheduling & Targeting</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-400 mb-1">Priority</label>
+                <label class="block text-sm font-medium text-base-content/50 mb-1">Priority</label>
                 <input
                   type="number"
                   [(ngModel)]="form.priority"
                   name="priority"
                   min="0"
-                  class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-yellow-400"
+                  class="w-full px-4 py-2 bg-neutral border border-neutral rounded-lg text-white focus:outline-none focus:border-yellow-400"
                 />
-                <p class="text-xs text-gray-500 mt-1">Higher priority shows first</p>
+                <p class="text-xs text-base-content/60 mt-1">Higher priority shows first</p>
               </div>
               <div class="flex items-center">
                 <label class="flex items-center gap-2 text-white cursor-pointer">
@@ -216,36 +216,36 @@ import { Promotion, PromotionPayload, LogoShape, PlacementType, PLACEMENT_LABELS
                     type="checkbox"
                     [(ngModel)]="form.is_active"
                     name="is_active"
-                    class="rounded bg-gray-700 border-gray-600 text-yellow-400"
+                    class="rounded bg-neutral border-neutral text-yellow-400"
                   />
                   Active
                 </label>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-400 mb-1">Start Date</label>
+                <label class="block text-sm font-medium text-base-content/50 mb-1">Start Date</label>
                 <input
                   type="datetime-local"
                   [(ngModel)]="form.start_date"
                   name="start_date"
-                  class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-yellow-400"
+                  class="w-full px-4 py-2 bg-neutral border border-neutral rounded-lg text-white focus:outline-none focus:border-yellow-400"
                 />
-                <p class="text-xs text-gray-500 mt-1">Leave empty to start immediately</p>
+                <p class="text-xs text-base-content/60 mt-1">Leave empty to start immediately</p>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-400 mb-1">End Date</label>
+                <label class="block text-sm font-medium text-base-content/50 mb-1">End Date</label>
                 <input
                   type="datetime-local"
                   [(ngModel)]="form.end_date"
                   name="end_date"
-                  class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-yellow-400"
+                  class="w-full px-4 py-2 bg-neutral border border-neutral rounded-lg text-white focus:outline-none focus:border-yellow-400"
                 />
-                <p class="text-xs text-gray-500 mt-1">Leave empty for no end date</p>
+                <p class="text-xs text-base-content/60 mt-1">Leave empty for no end date</p>
               </div>
             </div>
           </div>
 
           <!-- Target Tiers -->
-          <div class="bg-gray-800 rounded-lg p-6">
+          <div class="bg-neutral rounded-lg p-6">
             <h2 class="text-lg font-medium text-white mb-4">Target Subscription Tiers</h2>
             <div class="flex items-center gap-4">
               <label class="flex items-center gap-2 text-white cursor-pointer">
@@ -253,7 +253,7 @@ import { Promotion, PromotionPayload, LogoShape, PlacementType, PLACEMENT_LABELS
                   type="checkbox"
                   [(ngModel)]="targetFree"
                   name="target_free"
-                  class="rounded bg-gray-700 border-gray-600 text-yellow-400"
+                  class="rounded bg-neutral border-neutral text-yellow-400"
                 />
                 Free
               </label>
@@ -262,7 +262,7 @@ import { Promotion, PromotionPayload, LogoShape, PlacementType, PLACEMENT_LABELS
                   type="checkbox"
                   [(ngModel)]="targetPro"
                   name="target_pro"
-                  class="rounded bg-gray-700 border-gray-600 text-yellow-400"
+                  class="rounded bg-neutral border-neutral text-yellow-400"
                 />
                 Pro
               </label>
@@ -271,7 +271,7 @@ import { Promotion, PromotionPayload, LogoShape, PlacementType, PLACEMENT_LABELS
                   type="checkbox"
                   [(ngModel)]="targetPremium"
                   name="target_premium"
-                  class="rounded bg-gray-700 border-gray-600 text-yellow-400"
+                  class="rounded bg-neutral border-neutral text-yellow-400"
                 />
                 Premium
               </label>
@@ -279,24 +279,24 @@ import { Promotion, PromotionPayload, LogoShape, PlacementType, PLACEMENT_LABELS
           </div>
 
           <!-- Placement Locations -->
-          <div class="bg-gray-800 rounded-lg p-6">
+          <div class="bg-neutral rounded-lg p-6">
             <h2 class="text-lg font-medium text-white mb-2">Ad Placements</h2>
-            <p class="text-gray-400 text-sm mb-4">Select where this promotion will appear. Brands pay per placement.</p>
+            <p class="text-base-content/50 text-sm mb-4">Select where this promotion will appear. Brands pay per placement.</p>
             <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
               @for (placement of allPlacements; track placement) {
-                <label class="flex items-center gap-2 text-white cursor-pointer p-2 rounded hover:bg-gray-700 transition-colors">
+                <label class="flex items-center gap-2 text-white cursor-pointer p-2 rounded hover:bg-neutral transition-colors">
                   <input
                     type="checkbox"
                     [checked]="selectedPlacements.has(placement)"
                     (change)="togglePlacement(placement)"
-                    class="rounded bg-gray-700 border-gray-600 text-yellow-400"
+                    class="rounded bg-neutral border-neutral text-yellow-400"
                   />
                   <span class="text-sm">{{ getPlacementLabel(placement) }}</span>
                 </label>
               }
             </div>
-            <p class="text-gray-500 text-xs mt-3">
-              <i class="pi pi-info-circle mr-1"></i>
+            <p class="text-base-content/60 text-xs mt-3 flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">info</span>
               Pro+ users never see ads regardless of placement selection.
             </p>
           </div>
@@ -305,17 +305,17 @@ import { Promotion, PromotionPayload, LogoShape, PlacementType, PLACEMENT_LABELS
           <div class="flex items-center justify-end gap-4">
             <a
               routerLink="/promotions"
-              class="px-6 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors"
+              class="px-6 py-2 bg-neutral text-base-content/40 rounded-lg hover:bg-neutral transition-colors"
             >
               Cancel
             </a>
             <button
               type="submit"
               [disabled]="saving()"
-              class="px-6 py-2 bg-yellow-400 text-gray-900 rounded-lg font-medium hover:bg-yellow-300 transition-colors disabled:opacity-50"
+              class="px-6 py-2 bg-yellow-400 text-base-content rounded-lg font-medium hover:bg-yellow-300 transition-colors disabled:opacity-50"
             >
               @if (saving()) {
-                <i class="pi pi-spin pi-spinner mr-2"></i>
+                <span class="material-symbols-outlined text-lg animate-spin mr-2">progress_activity</span>
               }
               {{ isEditMode() ? 'Update Promotion' : 'Create Promotion' }}
             </button>

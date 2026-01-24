@@ -38,64 +38,64 @@ export interface VerificationReviewDialogData {
     <mat-dialog-content class="max-h-[70vh]">
       <div class="space-y-6">
         <!-- Business Information -->
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4">Business Information</h3>
+        <div class="bg-base-100 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold text-base-content mb-4">Business Information</h3>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="text-sm font-medium text-gray-600">Business Name</label>
-              <div class="text-gray-900 mt-1">{{ data.request.business_name }}</div>
+              <label class="text-sm font-medium text-base-content/70">Business Name</label>
+              <div class="text-base-content mt-1">{{ data.request.business_name }}</div>
             </div>
             <div>
-              <label class="text-sm font-medium text-gray-600">Category</label>
-              <div class="text-gray-900 mt-1">{{ data.request.service_provider?.category || 'N/A' }}</div>
+              <label class="text-sm font-medium text-base-content/70">Category</label>
+              <div class="text-base-content mt-1">{{ data.request.service_provider?.category || 'N/A' }}</div>
             </div>
             <div>
-              <label class="text-sm font-medium text-gray-600">Address</label>
-              <div class="text-gray-900 mt-1">{{ data.request.service_provider?.address || 'N/A' }}</div>
+              <label class="text-sm font-medium text-base-content/70">Address</label>
+              <div class="text-base-content mt-1">{{ data.request.service_provider?.address || 'N/A' }}</div>
             </div>
             <div>
-              <label class="text-sm font-medium text-gray-600">City</label>
-              <div class="text-gray-900 mt-1">{{ data.request.service_provider?.city || 'N/A' }}</div>
+              <label class="text-sm font-medium text-base-content/70">City</label>
+              <div class="text-base-content mt-1">{{ data.request.service_provider?.city || 'N/A' }}</div>
             </div>
           </div>
         </div>
 
         <!-- Owner Information -->
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4">Owner Information</h3>
+        <div class="bg-base-100 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold text-base-content mb-4">Owner Information</h3>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="text-sm font-medium text-gray-600">Owner Name</label>
-              <div class="text-gray-900 mt-1">{{ data.request.owner_name }}</div>
+              <label class="text-sm font-medium text-base-content/70">Owner Name</label>
+              <div class="text-base-content mt-1">{{ data.request.owner_name }}</div>
             </div>
             <div>
-              <label class="text-sm font-medium text-gray-600">Contact Number</label>
-              <div class="text-gray-900 mt-1">{{ data.request.contact_number }}</div>
+              <label class="text-sm font-medium text-base-content/70">Contact Number</label>
+              <div class="text-base-content mt-1">{{ data.request.contact_number }}</div>
             </div>
             <div>
-              <label class="text-sm font-medium text-gray-600">Email</label>
-              <div class="text-gray-900 mt-1">{{ data.request.email }}</div>
+              <label class="text-sm font-medium text-base-content/70">Email</label>
+              <div class="text-base-content mt-1">{{ data.request.email }}</div>
             </div>
             <div>
-              <label class="text-sm font-medium text-gray-600">Business Reg #</label>
-              <div class="text-gray-900 mt-1">{{ data.request.business_registration_number || 'Not provided' }}</div>
+              <label class="text-sm font-medium text-base-content/70">Business Reg #</label>
+              <div class="text-base-content mt-1">{{ data.request.business_registration_number || 'Not provided' }}</div>
             </div>
             <div>
-              <label class="text-sm font-medium text-gray-600">Tax ID</label>
-              <div class="text-gray-900 mt-1">{{ data.request.tax_id || 'Not provided' }}</div>
+              <label class="text-sm font-medium text-base-content/70">Tax ID</label>
+              <div class="text-base-content mt-1">{{ data.request.tax_id || 'Not provided' }}</div>
             </div>
           </div>
         </div>
 
         <!-- Verification Documents -->
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4">Verification Documents</h3>
+        <div class="bg-base-100 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold text-base-content mb-4">Verification Documents</h3>
           <div class="grid grid-cols-3 gap-4">
             <!-- Business Permit -->
-            <div class="border border-gray-200 rounded-lg p-4 bg-white">
+            <div class="border border-base-300 rounded-lg p-4 bg-base-100">
               <div class="flex items-center gap-2 mb-3">
                 <span class="material-symbols-outlined text-blue-600">description</span>
-                <span class="font-medium text-gray-900">Business Permit</span>
+                <span class="font-medium text-base-content">Business Permit</span>
               </div>
               @if (data.request.business_permit_url) {
                 <button
@@ -110,17 +110,17 @@ export interface VerificationReviewDialogData {
                   <span class="material-symbols-outlined text-sm">check_circle</span> Uploaded
                 </div>
               } @else {
-                <div class="flex items-center gap-1 text-gray-400 text-sm">
+                <div class="flex items-center gap-1 text-base-content/50 text-sm">
                   <span class="material-symbols-outlined text-sm">cancel</span> Not uploaded
                 </div>
               }
             </div>
 
             <!-- Tax ID Document -->
-            <div class="border border-gray-200 rounded-lg p-4 bg-white">
+            <div class="border border-base-300 rounded-lg p-4 bg-base-100">
               <div class="flex items-center gap-2 mb-3">
                 <span class="material-symbols-outlined text-blue-600">description</span>
-                <span class="font-medium text-gray-900">Tax ID Document</span>
+                <span class="font-medium text-base-content">Tax ID Document</span>
               </div>
               @if (data.request.tax_id_document_url) {
                 <button
@@ -135,17 +135,17 @@ export interface VerificationReviewDialogData {
                   <span class="material-symbols-outlined text-sm">check_circle</span> Uploaded
                 </div>
               } @else {
-                <div class="flex items-center gap-1 text-gray-400 text-sm">
+                <div class="flex items-center gap-1 text-base-content/50 text-sm">
                   <span class="material-symbols-outlined text-sm">cancel</span> Not uploaded
                 </div>
               }
             </div>
 
             <!-- Proof of Ownership -->
-            <div class="border border-gray-200 rounded-lg p-4 bg-white">
+            <div class="border border-base-300 rounded-lg p-4 bg-base-100">
               <div class="flex items-center gap-2 mb-3">
                 <span class="material-symbols-outlined text-blue-600">description</span>
-                <span class="font-medium text-gray-900">Proof of Ownership</span>
+                <span class="font-medium text-base-content">Proof of Ownership</span>
               </div>
               @if (data.request.proof_of_ownership_url) {
                 <button
@@ -160,7 +160,7 @@ export interface VerificationReviewDialogData {
                   <span class="material-symbols-outlined text-sm">check_circle</span> Uploaded
                 </div>
               } @else {
-                <div class="flex items-center gap-1 text-gray-400 text-sm">
+                <div class="flex items-center gap-1 text-base-content/50 text-sm">
                   <span class="material-symbols-outlined text-sm">cancel</span> Not uploaded
                 </div>
               }
@@ -170,12 +170,12 @@ export interface VerificationReviewDialogData {
 
         <!-- Admin Review Section (only if pending) -->
         @if (data.request.status === 'pending') {
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Admin Review</h3>
+          <div class="bg-base-100 p-4 rounded-lg">
+            <h3 class="text-lg font-semibold text-base-content mb-4">Admin Review</h3>
 
             <!-- Decision Radio Buttons -->
             <div class="mb-4">
-              <label class="text-sm font-medium text-gray-700 mb-2 block">Decision *</label>
+              <label class="text-sm font-medium text-base-content/80 mb-2 block">Decision *</label>
               <mat-radio-group [(ngModel)]="reviewAction" class="flex gap-6">
                 <mat-radio-button value="approve" class="text-green-600">
                   <span class="flex items-center gap-2">
@@ -220,11 +220,11 @@ export interface VerificationReviewDialogData {
 
         <!-- Already Reviewed Section -->
         @if (data.request.status !== 'pending') {
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Review Details</h3>
+          <div class="bg-base-100 p-4 rounded-lg">
+            <h3 class="text-lg font-semibold text-base-content mb-4">Review Details</h3>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="text-sm font-medium text-gray-600">Status</label>
+                <label class="text-sm font-medium text-base-content/70">Status</label>
                 <div class="mt-1">
                   <app-status-badge [severity]="getStatusSeverity(data.request.status)">
                     {{ getStatusLabel(data.request.status) }}
@@ -232,19 +232,19 @@ export interface VerificationReviewDialogData {
                 </div>
               </div>
               <div>
-                <label class="text-sm font-medium text-gray-600">Reviewed At</label>
-                <div class="text-gray-900 mt-1">{{ formatDate(data.request.reviewed_at) }}</div>
+                <label class="text-sm font-medium text-base-content/70">Reviewed At</label>
+                <div class="text-base-content mt-1">{{ formatDate(data.request.reviewed_at) }}</div>
               </div>
               @if (data.request.rejection_reason) {
                 <div class="col-span-2">
-                  <label class="text-sm font-medium text-gray-600">Rejection Reason</label>
+                  <label class="text-sm font-medium text-base-content/70">Rejection Reason</label>
                   <div class="bg-red-50 border border-red-200 rounded p-3 text-red-900 mt-1">{{ data.request.rejection_reason }}</div>
                 </div>
               }
               @if (data.request.admin_notes) {
                 <div class="col-span-2">
-                  <label class="text-sm font-medium text-gray-600">Admin Notes</label>
-                  <div class="text-gray-900 mt-1">{{ data.request.admin_notes }}</div>
+                  <label class="text-sm font-medium text-base-content/70">Admin Notes</label>
+                  <div class="text-base-content mt-1">{{ data.request.admin_notes }}</div>
                 </div>
               }
             </div>

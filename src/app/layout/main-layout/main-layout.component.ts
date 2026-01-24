@@ -8,7 +8,7 @@ import { HeaderComponent } from '../../shared/components/header.component';
   standalone: true,
   imports: [RouterOutlet, SidebarComponent, HeaderComponent],
   template: `
-    <div class="flex h-screen overflow-hidden bg-gray-100">
+    <div class="flex h-screen overflow-hidden bg-base-100">
       <!-- Sidebar -->
       <app-sidebar></app-sidebar>
 
@@ -18,11 +18,11 @@ import { HeaderComponent } from '../../shared/components/header.component';
         <app-header></app-header>
 
         <!-- Page Content -->
-        <main class="flex-1 overflow-y-auto p-6">
+        <main class="flex-1 overflow-y-auto bg-base-100">
           <router-outlet></router-outlet>
         </main>
       </div>
     </div>
-  `
+  `,
 })
 export class MainLayoutComponent {}

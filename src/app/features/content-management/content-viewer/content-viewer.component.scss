@@ -1,3 +1,7 @@
+:host {
+  display: block;
+}
+
 .content-viewer-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -26,20 +30,6 @@
   justify-content: center;
   padding: 48px;
   text-align: center;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #1976d2;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
 }
 
 .error-icon {
@@ -128,137 +118,7 @@
   font-style: italic;
 }
 
-.markdown-content {
-  line-height: 1.6;
-  color: #333;
-
-  // Use ::ng-deep to style dynamically inserted HTML from [innerHTML]
-  ::ng-deep h1 {
-    font-size: 28px;
-    margin-top: 24px;
-    margin-bottom: 16px;
-    font-weight: 700;
-    color: #212121;
-  }
-
-  ::ng-deep h2 {
-    font-size: 24px;
-    margin-top: 20px;
-    margin-bottom: 12px;
-    font-weight: 600;
-    color: #212121;
-  }
-
-  ::ng-deep h3 {
-    font-size: 20px;
-    margin-top: 16px;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #212121;
-  }
-
-  ::ng-deep h4 {
-    font-size: 18px;
-    margin-top: 14px;
-    margin-bottom: 6px;
-    font-weight: 600;
-    color: #212121;
-  }
-
-  ::ng-deep p {
-    margin-bottom: 16px;
-  }
-
-  ::ng-deep ul,
-  ::ng-deep ol {
-    margin-bottom: 16px;
-    padding-left: 24px;
-  }
-
-  ::ng-deep li {
-    margin-bottom: 8px;
-  }
-
-  ::ng-deep strong {
-    font-weight: 700;
-  }
-
-  ::ng-deep em {
-    font-style: italic;
-  }
-
-  ::ng-deep code {
-    background: #f5f5f5;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-family: 'Courier New', monospace;
-    font-size: 14px;
-    color: #d63384;
-  }
-
-  ::ng-deep pre {
-    background: #f5f5f5;
-    padding: 16px;
-    border-radius: 8px;
-    overflow-x: auto;
-    margin-bottom: 16px;
-
-    code {
-      background: none;
-      padding: 0;
-      color: #333;
-    }
-  }
-
-  ::ng-deep blockquote {
-    border-left: 4px solid #1976d2;
-    padding-left: 16px;
-    margin: 16px 0;
-    color: #666;
-    font-style: italic;
-  }
-
-  ::ng-deep a {
-    color: #1976d2;
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-
-  ::ng-deep hr {
-    border: none;
-    border-top: 1px solid #e0e0e0;
-    margin: 24px 0;
-  }
-
-  ::ng-deep img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 8px;
-    margin: 16px 0;
-  }
-
-  ::ng-deep table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 16px;
-
-    th, td {
-      padding: 12px;
-      text-align: left;
-      border: 1px solid #e0e0e0;
-    }
-
-    th {
-      background: #f5f5f5;
-      font-weight: 600;
-    }
-  }
-}
-
-// Timeline-specific content styling
+// Timeline-specific content styling (unique to this component)
 .timeline-content {
   line-height: 1.6;
   color: #333;
@@ -266,16 +126,14 @@
   ::ng-deep h2 {
     @apply relative mb-6 mt-10 pl-6 text-2xl font-bold text-blue-600;
 
-    // Timeline dot
     &::before {
       content: '';
       @apply absolute -left-[30px] top-1 h-4 w-4 rounded-full bg-blue-600 border-4 border-white shadow-lg;
     }
 
-    // Version card background
     &::after {
       content: '';
-      @apply absolute -top-3 -right-8 bottom-[-12px] left-4 z-[-1] rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white shadow-sm;
+      @apply absolute -top-3 -right-8 bottom-[-12px] left-4 z-[-1] rounded-xl border border-base-300 bg-gradient-to-br from-gray-50 to-white shadow-sm;
     }
 
     strong {
@@ -313,11 +171,11 @@
   }
 
   ::ng-deep code {
-    @apply bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono text-pink-600;
+    @apply bg-base-200 px-1.5 py-0.5 rounded text-sm font-mono text-pink-600;
   }
 
   ::ng-deep pre {
-    @apply bg-gray-100 p-4 rounded-lg overflow-x-auto mb-4 ml-6;
+    @apply bg-base-200 p-4 rounded-lg overflow-x-auto mb-4 ml-6;
 
     code {
       @apply bg-transparent p-0 text-gray-800;
@@ -336,11 +194,11 @@
     @apply w-full border-collapse mb-4 ml-6;
 
     th, td {
-      @apply p-3 text-left border border-gray-200;
+      @apply p-3 text-left border border-base-300;
     }
 
     th {
-      @apply bg-gray-100 font-semibold;
+      @apply bg-base-200 font-semibold;
     }
   }
 
@@ -352,8 +210,6 @@
     @apply italic;
   }
 }
-
-
 
 @media (max-width: 768px) {
   .content-preview {

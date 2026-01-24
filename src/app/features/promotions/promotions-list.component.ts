@@ -15,13 +15,13 @@ import { Promotion, PromotionAnalytics } from '../../core/models/promotion.model
       <div class="flex items-center justify-between mb-6">
         <div>
           <h1 class="text-2xl font-bold text-white">Promotions</h1>
-          <p class="text-gray-400 mt-1">Manage Quick Action Widget banner ads</p>
+          <p class="text-base-content/50 mt-1">Manage Quick Action Widget banner ads</p>
         </div>
         <a
           routerLink="/promotions/new"
-          class="px-4 py-2 bg-yellow-400 text-gray-900 rounded-lg font-medium hover:bg-yellow-300 transition-colors flex items-center gap-2"
+          class="px-4 py-2 bg-yellow-400 text-base-content rounded-lg font-medium hover:bg-yellow-300 transition-colors flex items-center gap-2"
         >
-          <i class="pi pi-plus"></i>
+          <span class="material-symbols-outlined text-xl">add</span>
           Create Promotion
         </a>
       </div>
@@ -29,20 +29,20 @@ import { Promotion, PromotionAnalytics } from '../../core/models/promotion.model
       <!-- Analytics Summary -->
       @if (analytics()) {
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div class="bg-gray-800 rounded-lg p-4">
-            <p class="text-gray-400 text-sm">Active Promotions</p>
+          <div class="bg-neutral rounded-lg p-4">
+            <p class="text-base-content/50 text-sm">Active Promotions</p>
             <p class="text-2xl font-bold text-white mt-1">{{ analytics()!.active_promotions }}</p>
           </div>
-          <div class="bg-gray-800 rounded-lg p-4">
-            <p class="text-gray-400 text-sm">Total Impressions</p>
+          <div class="bg-neutral rounded-lg p-4">
+            <p class="text-base-content/50 text-sm">Total Impressions</p>
             <p class="text-2xl font-bold text-white mt-1">{{ analytics()!.total_impressions | number }}</p>
           </div>
-          <div class="bg-gray-800 rounded-lg p-4">
-            <p class="text-gray-400 text-sm">Total Clicks</p>
+          <div class="bg-neutral rounded-lg p-4">
+            <p class="text-base-content/50 text-sm">Total Clicks</p>
             <p class="text-2xl font-bold text-white mt-1">{{ analytics()!.total_clicks | number }}</p>
           </div>
-          <div class="bg-gray-800 rounded-lg p-4">
-            <p class="text-gray-400 text-sm">Click-Through Rate</p>
+          <div class="bg-neutral rounded-lg p-4">
+            <p class="text-base-content/50 text-sm">Click-Through Rate</p>
             <p class="text-2xl font-bold text-white mt-1">{{ analytics()!.click_through_rate | number:'1.1-1' }}%</p>
           </div>
         </div>
@@ -50,12 +50,12 @@ import { Promotion, PromotionAnalytics } from '../../core/models/promotion.model
 
       <!-- Filters -->
       <div class="flex items-center gap-4 mb-6">
-        <label class="flex items-center gap-2 text-gray-400">
+        <label class="flex items-center gap-2 text-base-content/50">
           <input
             type="checkbox"
             [(ngModel)]="activeOnly"
             (ngModelChange)="loadPromotions()"
-            class="rounded bg-gray-700 border-gray-600"
+            class="rounded bg-neutral border-neutral"
           />
           Active only
         </label>
@@ -65,42 +65,42 @@ import { Promotion, PromotionAnalytics } from '../../core/models/promotion.model
           [(ngModel)]="searchQuery"
           (ngModelChange)="filterPromotions()"
           placeholder="Search promotions..."
-          class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+          class="px-4 py-2 bg-neutral border border-neutral rounded-lg text-white placeholder-base-content/50 focus:outline-none focus:border-yellow-400"
         />
       </div>
 
       <!-- Promotions Table -->
-      <div class="bg-gray-800 rounded-lg overflow-hidden">
+      <div class="bg-neutral rounded-lg overflow-hidden">
         @if (loading()) {
-          <div class="p-8 text-center text-gray-400">
-            <i class="pi pi-spin pi-spinner text-2xl"></i>
+          <div class="p-8 text-center text-base-content/50">
+            <span class="material-symbols-outlined text-3xl animate-spin">progress_activity</span>
             <p class="mt-2">Loading promotions...</p>
           </div>
         } @else if (filteredPromotions().length === 0) {
-          <div class="p-8 text-center text-gray-400">
-            <i class="pi pi-megaphone text-4xl opacity-50"></i>
+          <div class="p-8 text-center text-base-content/50">
+            <span class="material-symbols-outlined text-5xl opacity-50">campaign</span>
             <p class="mt-2">No promotions found</p>
             <a routerLink="/promotions/new" class="text-yellow-400 hover:underline mt-2 inline-block">
               Create your first promotion
             </a>
           </div>
         } @else {
-          <table class="w-full">
-            <thead class="bg-gray-700">
+          <table class="table table-zebra">
+            <thead>
               <tr>
-                <th class="px-4 py-3 text-left text-sm font-medium text-gray-300">Title</th>
-                <th class="px-4 py-3 text-left text-sm font-medium text-gray-300">Priority</th>
-                <th class="px-4 py-3 text-left text-sm font-medium text-gray-300">Status</th>
-                <th class="px-4 py-3 text-left text-sm font-medium text-gray-300">Impressions</th>
-                <th class="px-4 py-3 text-left text-sm font-medium text-gray-300">Clicks</th>
-                <th class="px-4 py-3 text-left text-sm font-medium text-gray-300">CTR</th>
-                <th class="px-4 py-3 text-left text-sm font-medium text-gray-300">Actions</th>
+                <th>Title</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Impressions</th>
+                <th>Clicks</th>
+                <th>CTR</th>
+                <th>Actions</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-700">
+            <tbody>
               @for (promo of filteredPromotions(); track promo.id) {
-                <tr class="hover:bg-gray-750">
-                  <td class="px-4 py-3">
+                <tr>
+                  <td>
                     <div class="flex items-center gap-3">
                       <div
                         class="w-8 h-8 rounded-md flex items-center justify-center text-xs font-bold"
@@ -110,52 +110,51 @@ import { Promotion, PromotionAnalytics } from '../../core/models/promotion.model
                         {{ promo.title.charAt(0) }}
                       </div>
                       <div>
-                        <p class="text-white font-medium">{{ promo.title }}</p>
+                        <p class="font-medium">{{ promo.title }}</p>
                         @if (promo.subtitle) {
-                          <p class="text-gray-400 text-sm">{{ promo.subtitle }}</p>
+                          <p class="text-base-content/70 text-sm">{{ promo.subtitle }}</p>
                         }
                       </div>
                     </div>
                   </td>
-                  <td class="px-4 py-3 text-gray-300">{{ promo.priority }}</td>
-                  <td class="px-4 py-3">
+                  <td>{{ promo.priority }}</td>
+                  <td>
                     <button
                       (click)="toggleActive(promo)"
-                      class="px-2 py-1 rounded text-xs font-medium"
-                      [class.bg-green-500]="promo.is_active"
-                      [class.bg-gray-600]="!promo.is_active"
-                      [class.text-white]="true"
+                      class="badge"
+                      [class.badge-success]="promo.is_active"
+                      [class.badge-neutral]="!promo.is_active"
                     >
                       {{ promo.is_active ? 'Active' : 'Inactive' }}
                     </button>
                   </td>
-                  <td class="px-4 py-3 text-gray-300">{{ promo.impression_count | number }}</td>
-                  <td class="px-4 py-3 text-gray-300">{{ promo.click_count | number }}</td>
-                  <td class="px-4 py-3 text-gray-300">
+                  <td>{{ promo.impression_count | number }}</td>
+                  <td>{{ promo.click_count | number }}</td>
+                  <td>
                     {{ promo.impression_count > 0 ? ((promo.click_count / promo.impression_count) * 100 | number:'1.1-1') + '%' : '0%' }}
                   </td>
                   <td class="px-4 py-3">
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-1">
                       <a
                         [routerLink]="'/promotions/report/' + promo.id"
-                        class="p-2 text-gray-400 hover:text-blue-400 transition-colors"
+                        class="btn btn-ghost btn-sm btn-square text-info"
                         title="View Report"
                       >
-                        <i class="pi pi-chart-bar"></i>
+                        <span class="material-symbols-outlined text-xl">bar_chart</span>
                       </a>
                       <a
                         [routerLink]="'/promotions/edit/' + promo.id"
-                        class="p-2 text-gray-400 hover:text-yellow-400 transition-colors"
+                        class="btn btn-ghost btn-sm btn-square text-warning"
                         title="Edit"
                       >
-                        <i class="pi pi-pencil"></i>
+                        <span class="material-symbols-outlined text-xl">edit</span>
                       </a>
                       <button
                         (click)="deletePromotion(promo)"
-                        class="p-2 text-gray-400 hover:text-red-400 transition-colors"
+                        class="btn btn-ghost btn-sm btn-square text-error"
                         title="Delete"
                       >
-                        <i class="pi pi-trash"></i>
+                        <span class="material-symbols-outlined text-xl">delete</span>
                       </button>
                     </div>
                   </td>
@@ -169,21 +168,21 @@ import { Promotion, PromotionAnalytics } from '../../core/models/promotion.model
       <!-- Pagination -->
       @if (totalCount() > pageSize) {
         <div class="flex items-center justify-between mt-4">
-          <p class="text-gray-400 text-sm">
+          <p class="text-base-content/50 text-sm">
             Showing {{ currentPage() * pageSize + 1 }} - {{ Math.min((currentPage() + 1) * pageSize, totalCount()) }} of {{ totalCount() }}
           </p>
           <div class="flex items-center gap-2">
             <button
               (click)="previousPage()"
               [disabled]="currentPage() === 0"
-              class="px-3 py-1 bg-gray-700 text-gray-300 rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-3 py-1 bg-neutral text-base-content/40 rounded hover:bg-neutral disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
             <button
               (click)="nextPage()"
               [disabled]="(currentPage() + 1) * pageSize >= totalCount()"
-              class="px-3 py-1 bg-gray-700 text-gray-300 rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-3 py-1 bg-neutral text-base-content/40 rounded hover:bg-neutral disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
             </button>

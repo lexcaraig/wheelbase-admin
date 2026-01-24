@@ -29,13 +29,13 @@ export interface BulkBanDialogData {
     <mat-dialog-content>
       <div class="space-y-4">
         <!-- Selected Users Summary -->
-        <div class="p-4 bg-gray-50 rounded-lg">
-          <div class="font-semibold text-gray-900 mb-2">
+        <div class="p-4 bg-base-100 rounded-lg">
+          <div class="font-semibold text-base-content mb-2">
             Selected Users ({{ data.users.length }})
           </div>
           <div class="max-h-32 overflow-y-auto space-y-1">
             @for (user of data.users; track user.id) {
-              <div class="text-sm text-gray-700 flex items-center gap-2">
+              <div class="text-sm text-base-content/80 flex items-center gap-2">
                 <span class="material-symbols-outlined text-xs">person</span>
                 <span>{{ user.username }} ({{ user.email }})</span>
               </div>

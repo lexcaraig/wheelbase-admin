@@ -23,7 +23,7 @@ export interface ViewBusinessDialogData {
     <mat-dialog-content class="!pt-4">
       <div class="space-y-4">
         <div class="flex items-center gap-4 mb-6">
-          <div class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
+          <div class="w-16 h-16 rounded-full bg-base-300 flex items-center justify-center">
             @if (data.business.logo_url) {
               <img
                 [src]="data.business.logo_url"
@@ -31,30 +31,30 @@ export interface ViewBusinessDialogData {
                 class="w-16 h-16 rounded-full object-cover"
               />
             } @else {
-              <span class="material-symbols-outlined text-gray-400 text-2xl">business</span>
+              <span class="material-symbols-outlined text-base-content/50 text-2xl">business</span>
             }
           </div>
           <div>
             <h3 class="text-xl font-semibold">{{ data.business.business_name }}</h3>
-            <p class="text-gray-500">{{ getBusinessTypeLabel(data.business.business_type) }}</p>
+            <p class="text-base-content/60">{{ getBusinessTypeLabel(data.business.business_type) }}</p>
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-500">Email</label>
+            <label class="block text-sm font-medium text-base-content/60">Email</label>
             <p>{{ data.business.owner_email }}</p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-500">Phone</label>
+            <label class="block text-sm font-medium text-base-content/60">Phone</label>
             <p>{{ data.business.phone || '-' }}</p>
           </div>
           <div class="col-span-2">
-            <label class="block text-sm font-medium text-gray-500">Address</label>
+            <label class="block text-sm font-medium text-base-content/60">Address</label>
             <p>{{ data.business.address || '-' }}</p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-500">Website</label>
+            <label class="block text-sm font-medium text-base-content/60">Website</label>
             <p>
               @if (data.business.website) {
                 <a [href]="data.business.website" target="_blank" class="text-blue-600 hover:underline">
@@ -66,32 +66,32 @@ export interface ViewBusinessDialogData {
             </p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-500">Country</label>
+            <label class="block text-sm font-medium text-base-content/60">Country</label>
             <p>{{ data.business.country_code }}</p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-500">Status</label>
+            <label class="block text-sm font-medium text-base-content/60">Status</label>
             <app-status-badge [severity]="getStatusSeverity(data.business.verification_status)">
               {{ getStatusLabel(data.business.verification_status) }}
             </app-status-badge>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-500">Subscription</label>
+            <label class="block text-sm font-medium text-base-content/60">Subscription</label>
             <p>{{ data.business.subscription_tier | titlecase }}</p>
           </div>
           @if (data.business.rejection_reason) {
             <div class="col-span-2">
-              <label class="block text-sm font-medium text-gray-500">Rejection/Suspension Reason</label>
+              <label class="block text-sm font-medium text-base-content/60">Rejection/Suspension Reason</label>
               <p class="text-red-600">{{ data.business.rejection_reason }}</p>
             </div>
           }
           <div>
-            <label class="block text-sm font-medium text-gray-500">Created At</label>
+            <label class="block text-sm font-medium text-base-content/60">Created At</label>
             <p>{{ formatDate(data.business.created_at) }}</p>
           </div>
           @if (data.business.verified_at) {
             <div>
-              <label class="block text-sm font-medium text-gray-500">Verified At</label>
+              <label class="block text-sm font-medium text-base-content/60">Verified At</label>
               <p>{{ formatDate(data.business.verified_at) }}</p>
             </div>
           }
@@ -99,8 +99,8 @@ export interface ViewBusinessDialogData {
 
         @if (data.business.description) {
           <div>
-            <label class="block text-sm font-medium text-gray-500">Description</label>
-            <p class="text-gray-700">{{ data.business.description }}</p>
+            <label class="block text-sm font-medium text-base-content/60">Description</label>
+            <p class="text-base-content/80">{{ data.business.description }}</p>
           </div>
         }
       </div>

@@ -1,15 +1,10 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatTableModule } from '@angular/material/table';
-import { MatButtonModule } from '@angular/material/button';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { StatusBadgeComponent, BadgeSeverity } from '../../shared/components/status-badge/status-badge.component';
+import { BadgeSeverity } from '../../shared/components/status-badge/status-badge.component';
 import { EditSettingDialogComponent } from './dialogs/edit-setting-dialog.component';
 
 interface SystemSetting {
@@ -31,13 +26,7 @@ interface SystemSetting {
   imports: [
     CommonModule,
     FormsModule,
-    MatCardModule,
-    MatTableModule,
-    MatButtonModule,
-    MatTooltipModule,
-    MatProgressSpinnerModule,
-    MatDialogModule,
-    StatusBadgeComponent
+    MatDialogModule
   ],
   templateUrl: './system-settings.component.html',
   styleUrl: './system-settings.component.scss'
@@ -48,8 +37,6 @@ export class SystemSettingsComponent implements OnInit {
 
   // Grouping
   groupedSettings = signal<Map<string, SystemSetting[]>>(new Map());
-
-  displayedColumns: string[] = ['key', 'type', 'value', 'description', 'actions'];
 
   constructor(
     private supabase: SupabaseService,
@@ -121,6 +108,18 @@ export class SystemSettingsComponent implements OnInit {
       'Notification': 'secondary'
     };
     return colors[category] || 'secondary';
+  }
+
+  getCategoryBadgeClass(category: string): string {
+    const classes: Record<string, string> = {
+      'General': 'badge-info',
+      'Security': 'badge-error',
+      'Features': 'badge-success',
+      'Limits': 'badge-warning',
+      'Payment': 'badge-info',
+      'Notification': 'badge-neutral'
+    };
+    return classes[category] || 'badge-neutral';
   }
 
   getTypeIcon(type: string): string {

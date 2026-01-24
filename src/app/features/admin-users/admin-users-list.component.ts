@@ -2,22 +2,11 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatOptionModule } from '@angular/material/core';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ConfirmService } from '../../core/services/confirm.service';
-import { StatusBadgeComponent, BadgeSeverity } from '../../shared/components/status-badge/status-badge.component';
+import { BadgeSeverity } from '../../shared/components/status-badge/status-badge.component';
 import { CreateAdminDialogComponent } from './dialogs/create-admin-dialog.component';
 import { EditAdminDialogComponent } from './dialogs/edit-admin-dialog.component';
 
@@ -39,19 +28,7 @@ interface AdminUser {
   imports: [
     CommonModule,
     FormsModule,
-    MatCardModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatOptionModule,
-    MatTooltipModule,
-    MatProgressSpinnerModule,
-    MatIconModule,
-    MatDialogModule,
-    StatusBadgeComponent
+    MatDialogModule
   ],
   templateUrl: './admin-users-list.component.html',
   styleUrl: './admin-users-list.component.scss'
@@ -63,10 +40,9 @@ export class AdminUsersListComponent implements OnInit {
 
   page = 0;
   pageSize = 20;
+  pageSizeOptions = [10, 20, 50];
   searchQuery = '';
   roleFilter = '';
-
-  displayedColumns: string[] = ['email', 'role', 'status', 'createdBy', 'lastLogin', 'created', 'actions'];
 
   roleOptions = [
     { label: 'All Roles', value: '' },
@@ -115,9 +91,43 @@ export class AdminUsersListComponent implements OnInit {
     }
   }
 
-  onPageChange(event: PageEvent) {
-    this.page = event.pageIndex;
-    this.pageSize = event.pageSize;
+  // Pagination methods
+  getTotalPages(): number {
+    return Math.ceil(this.totalRecords() / this.pageSize);
+  }
+
+  getPageRangeLabel(): string {
+    const start = this.page * this.pageSize + 1;
+    const end = Math.min((this.page + 1) * this.pageSize, this.totalRecords());
+    return `${start} - ${end} of ${this.totalRecords()}`;
+  }
+
+  firstPage(): void {
+    this.page = 0;
+    this.loadAdminUsers();
+  }
+
+  previousPage(): void {
+    if (this.page > 0) {
+      this.page--;
+      this.loadAdminUsers();
+    }
+  }
+
+  nextPage(): void {
+    if (this.page < this.getTotalPages() - 1) {
+      this.page++;
+      this.loadAdminUsers();
+    }
+  }
+
+  lastPage(): void {
+    this.page = this.getTotalPages() - 1;
+    this.loadAdminUsers();
+  }
+
+  onPageSizeChange(): void {
+    this.page = 0;
     this.loadAdminUsers();
   }
 

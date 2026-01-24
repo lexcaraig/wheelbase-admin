@@ -25,7 +25,7 @@ export interface ConfirmDialogData {
     </h2>
 
     <mat-dialog-content>
-      <p class="text-gray-600">{{ data.message }}</p>
+      <p class="text-base-content/70">{{ data.message }}</p>
     </mat-dialog-content>
 
     <mat-dialog-actions align="end">

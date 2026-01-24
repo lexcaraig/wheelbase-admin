@@ -1,16 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatOptionModule } from '@angular/material/core';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { BusinessService } from '../../core/services/business.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -21,7 +11,7 @@ import {
   BUSINESS_TYPE_LABELS,
   BUSINESS_STATUS_LABELS,
 } from '../../core/models/business.model';
-import { StatusBadgeComponent, BadgeSeverity } from '../../shared/components/status-badge/status-badge.component';
+import { BadgeSeverity } from '../../shared/components/status-badge/status-badge.component';
 import { ViewBusinessDialogComponent } from './dialogs/view-business-dialog.component';
 import { RejectBusinessDialogComponent } from './dialogs/reject-business-dialog.component';
 import { SuspendBusinessDialogComponent } from './dialogs/suspend-business-dialog.component';
@@ -32,18 +22,7 @@ import { SuspendBusinessDialogComponent } from './dialogs/suspend-business-dialo
   imports: [
     CommonModule,
     FormsModule,
-    MatCardModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatOptionModule,
-    MatTooltipModule,
-    MatProgressSpinnerModule,
-    MatDialogModule,
-    StatusBadgeComponent
+    MatDialogModule
   ],
   templateUrl: './business-list.component.html',
   styles: []
@@ -63,8 +42,7 @@ export class BusinessListComponent implements OnInit {
   searchQuery = '';
   page = 0;
   pageSize = 20;
-
-  displayedColumns: string[] = ['business', 'type', 'contact', 'status', 'created', 'actions'];
+  pageSizeOptions = [10, 20, 50];
 
   statusOptions = [
     { label: 'All', value: 'all' as const },
@@ -108,9 +86,43 @@ export class BusinessListComponent implements OnInit {
     }
   }
 
-  onPageChange(event: PageEvent) {
-    this.page = event.pageIndex;
-    this.pageSize = event.pageSize;
+  // Pagination methods
+  getTotalPages(): number {
+    return Math.ceil(this.totalRecords() / this.pageSize);
+  }
+
+  getPageRangeLabel(): string {
+    const start = this.page * this.pageSize + 1;
+    const end = Math.min((this.page + 1) * this.pageSize, this.totalRecords());
+    return `${start} - ${end} of ${this.totalRecords()}`;
+  }
+
+  firstPage(): void {
+    this.page = 0;
+    this.loadBusinesses();
+  }
+
+  previousPage(): void {
+    if (this.page > 0) {
+      this.page--;
+      this.loadBusinesses();
+    }
+  }
+
+  nextPage(): void {
+    if (this.page < this.getTotalPages() - 1) {
+      this.page++;
+      this.loadBusinesses();
+    }
+  }
+
+  lastPage(): void {
+    this.page = this.getTotalPages() - 1;
+    this.loadBusinesses();
+  }
+
+  onPageSizeChange(): void {
+    this.page = 0;
     this.loadBusinesses();
   }
 
@@ -201,6 +213,16 @@ export class BusinessListComponent implements OnInit {
       case 'rejected': return 'danger';
       case 'suspended': return 'secondary';
       default: return 'info';
+    }
+  }
+
+  getStatusBadgeClass(status: BusinessVerificationStatus): string {
+    switch (status) {
+      case 'pending': return 'badge-warning';
+      case 'approved': return 'badge-success';
+      case 'rejected': return 'badge-error';
+      case 'suspended': return 'badge-neutral';
+      default: return 'badge-info';
     }
   }
 

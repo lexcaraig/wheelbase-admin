@@ -1,153 +1,219 @@
-<div class="content-list-container">
-  <div class="page-header">
+<div class="p-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
     <div>
-      <h1>Content Management</h1>
-      <p class="subtitle">Manage app updates, legal documents, help articles, and more</p>
+      <h1 class="text-2xl font-bold text-base-content">Content Management</h1>
+      <p class="text-base-content/60 mt-1">Manage app updates, legal documents, help articles, and more</p>
     </div>
     <button class="btn btn-primary" (click)="createNew()">
-      <i class="icon-plus"></i> Create New Content
+      <span class="material-symbols-outlined text-sm">add</span>
+      Create New Content
     </button>
   </div>
 
   <!-- Filters -->
-  <div class="filters-section">
-    <div class="filter-group">
-      <input
-        type="text"
-        [(ngModel)]="searchTerm"
-        (keyup.enter)="onSearch()"
-        placeholder="Search by title or excerpt..."
-        class="form-control search-input"
-      />
-      <button class="btn btn-secondary" (click)="onSearch()">Search</button>
-    </div>
+  <div class="card bg-base-200 shadow mb-6">
+    <div class="card-body p-4">
+      <div class="flex flex-wrap items-end gap-4">
+        <div class="flex-1 min-w-[200px]">
+          <label class="form-control w-full">
+            <div class="label">
+              <span class="label-text text-base-content/70">Search</span>
+            </div>
+            <div class="join w-full">
+              <input
+                type="text"
+                [(ngModel)]="searchTerm"
+                (keyup.enter)="onSearch()"
+                placeholder="Search by title or excerpt..."
+                class="input input-bordered join-item flex-1"
+              />
+              <button class="btn btn-primary join-item" (click)="onSearch()">Search</button>
+            </div>
+          </label>
+        </div>
 
-    <div class="filter-group">
-      <select [(ngModel)]="selectedCategory" (change)="onCategoryChange()" class="form-select">
-        <option [ngValue]="null">All Categories</option>
-        <option *ngFor="let cat of categories" [value]="cat">{{ cat | titlecase }}</option>
-      </select>
+        <div class="min-w-[150px]">
+          <label class="form-control w-full">
+            <div class="label">
+              <span class="label-text text-base-content/70">Category</span>
+            </div>
+            <select class="select select-bordered w-full" [(ngModel)]="selectedCategory" (change)="onCategoryChange()">
+              <option [ngValue]="null">All Categories</option>
+              @for (cat of categories; track cat) {
+                <option [value]="cat">{{ cat | titlecase }}</option>
+              }
+            </select>
+          </label>
+        </div>
 
-      <select [(ngModel)]="selectedStatus" (change)="onStatusChange()" class="form-select">
-        <option [ngValue]="null">All Statuses</option>
-        <option *ngFor="let status of statuses" [value]="status">{{ status | titlecase }}</option>
-      </select>
+        <div class="min-w-[150px]">
+          <label class="form-control w-full">
+            <div class="label">
+              <span class="label-text text-base-content/70">Status</span>
+            </div>
+            <select class="select select-bordered w-full" [(ngModel)]="selectedStatus" (change)="onStatusChange()">
+              <option [ngValue]="null">All Statuses</option>
+              @for (status of statuses; track status) {
+                <option [value]="status">{{ status | titlecase }}</option>
+              }
+            </select>
+          </label>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Loading State -->
-  <div *ngIf="loading" class="loading-state">
-    <div class="spinner"></div>
-    <p>Loading content...</p>
-  </div>
+  @if (loading) {
+    <div class="flex flex-col items-center justify-center py-12">
+      <span class="loading loading-spinner loading-lg text-primary"></span>
+      <p class="mt-4 text-base-content/60">Loading content...</p>
+    </div>
+  }
 
   <!-- Error State -->
-  <div *ngIf="error && !loading" class="error-state">
-    <div class="error-icon">⚠️</div>
-    <p class="error-message">{{ error }}</p>
-    <button class="btn btn-secondary" (click)="loadContents()">Try Again</button>
-  </div>
+  @if (error && !loading) {
+    <div class="alert alert-error mb-6">
+      <span class="material-symbols-outlined">error</span>
+      <span>{{ error }}</span>
+      <button class="btn btn-sm btn-ghost" (click)="loadContents()">Try Again</button>
+    </div>
+  }
 
   <!-- Content Table -->
-  <div *ngIf="!loading && !error" class="table-container">
-    <table class="content-table" *ngIf="filteredContents.length > 0">
-      <thead>
-        <tr>
-          <th>Title</th>
-          <th>Category</th>
-          <th>Status</th>
-          <th>Version</th>
-          <th>Last Updated</th>
-          <th class="actions-header">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let content of filteredContents">
-          <td>
-            <div class="content-title">{{ content.title }}</div>
-            <div class="content-slug">{{ content.slug }}</div>
-            <div class="content-excerpt" *ngIf="content.excerpt">{{ content.excerpt }}</div>
-          </td>
-          <td>
-            <span class="badge" [ngClass]="getCategoryBadgeClass(content.category)">
-              {{ content.category }}
-            </span>
-          </td>
-          <td>
-            <span class="badge" [ngClass]="getStatusBadgeClass(content.status)">
-              {{ content.status }}
-            </span>
-          </td>
-          <td class="version-cell">v{{ content.version }}</td>
-          <td class="date-cell">{{ formatDate(content.updatedAt) }}</td>
-          <td class="actions-cell">
-            <button class="btn btn-sm btn-info" (click)="viewContent(content)" title="Preview content">
-              <i class="icon-eye"></i> View
-            </button>
-            <button class="btn btn-sm btn-secondary" (click)="editContent(content)" title="Edit content">
-              <i class="icon-edit"></i> Edit
-            </button>
-            <button
-              *ngIf="content.status === 'draft'"
-              class="btn btn-sm btn-success"
-              (click)="publishContent(content)"
-              title="Publish content"
-            >
-              <i class="icon-check"></i> Publish
-            </button>
-            <button
-              *ngIf="content.status === 'published'"
-              class="btn btn-sm btn-warning"
-              (click)="unpublishContent(content)"
-              title="Unpublish content"
-            >
-              <i class="icon-x"></i> Unpublish
-            </button>
-            <button
-              *ngIf="content.status !== 'archived'"
-              class="btn btn-sm btn-danger"
-              (click)="archiveContent(content)"
-              title="Archive content"
-            >
-              <i class="icon-archive"></i> Archive
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  @if (!loading && !error) {
+    <div class="card bg-base-200 shadow">
+      <div class="card-body p-0">
+        @if (filteredContents.length > 0) {
+          <div class="overflow-x-auto">
+            <table class="table table-zebra">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th style="width: 120px">Category</th>
+                  <th style="width: 100px">Status</th>
+                  <th style="width: 80px">Version</th>
+                  <th style="width: 150px">Last Updated</th>
+                  <th style="width: 280px" class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (content of filteredContents; track content.id) {
+                  <tr>
+                    <td>
+                      <div class="font-semibold text-base-content">{{ content.title }}</div>
+                      <div class="text-sm text-base-content/50">{{ content.slug }}</div>
+                      @if (content.excerpt) {
+                        <div class="text-sm text-base-content/60 line-clamp-2 mt-1">{{ content.excerpt }}</div>
+                      }
+                    </td>
+                    <td>
+                      <span class="badge" [ngClass]="getCategoryBadgeClass(content.category)">
+                        {{ content.category }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="badge" [ngClass]="getStatusBadgeClass(content.status)">
+                        {{ content.status }}
+                      </span>
+                    </td>
+                    <td class="text-base-content/70">v{{ content.version }}</td>
+                    <td class="text-sm text-base-content/70">{{ formatDate(content.updatedAt) }}</td>
+                    <td>
+                      <div class="flex items-center justify-center gap-1">
+                        <button
+                          class="btn btn-ghost btn-sm text-info"
+                          (click)="viewContent(content)"
+                          title="Preview content"
+                        >
+                          <span class="material-symbols-outlined text-sm">visibility</span>
+                          View
+                        </button>
+                        <button
+                          class="btn btn-ghost btn-sm text-warning"
+                          (click)="editContent(content)"
+                          title="Edit content"
+                        >
+                          <span class="material-symbols-outlined text-sm">edit</span>
+                          Edit
+                        </button>
+                        @if (content.status === 'draft') {
+                          <button
+                            class="btn btn-ghost btn-sm text-success"
+                            (click)="publishContent(content)"
+                            title="Publish content"
+                          >
+                            <span class="material-symbols-outlined text-sm">check</span>
+                            Publish
+                          </button>
+                        }
+                        @if (content.status === 'published') {
+                          <button
+                            class="btn btn-ghost btn-sm text-warning"
+                            (click)="unpublishContent(content)"
+                            title="Unpublish content"
+                          >
+                            <span class="material-symbols-outlined text-sm">close</span>
+                            Unpublish
+                          </button>
+                        }
+                        @if (content.status !== 'archived') {
+                          <button
+                            class="btn btn-ghost btn-sm text-error"
+                            (click)="archiveContent(content)"
+                            title="Archive content"
+                          >
+                            <span class="material-symbols-outlined text-sm">archive</span>
+                            Archive
+                          </button>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
 
-    <!-- Empty State -->
-    <div *ngIf="filteredContents.length === 0" class="empty-state">
-      <div class="empty-icon">📄</div>
-      <h3>No content found</h3>
-      <p *ngIf="searchTerm || selectedCategory || selectedStatus">
-        Try adjusting your filters or search terms
-      </p>
-      <p *ngIf="!searchTerm && !selectedCategory && !selectedStatus">
-        Get started by creating your first content page
-      </p>
-      <button class="btn btn-primary" (click)="createNew()">Create First Content</button>
+          <!-- Pagination -->
+          <div class="flex items-center justify-between p-4 border-t border-base-300">
+            <span class="text-sm text-base-content/60">
+              Page {{ currentPage + 1 }} • {{ totalItems }} total items
+            </span>
+            <div class="join">
+              <button
+                class="join-item btn btn-sm"
+                (click)="prevPage()"
+                [disabled]="currentPage === 0"
+              >
+                <span class="material-symbols-outlined text-sm">chevron_left</span>
+                Previous
+              </button>
+              <button
+                class="join-item btn btn-sm"
+                (click)="nextPage()"
+                [disabled]="!hasMore"
+              >
+                Next
+                <span class="material-symbols-outlined text-sm">chevron_right</span>
+              </button>
+            </div>
+          </div>
+        } @else {
+          <!-- Empty State -->
+          <div class="text-center py-12">
+            <span class="material-symbols-outlined text-6xl text-base-content/30">article</span>
+            <h3 class="text-lg font-semibold text-base-content mt-4">No content found</h3>
+            @if (searchTerm || selectedCategory || selectedStatus) {
+              <p class="text-base-content/60 mt-2">Try adjusting your filters or search terms</p>
+            } @else {
+              <p class="text-base-content/60 mt-2">Get started by creating your first content page</p>
+            }
+            <button class="btn btn-primary mt-4" (click)="createNew()">Create First Content</button>
+          </div>
+        }
+      </div>
     </div>
-
-    <!-- Pagination -->
-    <div class="pagination-controls" *ngIf="filteredContents.length > 0">
-      <button
-        class="btn btn-secondary"
-        (click)="prevPage()"
-        [disabled]="currentPage === 0"
-      >
-        ← Previous
-      </button>
-      <span class="page-info">
-        Page {{ currentPage + 1 }} • {{ totalItems }} total items
-      </span>
-      <button
-        class="btn btn-secondary"
-        (click)="nextPage()"
-        [disabled]="!hasMore"
-      >
-        Next →
-      </button>
-    </div>
-  </div>
+  }
 </div>

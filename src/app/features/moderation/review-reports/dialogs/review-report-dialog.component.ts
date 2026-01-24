@@ -41,35 +41,35 @@ export interface ReviewReportDialogData {
     <mat-dialog-content class="!pt-4">
       <div class="space-y-6">
         <!-- Report Info -->
-        <div class="bg-gray-50 rounded-lg p-4">
-          <h3 class="font-semibold text-gray-900 mb-3">Report Details</h3>
+        <div class="bg-base-100 rounded-lg p-4">
+          <h3 class="font-semibold text-base-content mb-3">Report Details</h3>
           <div class="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <span class="text-gray-600">Reported by:</span>
+              <span class="text-base-content/70">Reported by:</span>
               <span class="ml-2 font-medium">&#64;{{ data.report.reporter_username }}</span>
             </div>
             <div>
-              <span class="text-gray-600">Reported at:</span>
+              <span class="text-base-content/70">Reported at:</span>
               <span class="ml-2">{{ data.report.created_at | relativeTime }}</span>
             </div>
             <div>
-              <span class="text-gray-600">Reason:</span>
+              <span class="text-base-content/70">Reason:</span>
               <app-status-badge class="ml-2" [severity]="getReasonSeverity(data.report.reason)">
                 {{ data.report.reason }}
               </app-status-badge>
             </div>
             @if (data.report.description) {
               <div class="col-span-2">
-                <span class="text-gray-600">Description:</span>
-                <p class="mt-1 text-gray-900">{{ data.report.description }}</p>
+                <span class="text-base-content/70">Description:</span>
+                <p class="mt-1 text-base-content">{{ data.report.description }}</p>
               </div>
             }
           </div>
         </div>
 
         <!-- Review Info -->
-        <div class="bg-gray-50 rounded-lg p-4">
-          <h3 class="font-semibold text-gray-900 mb-3">Reported Review</h3>
+        <div class="bg-base-100 rounded-lg p-4">
+          <h3 class="font-semibold text-base-content mb-3">Reported Review</h3>
           <div class="space-y-2">
             <div class="flex items-center gap-4">
               <img
@@ -78,15 +78,15 @@ export interface ReviewReportDialogData {
                 class="w-10 h-10 rounded-full"
               />
               <div>
-                <p class="font-medium text-gray-900">&#64;{{ data.report.reviewer_username }}</p>
+                <p class="font-medium text-base-content">&#64;{{ data.report.reviewer_username }}</p>
                 <div class="flex items-center gap-2">
                   <span class="text-yellow-500">{{ getRatingStars(data.report.review_rating) }}</span>
-                  <span class="text-xs text-gray-500">{{ data.report.review_created_at | relativeTime }}</span>
+                  <span class="text-xs text-base-content/60">{{ data.report.review_created_at | relativeTime }}</span>
                 </div>
               </div>
             </div>
-            <p class="text-gray-700 mt-3">{{ data.report.review_text }}</p>
-            <p class="text-sm text-gray-600 mt-2">
+            <p class="text-base-content/80 mt-3">{{ data.report.review_text }}</p>
+            <p class="text-sm text-base-content/70 mt-2">
               Service Provider: <span class="font-medium">{{ data.report.provider_name }}</span>
             </p>
           </div>
@@ -94,7 +94,7 @@ export interface ReviewReportDialogData {
 
         <!-- Action Selection -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">
+          <label class="block text-sm font-medium text-base-content/80 mb-2">
             Select Action <span class="text-red-500">*</span>
           </label>
           <mat-radio-group [(ngModel)]="selectedAction" class="flex flex-col gap-3">
@@ -181,10 +181,10 @@ export class ReviewReportDialogComponent {
 
   getActionIconClass(color: string): string {
     switch (color) {
-      case 'secondary': return 'text-gray-600';
+      case 'secondary': return 'text-base-content/70';
       case 'warn': return 'text-yellow-600';
       case 'danger': return 'text-red-600';
-      default: return 'text-gray-600';
+      default: return 'text-base-content/70';
     }
   }
 

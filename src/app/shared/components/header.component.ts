@@ -1,8 +1,7 @@
-import { Component, inject, signal, effect } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
-import { MatButtonModule } from '@angular/material/button';
 import { filter } from 'rxjs/operators';
 
 // Route to title mapping
@@ -26,16 +25,16 @@ const ROUTE_TITLES: Record<string, string> = {
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, MatButtonModule],
+  imports: [CommonModule],
   template: `
-    <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+    <header class="bg-base-100 border-b border-base-300 px-6 py-4 flex items-center justify-between">
       <div>
-        <h2 class="text-xl font-semibold text-gray-800">{{ pageTitle() }}</h2>
+        <h2 class="text-xl font-semibold text-base-content">{{ pageTitle() }}</h2>
       </div>
 
       <div class="flex items-center gap-4">
-        <button mat-stroked-button (click)="logout()">
-          <span class="material-symbols-outlined mr-2">logout</span>
+        <button class="btn btn-outline btn-sm" (click)="logout()">
+          <span class="material-symbols-outlined text-lg">logout</span>
           Logout
         </button>
       </div>

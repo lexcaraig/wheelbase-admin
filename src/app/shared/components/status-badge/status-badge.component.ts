@@ -8,7 +8,7 @@ export type BadgeSeverity = 'success' | 'danger' | 'warning' | 'info' | 'seconda
   standalone: true,
   imports: [CommonModule],
   template: `
-    <span [class]="'status-badge badge-' + severity" [class.rounded]="rounded">
+    <span [class]="getBadgeClass()">
       <ng-content></ng-content>
       @if (!hasContent && value) {
         {{ value }}
@@ -18,45 +18,6 @@ export type BadgeSeverity = 'success' | 'danger' | 'warning' | 'info' | 'seconda
   styles: [`
     :host {
       display: inline-block;
-    }
-
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.25rem 0.75rem;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      border-radius: 4px;
-
-      &.rounded {
-        border-radius: 9999px;
-      }
-    }
-
-    .badge-success {
-      background-color: #d1fae5;
-      color: #065f46;
-    }
-
-    .badge-danger {
-      background-color: #fee2e2;
-      color: #991b1b;
-    }
-
-    .badge-warning {
-      background-color: #fef3c7;
-      color: #92400e;
-    }
-
-    .badge-info {
-      background-color: #dbeafe;
-      color: #1e40af;
-    }
-
-    .badge-secondary {
-      background-color: #e5e7eb;
-      color: #374151;
     }
   `]
 })
@@ -70,5 +31,33 @@ export class StatusBadgeComponent {
   ngAfterContentInit() {
     // Check if there's projected content
     this.hasContent = false; // We'll rely on value input for simplicity
+  }
+
+  getBadgeClass(): string {
+    const baseClass = 'badge font-semibold uppercase text-xs';
+    const roundedClass = this.rounded ? 'badge-lg' : '';
+
+    let severityClass = '';
+    switch (this.severity) {
+      case 'success':
+        severityClass = 'badge-success';
+        break;
+      case 'danger':
+        severityClass = 'badge-error';
+        break;
+      case 'warning':
+        severityClass = 'badge-warning';
+        break;
+      case 'info':
+        severityClass = 'badge-info';
+        break;
+      case 'secondary':
+        severityClass = 'badge-neutral';
+        break;
+      default:
+        severityClass = 'badge-info';
+    }
+
+    return `${baseClass} ${severityClass} ${roundedClass}`.trim();
   }
 }

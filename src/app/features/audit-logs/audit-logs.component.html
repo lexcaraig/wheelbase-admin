@@ -1,195 +1,225 @@
-<div class="p-4">
+<div class="p-6">
   <!-- Header -->
-  <div class="flex items-center justify-between mb-4">
+  <div class="flex items-center justify-between mb-6">
     <div>
-      <h1 class="text-3xl font-bold text-gray-900 mb-2">Audit Logs</h1>
-      <p class="text-gray-600">View administrator activity and system events</p>
+      <h1 class="text-3xl font-bold text-base-content mb-2">Audit Logs</h1>
+      <p class="text-base-content/70">View administrator activity and system events</p>
     </div>
     <div class="flex gap-2">
       <button
-        mat-stroked-button
+        class="btn btn-outline"
         (click)="exportToCSV()"
         [disabled]="auditLogs().length === 0"
       >
-        <span class="material-symbols-outlined mr-2">download</span>
+        <span class="material-symbols-outlined text-sm">download</span>
         Export CSV
       </button>
       <button
-        mat-stroked-button
+        class="btn btn-outline"
         (click)="exportToPDF()"
         [disabled]="auditLogs().length === 0"
       >
-        <span class="material-symbols-outlined mr-2">picture_as_pdf</span>
+        <span class="material-symbols-outlined text-sm">picture_as_pdf</span>
         Export PDF
       </button>
     </div>
   </div>
 
   <!-- Filters Card -->
-  <mat-card class="mb-4">
-    <mat-card-content>
+  <div class="card bg-base-200 shadow mb-6">
+    <div class="card-body p-4">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
         <!-- Action Type Filter -->
         <div class="md:col-span-4">
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Action Type</mat-label>
-            <mat-select [value]="actionTypeFilter" (selectionChange)="onActionTypeFilterChange($event.value)">
+          <label class="form-control w-full">
+            <div class="label">
+              <span class="label-text text-base-content/70">Action Type</span>
+            </div>
+            <select
+              class="select select-bordered w-full"
+              [ngModel]="actionTypeFilter"
+              (ngModelChange)="onActionTypeFilterChange($event)"
+            >
               @for (option of actionTypeOptions; track option.value) {
-                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                <option [value]="option.value">{{ option.label }}</option>
               }
-            </mat-select>
-          </mat-form-field>
+            </select>
+          </label>
         </div>
 
         <!-- Start Date -->
         <div class="md:col-span-4">
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Start Date</mat-label>
-            <input matInput [matDatepicker]="startPicker" [(ngModel)]="startDate" (dateChange)="onDateRangeChange()">
-            <mat-hint>YYYY-MM-DD</mat-hint>
-            <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
-            <mat-datepicker #startPicker></mat-datepicker>
-          </mat-form-field>
+          <label class="form-control w-full">
+            <div class="label">
+              <span class="label-text text-base-content/70">Start Date</span>
+            </div>
+            <input
+              type="date"
+              class="input input-bordered w-full"
+              [ngModel]="startDateString"
+              (ngModelChange)="onStartDateChange($event)"
+            />
+          </label>
         </div>
 
         <!-- End Date -->
         <div class="md:col-span-4">
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>End Date</mat-label>
-            <input matInput [matDatepicker]="endPicker" [(ngModel)]="endDate" (dateChange)="onDateRangeChange()">
-            <mat-hint>YYYY-MM-DD</mat-hint>
-            <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
-            <mat-datepicker #endPicker></mat-datepicker>
-          </mat-form-field>
+          <label class="form-control w-full">
+            <div class="label">
+              <span class="label-text text-base-content/70">End Date</span>
+            </div>
+            <input
+              type="date"
+              class="input input-bordered w-full"
+              [ngModel]="endDateString"
+              (ngModelChange)="onEndDateChange($event)"
+            />
+          </label>
         </div>
       </div>
-    </mat-card-content>
-  </mat-card>
+    </div>
+  </div>
 
   <!-- Audit Logs Table -->
-  <mat-card>
-    <mat-card-content class="!p-0">
+  <div class="card bg-base-200 shadow">
+    <div class="card-body p-0">
       @if (isLoading()) {
         <div class="flex justify-center items-center py-12">
-          <mat-spinner diameter="48"></mat-spinner>
+          <span class="loading loading-spinner loading-lg text-primary"></span>
         </div>
       } @else {
         <div class="overflow-x-auto">
-          <table mat-table [dataSource]="auditLogs()" class="w-full">
-            <!-- Timestamp Column -->
-            <ng-container matColumnDef="timestamp">
-              <th mat-header-cell *matHeaderCellDef class="!min-w-[140px]">Timestamp</th>
-              <td mat-cell *matCellDef="let log">
-                <span class="text-gray-700 text-sm">
-                  {{ log.created_at | date:'short' }}
-                </span>
-              </td>
-            </ng-container>
-
-            <!-- Admin Column -->
-            <ng-container matColumnDef="admin">
-              <th mat-header-cell *matHeaderCellDef class="!min-w-[160px]">Admin</th>
-              <td mat-cell *matCellDef="let log">
-                <div class="flex flex-col">
-                  <span class="font-medium text-gray-900 text-sm">{{ log.admin_users.email }}</span>
-                  <span class="text-xs text-gray-500">{{ log.admin_users.role }}</span>
-                </div>
-              </td>
-            </ng-container>
-
-            <!-- Action Column -->
-            <ng-container matColumnDef="action">
-              <th mat-header-cell *matHeaderCellDef class="!min-w-[140px]">Action</th>
-              <td mat-cell *matCellDef="let log">
-                <app-status-badge [severity]="getActionSeverity(log.action_type)">
-                  {{ formatActionType(log.action_type) }}
-                </app-status-badge>
-              </td>
-            </ng-container>
-
-            <!-- Target Type Column -->
-            <ng-container matColumnDef="targetType">
-              <th mat-header-cell *matHeaderCellDef class="!min-w-[100px]">Target Type</th>
-              <td mat-cell *matCellDef="let log">
-                @if (log.target_type) {
-                  <app-status-badge [severity]="getTargetTypeSeverity(log.target_type)">
-                    {{ log.target_type.toUpperCase() }}
-                  </app-status-badge>
-                } @else {
-                  <span class="text-gray-400 text-sm">-</span>
-                }
-              </td>
-            </ng-container>
-
-            <!-- Target ID Column -->
-            <ng-container matColumnDef="targetId">
-              <th mat-header-cell *matHeaderCellDef class="!min-w-[120px]">Target ID</th>
-              <td mat-cell *matCellDef="let log">
-                @if (log.target_id) {
-                  <span class="font-mono text-xs text-gray-600">{{ log.target_id | slice:0:8 }}...</span>
-                } @else {
-                  <span class="text-gray-400 text-sm">-</span>
-                }
-              </td>
-            </ng-container>
-
-            <!-- Details Column -->
-            <ng-container matColumnDef="details">
-              <th mat-header-cell *matHeaderCellDef class="!min-w-[180px]">Details</th>
-              <td mat-cell *matCellDef="let log">
-                @if (log.metadata && Object.keys(log.metadata).length > 0) {
-                  <div class="text-xs text-gray-600">
-                    @for (key of Object.keys(log.metadata); track key) {
-                      <div><strong>{{ key }}:</strong> {{ log.metadata[key] }}</div>
+          <table class="table table-zebra">
+            <thead>
+              <tr>
+                <th style="min-width: 140px">Timestamp</th>
+                <th style="min-width: 160px">Admin</th>
+                <th style="min-width: 140px">Action</th>
+                <th style="min-width: 100px">Target Type</th>
+                <th style="min-width: 120px">Target ID</th>
+                <th style="min-width: 180px">Details</th>
+                <th style="min-width: 100px">IP Address</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (log of auditLogs(); track log.id) {
+                <tr>
+                  <td>
+                    <span class="text-base-content/80 text-sm">
+                      {{ log.created_at | date:'short' }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="flex flex-col">
+                      <span class="font-medium text-base-content text-sm">{{ log.admin_users.email }}</span>
+                      <span class="text-xs text-base-content/60">{{ log.admin_users.role }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge" [ngClass]="getActionBadgeClass(log.action_type)">
+                      {{ formatActionType(log.action_type) }}
+                    </span>
+                  </td>
+                  <td>
+                    @if (log.target_type) {
+                      <span class="badge" [ngClass]="getTargetTypeBadgeClass(log.target_type)">
+                        {{ log.target_type.toUpperCase() }}
+                      </span>
+                    } @else {
+                      <span class="text-base-content/50 text-sm">-</span>
                     }
-                  </div>
-                } @else {
-                  <span class="text-gray-400 text-sm">No details</span>
-                }
-              </td>
-            </ng-container>
-
-            <!-- IP Address Column -->
-            <ng-container matColumnDef="ipAddress">
-              <th mat-header-cell *matHeaderCellDef class="!min-w-[100px]">IP Address</th>
-              <td mat-cell *matCellDef="let log">
-                @if (log.ip_address) {
-                  <span class="font-mono text-xs text-gray-600">{{ log.ip_address }}</span>
-                } @else {
-                  <span class="text-gray-400 text-sm">-</span>
-                }
-              </td>
-            </ng-container>
-
-            <!-- Header Row -->
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-
-            <!-- Data Rows -->
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-
-            <!-- Empty State -->
-            <tr class="mat-row" *matNoDataRow>
-              <td class="mat-cell text-center py-12" [attr.colspan]="displayedColumns.length">
-                <div class="flex flex-col items-center gap-3">
-                  <span class="material-symbols-outlined text-gray-400 text-6xl">list_alt</span>
-                  <div class="text-gray-500 text-lg">No audit logs found</div>
-                  <p class="text-gray-400 text-sm">Try adjusting your filters</p>
-                </div>
-              </td>
-            </tr>
+                  </td>
+                  <td>
+                    @if (log.target_id) {
+                      <span class="font-mono text-xs text-base-content/70">{{ log.target_id | slice:0:8 }}...</span>
+                    } @else {
+                      <span class="text-base-content/50 text-sm">-</span>
+                    }
+                  </td>
+                  <td>
+                    @if (log.metadata && Object.keys(log.metadata).length > 0) {
+                      <div class="text-xs text-base-content/70">
+                        @for (key of Object.keys(log.metadata); track key) {
+                          <div><strong>{{ key }}:</strong> {{ log.metadata[key] }}</div>
+                        }
+                      </div>
+                    } @else {
+                      <span class="text-base-content/50 text-sm">No details</span>
+                    }
+                  </td>
+                  <td>
+                    @if (log.ip_address) {
+                      <span class="font-mono text-xs text-base-content/70">{{ log.ip_address }}</span>
+                    } @else {
+                      <span class="text-base-content/50 text-sm">-</span>
+                    }
+                  </td>
+                </tr>
+              }
+              @empty {
+                <tr>
+                  <td colspan="7" class="text-center py-12">
+                    <div class="flex flex-col items-center gap-3">
+                      <span class="material-symbols-outlined text-base-content/50 text-6xl">list_alt</span>
+                      <div class="text-base-content/60 text-lg">No audit logs found</div>
+                      <p class="text-base-content/50 text-sm">Try adjusting your filters</p>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
           </table>
         </div>
 
-        <!-- Paginator -->
-        <mat-paginator
-          [length]="totalRecords()"
-          [pageSize]="pageSize"
-          [pageSizeOptions]="[25, 50, 100]"
-          [pageIndex]="page"
-          (page)="onPageChange($event)"
-          showFirstLastButtons
-        ></mat-paginator>
+        <!-- Custom Pagination -->
+        @if (auditLogs().length > 0) {
+          <div class="flex items-center justify-between p-4 border-t border-base-300">
+            <div class="flex items-center gap-4">
+              <span class="text-sm text-base-content/70">Rows per page:</span>
+              <select class="select select-bordered select-sm" [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()">
+                @for (size of pageSizeOptions; track size) {
+                  <option [value]="size">{{ size }}</option>
+                }
+              </select>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-base-content/70">
+                {{ getPageRangeLabel() }}
+              </span>
+              <div class="join">
+                <button
+                  class="join-item btn btn-sm"
+                  [disabled]="page === 0"
+                  (click)="firstPage()"
+                >
+                  <span class="material-symbols-outlined text-sm">first_page</span>
+                </button>
+                <button
+                  class="join-item btn btn-sm"
+                  [disabled]="page === 0"
+                  (click)="previousPage()"
+                >
+                  <span class="material-symbols-outlined text-sm">chevron_left</span>
+                </button>
+                <button
+                  class="join-item btn btn-sm"
+                  [disabled]="page >= getTotalPages() - 1"
+                  (click)="nextPage()"
+                >
+                  <span class="material-symbols-outlined text-sm">chevron_right</span>
+                </button>
+                <button
+                  class="join-item btn btn-sm"
+                  [disabled]="page >= getTotalPages() - 1"
+                  (click)="lastPage()"
+                >
+                  <span class="material-symbols-outlined text-sm">last_page</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        }
       }
-    </mat-card-content>
-  </mat-card>
+    </div>
+  </div>
 </div>

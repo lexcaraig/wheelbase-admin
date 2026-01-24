@@ -15,40 +15,46 @@ interface MenuItem {
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive],
   template: `
-    <aside class="w-64 bg-gray-900 text-white min-h-screen flex flex-col">
+    <aside class="w-64 bg-base-200 min-h-screen flex flex-col border-r border-base-300">
       <!-- Logo -->
-      <div class="p-6 border-b border-gray-800">
-        <h1 class="text-2xl font-bold text-yellow-400">Wheelbase</h1>
-        <p class="text-sm text-gray-400 mt-1">Admin Panel</p>
+      <div class="p-6 border-b border-base-300">
+        <h1 class="text-2xl font-bold text-primary">Wheelbase</h1>
+        <p class="text-sm text-base-content/60 mt-1">Admin Panel</p>
       </div>
 
       <!-- Navigation -->
-      <nav class="flex-1 p-4 space-y-2">
-        @for (item of menuItems(); track item.route) {
-          @if (!item.permission || authService.hasPermission(item.permission)) {
-            <a
-              [routerLink]="item.route"
-              routerLinkActive="bg-yellow-400 text-gray-900"
-              [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
-              class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors"
-            >
-              <span class="material-symbols-outlined text-xl">{{ item.icon }}</span>
-              <span>{{ item.label }}</span>
-            </a>
+      <nav class="flex-1 p-4 overflow-y-auto">
+        <ul class="menu menu-sm bg-base-200 rounded-box gap-1">
+          @for (item of menuItems(); track item.route) {
+            @if (!item.permission || authService.hasPermission(item.permission)) {
+              <li>
+                <a
+                  [routerLink]="item.route"
+                  routerLinkActive="active bg-primary text-primary-content"
+                  [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+                  class="flex items-center gap-3 text-base-content hover:bg-base-300"
+                >
+                  <span class="material-symbols-outlined text-xl">{{ item.icon }}</span>
+                  <span>{{ item.label }}</span>
+                </a>
+              </li>
+            }
           }
-        }
+        </ul>
       </nav>
 
       <!-- User Info -->
-      <div class="p-4 border-t border-gray-800">
+      <div class="p-4 border-t border-base-300 bg-base-100">
         @if (authService.currentUser$ | async; as user) {
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center text-gray-900 font-bold">
-              {{ user.email ? user.email.charAt(0).toUpperCase() : '?' }}
+            <div class="avatar placeholder">
+              <div class="bg-primary text-primary-content rounded-full w-10 h-10 flex items-center justify-center">
+                <span class="text-lg font-bold">{{ user.email ? user.email.charAt(0).toUpperCase() : '?' }}</span>
+              </div>
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium truncate">{{ user.email }}</p>
-              <p class="text-xs text-gray-400 capitalize">{{ user.role.replace('_', ' ') }}</p>
+              <p class="text-sm font-medium text-base-content truncate">{{ user.email }}</p>
+              <p class="text-xs text-base-content/60 capitalize">{{ user.role.replace('_', ' ') }}</p>
             </div>
           </div>
         }

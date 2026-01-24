@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -8,18 +8,7 @@ import { AppUser } from '../../../core/models/user.model';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ConfirmService } from '../../../core/services/confirm.service';
 
-// Angular Material imports
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule, MatTableDataSource } from '@angular/material/table';
-import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
-import { MatSortModule, MatSort, Sort } from '@angular/material/sort';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatTooltipModule } from '@angular/material/tooltip';
+// Angular Material - only for dialogs
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 
 // Shared components
@@ -39,18 +28,7 @@ import { ForceDeleteDialogComponent } from './dialogs/force-delete-dialog.compon
   imports: [
     CommonModule,
     FormsModule,
-    // Angular Material
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatSortModule,
-    MatCheckboxModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatTooltipModule,
+    // Angular Material - only for dialogs
     MatDialogModule,
     // Shared components
     StatusBadgeComponent,
@@ -61,9 +39,6 @@ import { ForceDeleteDialogComponent } from './dialogs/force-delete-dialog.compon
   styleUrl: './users-list.component.scss'
 })
 export class UsersListComponent implements OnInit {
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
-
   users = signal<AppUser[]>([]);
   isLoading = signal(true);
   totalRecords = signal(0);
@@ -74,9 +49,6 @@ export class UsersListComponent implements OnInit {
 
   // Selection
   selection = new SelectionModel<AppUser>(true, []);
-
-  // Table columns
-  displayedColumns: string[] = ['select', 'user', 'email', 'country', 'subscription', 'verification', 'status', 'joined', 'actions'];
 
   // Filters
   searchQuery = '';
@@ -164,25 +136,53 @@ export class UsersListComponent implements OnInit {
     }
   }
 
-  onPageChange(event: PageEvent) {
-    this.currentPage.set(event.pageIndex + 1);
-    this.pageSize = event.pageSize;
+  // Pagination methods
+  getTotalPages(): number {
+    return Math.ceil(this.totalRecords() / this.pageSize);
+  }
+
+  getPageRangeLabel(): string {
+    const start = (this.currentPage() - 1) * this.pageSize + 1;
+    const end = Math.min(this.currentPage() * this.pageSize, this.totalRecords());
+    return `${start} - ${end} of ${this.totalRecords()}`;
+  }
+
+  firstPage(): void {
+    this.currentPage.set(1);
+    this.loadUsers();
+  }
+
+  previousPage(): void {
+    if (this.currentPage() > 1) {
+      this.currentPage.update(p => p - 1);
+      this.loadUsers();
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage() < this.getTotalPages()) {
+      this.currentPage.update(p => p + 1);
+      this.loadUsers();
+    }
+  }
+
+  lastPage(): void {
+    this.currentPage.set(this.getTotalPages());
+    this.loadUsers();
+  }
+
+  onPageSizeChange(): void {
+    this.currentPage.set(1);
     this.loadUsers();
   }
 
   onSearch() {
     this.currentPage.set(1);
-    if (this.paginator) {
-      this.paginator.firstPage();
-    }
     this.loadUsers();
   }
 
   onFilterChange() {
     this.currentPage.set(1);
-    if (this.paginator) {
-      this.paginator.firstPage();
-    }
     this.loadUsers();
   }
 
@@ -193,9 +193,6 @@ export class UsersListComponent implements OnInit {
     this.verificationFilter = 'all';
     this.accountStatusFilter = 'all';
     this.currentPage.set(1);
-    if (this.paginator) {
-      this.paginator.firstPage();
-    }
     this.loadUsers();
   }
 

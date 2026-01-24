@@ -45,7 +45,7 @@
           <td mat-cell *matCellDef="let request">
             <div class="business-name-cell">
               <strong>{{ request.business_name }}</strong>
-              <small class="text-gray-500 block">{{ request.service_provider?.category || 'N/A' }}</small>
+              <small class="text-base-content/60 block">{{ request.service_provider?.category || 'N/A' }}</small>
             </div>
           </td>
         </ng-container>
@@ -56,7 +56,7 @@
           <td mat-cell *matCellDef="let request">
             <div class="owner-cell">
               <div>{{ request.owner_name }}</div>
-              <small class="text-gray-500">{{ request.email }}</small>
+              <small class="text-base-content/60">{{ request.email }}</small>
             </div>
           </td>
         </ng-container>
@@ -67,7 +67,7 @@
           <td mat-cell *matCellDef="let request">
             <div>{{ request.contact_number }}</div>
             @if (request.business_registration_number) {
-              <small class="text-gray-500">Reg: {{ request.business_registration_number }}</small>
+              <small class="text-base-content/60">Reg: {{ request.business_registration_number }}</small>
             }
           </td>
         </ng-container>
@@ -78,7 +78,7 @@
           <td mat-cell *matCellDef="let request">
             <div>{{ request.service_provider?.city || 'N/A' }}</div>
             @if (request.service_provider?.state_province) {
-              <small class="text-gray-500">{{ request.service_provider.state_province }}</small>
+              <small class="text-base-content/60">{{ request.service_provider.state_province }}</small>
             }
           </td>
         </ng-container>
@@ -94,7 +94,7 @@
                   {{ getDocumentCount(request) }} docs
                 </span>
               } @else {
-                <span class="text-gray-400">None</span>
+                <span class="text-base-content/50">None</span>
               }
             </div>
           </td>
@@ -117,7 +117,7 @@
             <div class="date-cell">
               <div>{{ formatDate(request.submitted_at) }}</div>
               @if (request.reviewed_at) {
-                <small class="text-gray-500">Reviewed: {{ formatDate(request.reviewed_at) }}</small>
+                <small class="text-base-content/60">Reviewed: {{ formatDate(request.reviewed_at) }}</small>
               }
             </div>
           </td>
@@ -151,8 +151,8 @@
         <tr class="mat-row" *matNoDataRow>
           <td class="mat-cell text-center py-12" [attr.colspan]="displayedColumns.length">
             <div class="empty-state flex flex-col items-center gap-2">
-              <span class="material-symbols-outlined text-5xl text-gray-400">inbox</span>
-              <p class="text-gray-500">No verification requests found</p>
+              <span class="material-symbols-outlined text-5xl text-base-content/50">inbox</span>
+              <p class="text-base-content/60">No verification requests found</p>
             </div>
           </td>
         </tr>

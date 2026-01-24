@@ -1,2 +1,3 @@
-// Component-specific styles only
-// Shared styles (line-clamp, admin-datatable, etc.) are in src/styles.scss
+:host {
+  display: block;
+}

@@ -9,9 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Migrated from PrimeIcons to Material Icons** - Replaced all `pi pi-*` icon classes with Material Symbols Outlined (`material-symbols-outlined`) for better rendering and consistency. Updated icons in promotions-list, promotion-editor, and promotion-report components.
+
 ### Fixed
 
-- **PrimeIcons Not Rendering** - Installed `primeicons` package and added CSS import to `angular.json`. PrimeIcons (`pi pi-*` classes) were not displaying because the icon font CSS was missing.
 - **Action Button Icon Contrast** - Fixed ghost button icons (`text-info`, `text-warning`, `text-error`, `text-success`, `text-primary`) blending into dark theme background in table action columns. Applied brighter color values (e.g., blue-400, amber-400, red-400) with enhanced hover states for better visibility across all admin tables (promotions, users, businesses, moderation, etc.)
 
 ---

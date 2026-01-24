@@ -35,16 +35,4 @@
   background: transparent;
 }
 
-// Loading spinner animation
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
+// Note: .animate-spin and @keyframes spin are defined in global styles.scss

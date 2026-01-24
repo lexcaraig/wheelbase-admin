@@ -1,120 +1,106 @@
-<div class="p-4">
+<div class="p-6">
   <!-- Header -->
-  <div class="mb-4">
-    <h1 class="text-3xl font-bold text-gray-900 mb-2">System Settings</h1>
-    <p class="text-gray-600">Configure application-wide settings and parameters</p>
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-base-content mb-2">System Settings</h1>
+    <p class="text-base-content/70">Configure application-wide settings and parameters</p>
   </div>
 
   <!-- Loading State -->
   @if (isLoading()) {
     <div class="flex justify-center items-center py-12">
-      <mat-spinner diameter="48"></mat-spinner>
+      <span class="loading loading-spinner loading-lg text-primary"></span>
     </div>
   } @else {
     <!-- Settings by Category -->
     @for (category of categories; track category) {
-      <mat-card class="mb-4">
-        <mat-card-header>
-          <mat-card-title>
+      <div class="card bg-base-200 shadow mb-6">
+        <div class="card-body p-0">
+          <!-- Category Header -->
+          <div class="p-4 border-b border-base-300">
             <div class="flex items-center gap-3">
-              <app-status-badge [severity]="getCategoryColor(category)">
+              <span class="badge" [ngClass]="getCategoryBadgeClass(category)">
                 {{ category }}
-              </app-status-badge>
-              <span class="font-semibold text-gray-700 text-sm">
+              </span>
+              <span class="font-semibold text-base-content/80 text-sm">
                 {{ groupedSettings().get(category)?.length || 0 }} settings
               </span>
             </div>
-          </mat-card-title>
-        </mat-card-header>
-        <mat-card-content class="!p-0">
+          </div>
+
+          <!-- Settings Table -->
           <div class="overflow-x-auto">
-            <table mat-table [dataSource]="groupedSettings().get(category) || []" class="w-full">
-              <!-- Setting Key Column -->
-              <ng-container matColumnDef="key">
-                <th mat-header-cell *matHeaderCellDef class="!min-w-[200px]">Setting</th>
-                <td mat-cell *matCellDef="let setting">
-                  <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-gray-500">{{ getTypeIcon(setting.value_type) }}</span>
-                    <span class="font-semibold text-gray-900">{{ setting.key }}</span>
-                  </div>
-                </td>
-              </ng-container>
-
-              <!-- Type Column -->
-              <ng-container matColumnDef="type">
-                <th mat-header-cell *matHeaderCellDef class="!min-w-[100px]">Type</th>
-                <td mat-cell *matCellDef="let setting">
-                  <app-status-badge severity="secondary">
-                    {{ setting.value_type.toUpperCase() }}
-                  </app-status-badge>
-                </td>
-              </ng-container>
-
-              <!-- Value Column -->
-              <ng-container matColumnDef="value">
-                <th mat-header-cell *matHeaderCellDef class="!min-w-[200px]">Current Value</th>
-                <td mat-cell *matCellDef="let setting">
-                  @if (setting.value_type === 'boolean') {
-                    <app-status-badge [severity]="getValueSeverity(setting.value)">
-                      {{ formatValue(setting.value, setting.value_type) }}
-                    </app-status-badge>
-                  } @else if (setting.value_type === 'json') {
-                    <code class="text-xs bg-gray-100 p-1 rounded">{{ formatValue(setting.value, setting.value_type) }}</code>
-                  } @else {
-                    <span class="text-gray-700">{{ formatValue(setting.value, setting.value_type) }}</span>
-                  }
-                </td>
-              </ng-container>
-
-              <!-- Description Column -->
-              <ng-container matColumnDef="description">
-                <th mat-header-cell *matHeaderCellDef class="!min-w-[200px]">Description</th>
-                <td mat-cell *matCellDef="let setting">
-                  <span class="text-sm text-gray-600">{{ setting.description }}</span>
-                </td>
-              </ng-container>
-
-              <!-- Actions Column -->
-              <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef class="!text-center !min-w-[80px]">Actions</th>
-                <td mat-cell *matCellDef="let setting" class="!text-center">
-                  <button
-                    mat-icon-button
-                    (click)="openEditDialog(setting)"
-                    matTooltip="Edit Setting"
-                  >
-                    <span class="material-symbols-outlined">edit</span>
-                  </button>
-                </td>
-              </ng-container>
-
-              <!-- Header Row -->
-              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-
-              <!-- Data Rows -->
-              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-
-              <!-- Empty State -->
-              <tr class="mat-row" *matNoDataRow>
-                <td class="mat-cell text-center py-8" [attr.colspan]="displayedColumns.length">
-                  <div class="text-gray-500">No settings in this category</div>
-                </td>
-              </tr>
+            <table class="table table-zebra">
+              <thead>
+                <tr>
+                  <th style="min-width: 200px">Setting</th>
+                  <th style="min-width: 100px">Type</th>
+                  <th style="min-width: 200px">Current Value</th>
+                  <th style="min-width: 200px">Description</th>
+                  <th style="min-width: 80px" class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (setting of groupedSettings().get(category); track setting.id) {
+                  <tr>
+                    <td>
+                      <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-base-content/60">{{ getTypeIcon(setting.value_type) }}</span>
+                        <span class="font-semibold text-base-content">{{ setting.key }}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="badge badge-neutral">
+                        {{ setting.value_type.toUpperCase() }}
+                      </span>
+                    </td>
+                    <td>
+                      @if (setting.value_type === 'boolean') {
+                        <span class="badge" [class.badge-success]="setting.value" [class.badge-error]="!setting.value">
+                          {{ formatValue(setting.value, setting.value_type) }}
+                        </span>
+                      } @else if (setting.value_type === 'json') {
+                        <code class="text-xs bg-base-300 p-1 rounded">{{ formatValue(setting.value, setting.value_type) }}</code>
+                      } @else {
+                        <span class="text-base-content/80">{{ formatValue(setting.value, setting.value_type) }}</span>
+                      }
+                    </td>
+                    <td>
+                      <span class="text-sm text-base-content/70">{{ setting.description }}</span>
+                    </td>
+                    <td class="text-center">
+                      <button
+                        class="btn btn-ghost btn-sm btn-square tooltip text-warning"
+                        data-tip="Edit Setting"
+                        (click)="openEditDialog(setting)"
+                      >
+                        <span class="material-symbols-outlined">edit</span>
+                      </button>
+                    </td>
+                  </tr>
+                }
+                @empty {
+                  <tr>
+                    <td colspan="5" class="text-center py-8">
+                      <div class="text-base-content/60">No settings in this category</div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
             </table>
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </div>
     }
 
     @if (categories.length === 0) {
-      <mat-card>
-        <mat-card-content>
+      <div class="card bg-base-200 shadow">
+        <div class="card-body">
           <div class="text-center py-12">
-            <span class="material-symbols-outlined text-gray-400 text-6xl">settings</span>
-            <div class="text-gray-500 text-lg mt-4">No system settings found</div>
+            <span class="material-symbols-outlined text-base-content/50 text-6xl">settings</span>
+            <div class="text-base-content/60 text-lg mt-4">No system settings found</div>
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </div>
     }
   }
 </div>

@@ -25,8 +25,8 @@ export interface AlertDetailDialogData {
     <mat-dialog-content class="!pt-4">
       <div class="space-y-4">
         <!-- User Info -->
-        <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-          <div class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+        <div class="flex items-center gap-4 p-4 bg-base-100 rounded-lg">
+          <div class="w-16 h-16 rounded-full bg-base-300 flex items-center justify-center overflow-hidden">
             @if (data.alert.user?.avatar_url) {
               <img
                 [src]="data.alert.user?.avatar_url"
@@ -34,16 +34,16 @@ export interface AlertDetailDialogData {
                 class="w-16 h-16 rounded-full object-cover"
               />
             } @else {
-              <span class="text-2xl font-bold text-gray-500">
+              <span class="text-2xl font-bold text-base-content/60">
                 {{ getInitial(data.alert.user?.full_name) }}
               </span>
             }
           </div>
           <div>
-            <h3 class="text-lg font-semibold text-gray-900">{{ data.alert.user?.full_name || 'Unknown User' }}</h3>
-            <p class="text-gray-600">&#64;{{ data.alert.user?.username }}</p>
+            <h3 class="text-lg font-semibold text-base-content">{{ data.alert.user?.full_name || 'Unknown User' }}</h3>
+            <p class="text-base-content/70">&#64;{{ data.alert.user?.username }}</p>
             @if (data.alert.user?.phone) {
-              <p class="text-gray-600">{{ data.alert.user?.phone }}</p>
+              <p class="text-base-content/70">{{ data.alert.user?.phone }}</p>
             }
           </div>
         </div>
@@ -51,32 +51,32 @@ export interface AlertDetailDialogData {
         <!-- Alert Info Grid -->
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <p class="text-sm text-gray-500">Status</p>
+            <p class="text-sm text-base-content/60">Status</p>
             <app-status-badge [severity]="getStatusSeverity(data.alert.status)">
               {{ data.alert.status.toUpperCase() }}
             </app-status-badge>
           </div>
           <div>
-            <p class="text-sm text-gray-500">Type</p>
+            <p class="text-sm text-base-content/60">Type</p>
             <app-status-badge [severity]="data.alert.alert_type === 'automatic' ? 'warning' : 'info'">
               {{ data.alert.alert_type === 'automatic' ? 'CRASH DETECTED' : 'MANUAL SOS' }}
             </app-status-badge>
           </div>
           <div>
-            <p class="text-sm text-gray-500">Triggered At</p>
+            <p class="text-sm text-base-content/60">Triggered At</p>
             <p class="font-medium">{{ formatDate(data.alert.triggered_at) }}</p>
           </div>
           <div>
-            <p class="text-sm text-gray-500">Contacts Notified</p>
+            <p class="text-sm text-base-content/60">Contacts Notified</p>
             <p class="font-medium">{{ data.alert.emergency_contacts_notified ? 'Yes' : 'No' }}</p>
           </div>
           <div>
-            <p class="text-sm text-gray-500">Help Arrived</p>
+            <p class="text-sm text-base-content/60">Help Arrived</p>
             <p class="font-medium">{{ data.alert.help_arrived ? 'Yes' : 'No' }}</p>
           </div>
           @if (data.alert.resolved_at) {
             <div>
-              <p class="text-sm text-gray-500">Resolved At</p>
+              <p class="text-sm text-base-content/60">Resolved At</p>
               <p class="font-medium">{{ formatDate(data.alert.resolved_at) }}</p>
             </div>
           }
@@ -85,15 +85,15 @@ export interface AlertDetailDialogData {
         <!-- Message -->
         @if (data.alert.message) {
           <div>
-            <p class="text-sm text-gray-500">Message</p>
-            <p class="font-medium bg-gray-50 p-3 rounded-lg">{{ data.alert.message }}</p>
+            <p class="text-sm text-base-content/60">Message</p>
+            <p class="font-medium bg-base-100 p-3 rounded-lg">{{ data.alert.message }}</p>
           </div>
         }
 
         <!-- Location -->
         @if (data.alert.location) {
           <div>
-            <p class="text-sm text-gray-500 mb-2">Location</p>
+            <p class="text-sm text-base-content/60 mb-2">Location</p>
             <button
               (click)="openInMaps()"
               class="w-full p-4 bg-blue-50 rounded-lg text-blue-600 hover:bg-blue-100 transition flex items-center justify-center gap-2"

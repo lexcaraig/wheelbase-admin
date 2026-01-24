@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900">Emergency Dashboard</h1>
-        <p class="text-gray-600 mt-1">Real-time SOS alerts and crash detection monitoring</p>
+        <h1 class="text-3xl font-bold text-base-content">Emergency Dashboard</h1>
+        <p class="text-base-content/70 mt-1">Real-time SOS alerts and crash detection monitoring</p>
       </div>
       <div class="flex gap-3">
         <button
@@ -27,7 +27,7 @@
 
     <!-- Last Refresh Time -->
     @if (lastRefreshTime()) {
-      <div class="mb-4 text-sm text-gray-600">
+      <div class="mb-4 text-sm text-base-content/70">
         Last updated: {{ lastRefreshTime() | date:'medium' }}
       </div>
     }
@@ -62,7 +62,7 @@
             <button
               mat-raised-button
               (click)="onStatusFilterChange('active')"
-              class="!bg-white !text-red-600"
+              class="!bg-base-100 !text-red-600"
             >
               View Active Alerts
             </button>
@@ -77,8 +77,8 @@
               <mat-card-content class="!p-6">
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="text-gray-600 text-sm font-medium">Total SOS Alerts</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats()!.total_sos_alerts }}</p>
+                    <p class="text-base-content/70 text-sm font-medium">Total SOS Alerts</p>
+                    <p class="text-3xl font-bold text-base-content mt-2">{{ stats()!.total_sos_alerts }}</p>
                   </div>
                   <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
                     <span class="text-2xl">🆘</span>
@@ -86,7 +86,7 @@
                 </div>
                 <div class="mt-4 flex gap-4 text-sm">
                   <span class="text-green-600">{{ stats()!.resolved_sos_alerts }} resolved</span>
-                  <span class="text-gray-400">{{ stats()!.cancelled_sos_alerts }} cancelled</span>
+                  <span class="text-base-content/50">{{ stats()!.cancelled_sos_alerts }} cancelled</span>
                 </div>
               </mat-card-content>
             </mat-card>
@@ -96,8 +96,8 @@
               <mat-card-content class="!p-6">
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="text-gray-600 text-sm font-medium">Crash Detections</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats()!.total_crash_detections }}</p>
+                    <p class="text-base-content/70 text-sm font-medium">Crash Detections</p>
+                    <p class="text-3xl font-bold text-base-content mt-2">{{ stats()!.total_crash_detections }}</p>
                   </div>
                   <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
                     <span class="text-2xl">💥</span>
@@ -115,15 +115,15 @@
               <mat-card-content class="!p-6">
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="text-gray-600 text-sm font-medium">Alerts This Week</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats()!.alerts_this_week }}</p>
+                    <p class="text-base-content/70 text-sm font-medium">Alerts This Week</p>
+                    <p class="text-3xl font-bold text-base-content mt-2">{{ stats()!.alerts_this_week }}</p>
                   </div>
                   <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                     <span class="text-2xl">📊</span>
                   </div>
                 </div>
                 <div class="mt-4 text-sm">
-                  <span class="text-gray-600">Today: {{ stats()!.alerts_today }}</span>
+                  <span class="text-base-content/70">Today: {{ stats()!.alerts_today }}</span>
                 </div>
               </mat-card-content>
             </mat-card>
@@ -133,8 +133,8 @@
               <mat-card-content class="!p-6">
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="text-gray-600 text-sm font-medium">Avg Response Time</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-2">
+                    <p class="text-base-content/70 text-sm font-medium">Avg Response Time</p>
+                    <p class="text-3xl font-bold text-base-content mt-2">
                       {{ formatResponseTime(stats()!.avg_response_time_seconds) }}
                     </p>
                   </div>
@@ -142,7 +142,7 @@
                     <span class="text-2xl">⏱️</span>
                   </div>
                 </div>
-                <div class="mt-4 text-sm text-gray-600">
+                <div class="mt-4 text-sm text-base-content/70">
                   Time to resolution
                 </div>
               </mat-card-content>
@@ -156,8 +156,8 @@
           <div class="lg:col-span-2">
             <mat-card>
               <mat-card-content class="!p-0">
-                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                  <h2 class="text-lg font-semibold text-gray-900">SOS Alerts</h2>
+                <div class="px-6 py-4 border-b border-base-300 flex justify-between items-center">
+                  <h2 class="text-lg font-semibold text-base-content">SOS Alerts</h2>
                   <mat-form-field appearance="outline" class="w-48 !mb-0">
                     <mat-label>Status</mat-label>
                     <mat-select [value]="statusFilter" (selectionChange)="onStatusFilterChange($event.value)">
@@ -174,7 +174,7 @@
                       <th mat-header-cell *matHeaderCellDef class="!min-w-[200px]">User</th>
                       <td mat-cell *matCellDef="let alert">
                         <div class="flex items-center gap-2 py-2">
-                          <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                          <div class="w-10 h-10 rounded-full bg-base-300 flex items-center justify-center overflow-hidden">
                             @if (alert.user?.avatar_url) {
                               <img
                                 [src]="alert.user.avatar_url"
@@ -182,14 +182,14 @@
                                 class="w-10 h-10 rounded-full object-cover"
                               />
                             } @else {
-                              <span class="text-gray-500 font-medium">
+                              <span class="text-base-content/60 font-medium">
                                 {{ getInitial(alert.user?.full_name) }}
                               </span>
                             }
                           </div>
                           <div>
-                            <p class="font-medium text-gray-900">{{ alert.user?.full_name || 'Unknown' }}</p>
-                            <p class="text-xs text-gray-500">{{ alert.user?.username }}</p>
+                            <p class="font-medium text-base-content">{{ alert.user?.full_name || 'Unknown' }}</p>
+                            <p class="text-xs text-base-content/60">{{ alert.user?.username }}</p>
                           </div>
                         </div>
                       </td>
@@ -230,7 +230,7 @@
                             View
                           </button>
                         } @else {
-                          <span class="text-gray-400 text-sm">No location</span>
+                          <span class="text-base-content/50 text-sm">No location</span>
                         }
                       </td>
                     </ng-container>
@@ -239,7 +239,7 @@
                     <ng-container matColumnDef="time">
                       <th mat-header-cell *matHeaderCellDef class="!min-w-[100px]">Time</th>
                       <td mat-cell *matCellDef="let alert">
-                        <span class="text-sm text-gray-600" [matTooltip]="formatDate(alert.triggered_at)">
+                        <span class="text-sm text-base-content/70" [matTooltip]="formatDate(alert.triggered_at)">
                           {{ formatRelativeTime(alert.triggered_at) }}
                         </span>
                       </td>
@@ -283,8 +283,8 @@
                     <tr class="mat-row" *matNoDataRow>
                       <td class="mat-cell text-center py-12" [attr.colspan]="displayedColumns.length">
                         <div class="flex flex-col items-center gap-3">
-                          <span class="material-symbols-outlined text-gray-400 text-6xl">emergency</span>
-                          <div class="text-gray-500 text-lg">No SOS alerts found</div>
+                          <span class="material-symbols-outlined text-base-content/50 text-6xl">emergency</span>
+                          <div class="text-base-content/60 text-lg">No SOS alerts found</div>
                         </div>
                       </td>
                     </tr>
@@ -308,12 +308,12 @@
           <div class="lg:col-span-1">
             <mat-card>
               <mat-card-content class="!p-0">
-                <div class="px-6 py-4 border-b border-gray-200">
-                  <h2 class="text-lg font-semibold text-gray-900">Activity Timeline</h2>
+                <div class="px-6 py-4 border-b border-base-300">
+                  <h2 class="text-lg font-semibold text-base-content">Activity Timeline</h2>
                 </div>
                 <div class="p-4 max-h-96 overflow-y-auto">
                   @if (timeline().length === 0) {
-                    <div class="text-center py-8 text-gray-500">
+                    <div class="text-center py-8 text-base-content/60">
                       No recent activity
                     </div>
                   }
@@ -325,15 +325,15 @@
                           'bg-red-100 text-red-600': item.severity === 'critical',
                           'bg-orange-100 text-orange-600': item.severity === 'high',
                           'bg-blue-100 text-blue-600': item.severity === 'medium',
-                          'bg-gray-100 text-gray-600': item.severity === 'info'
+                          'bg-base-200 text-base-content/70': item.severity === 'info'
                         }"
                       >
                         <span class="material-symbols-outlined text-sm">{{ getTimelineIcon(item.type) }}</span>
                       </div>
                       <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-gray-900">{{ item.user_name }}</p>
-                        <p class="text-sm text-gray-600">{{ item.description }}</p>
-                        <p class="text-xs text-gray-400 mt-1">{{ formatRelativeTime(item.timestamp) }}</p>
+                        <p class="text-sm font-medium text-base-content">{{ item.user_name }}</p>
+                        <p class="text-sm text-base-content/70">{{ item.description }}</p>
+                        <p class="text-xs text-base-content/50 mt-1">{{ formatRelativeTime(item.timestamp) }}</p>
                       </div>
                     </div>
                   }
@@ -344,19 +344,19 @@
             <!-- Recent Crash Detections -->
             <mat-card class="mt-6">
               <mat-card-content class="!p-0">
-                <div class="px-6 py-4 border-b border-gray-200">
-                  <h2 class="text-lg font-semibold text-gray-900">Recent Crash Detections</h2>
+                <div class="px-6 py-4 border-b border-base-300">
+                  <h2 class="text-lg font-semibold text-base-content">Recent Crash Detections</h2>
                 </div>
                 <div class="p-4">
                   @if (crashDetections().length === 0) {
-                    <div class="text-center py-4 text-gray-500">
+                    <div class="text-center py-4 text-base-content/60">
                       No crash detections
                     </div>
                   }
                   @for (crash of crashDetections(); track crash.id) {
-                    <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                    <div class="flex items-center justify-between py-2 border-b border-base-200 last:border-0">
                       <div class="flex items-center gap-2">
-                        <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                        <div class="w-10 h-10 rounded-full bg-base-300 flex items-center justify-center overflow-hidden">
                           @if (crash.user?.avatar_url) {
                             <img
                               [src]="crash.user?.avatar_url"
@@ -364,14 +364,14 @@
                               class="w-10 h-10 rounded-full object-cover"
                             />
                           } @else {
-                            <span class="text-gray-500 font-medium">
+                            <span class="text-base-content/60 font-medium">
                               {{ getInitial(crash.user?.full_name) }}
                             </span>
                           }
                         </div>
                         <div>
-                          <p class="text-sm font-medium text-gray-900">{{ crash.user?.full_name || 'Unknown' }}</p>
-                          <p class="text-xs text-gray-500">{{ crash.impact_force_g | number:'1.1-1' }}G impact</p>
+                          <p class="text-sm font-medium text-base-content">{{ crash.user?.full_name || 'Unknown' }}</p>
+                          <p class="text-xs text-base-content/60">{{ crash.impact_force_g | number:'1.1-1' }}G impact</p>
                         </div>
                       </div>
                       <div class="text-right">
@@ -380,7 +380,7 @@
                         } @else {
                           <app-status-badge severity="warning">VALID</app-status-badge>
                         }
-                        <p class="text-xs text-gray-400 mt-1">{{ formatRelativeTime(crash.detected_at) }}</p>
+                        <p class="text-xs text-base-content/50 mt-1">{{ formatRelativeTime(crash.detected_at) }}</p>
                       </div>
                     </div>
                   }

@@ -1,20 +1,9 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatOptionModule } from '@angular/material/core';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
-import { MatInputModule } from '@angular/material/input';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { StatusBadgeComponent, BadgeSeverity } from '../../shared/components/status-badge/status-badge.component';
+import { BadgeSeverity } from '../../shared/components/status-badge/status-badge.component';
 
 interface AuditLog {
   id: string;
@@ -38,19 +27,7 @@ interface AuditLog {
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
-    MatCardModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatOptionModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    MatInputModule,
-    MatProgressSpinnerModule,
-    StatusBadgeComponent
+    FormsModule
   ],
   templateUrl: './audit-logs.component.html',
   styleUrl: './audit-logs.component.scss'
@@ -62,11 +39,10 @@ export class AuditLogsComponent implements OnInit {
 
   page = 0;
   pageSize = 50;
+  pageSizeOptions = [25, 50, 100];
   actionTypeFilter = '';
   startDate: Date | null = null;
   endDate: Date | null = null;
-
-  displayedColumns: string[] = ['timestamp', 'admin', 'action', 'targetType', 'targetId', 'details', 'ipAddress'];
 
   actionTypeOptions = [
     { label: 'All Actions', value: '' },
@@ -127,9 +103,62 @@ export class AuditLogsComponent implements OnInit {
     }
   }
 
-  onPageChange(event: PageEvent) {
-    this.page = event.pageIndex;
-    this.pageSize = event.pageSize;
+  // Date string helpers for native date inputs
+  get startDateString(): string {
+    return this.startDate ? this.startDate.toISOString().split('T')[0] : '';
+  }
+
+  get endDateString(): string {
+    return this.endDate ? this.endDate.toISOString().split('T')[0] : '';
+  }
+
+  onStartDateChange(dateString: string) {
+    this.startDate = dateString ? new Date(dateString) : null;
+    this.onDateRangeChange();
+  }
+
+  onEndDateChange(dateString: string) {
+    this.endDate = dateString ? new Date(dateString) : null;
+    this.onDateRangeChange();
+  }
+
+  // Pagination methods
+  getTotalPages(): number {
+    return Math.ceil(this.totalRecords() / this.pageSize);
+  }
+
+  getPageRangeLabel(): string {
+    const start = this.page * this.pageSize + 1;
+    const end = Math.min((this.page + 1) * this.pageSize, this.totalRecords());
+    return `${start} - ${end} of ${this.totalRecords()}`;
+  }
+
+  firstPage(): void {
+    this.page = 0;
+    this.loadAuditLogs();
+  }
+
+  previousPage(): void {
+    if (this.page > 0) {
+      this.page--;
+      this.loadAuditLogs();
+    }
+  }
+
+  nextPage(): void {
+    if (this.page < this.getTotalPages() - 1) {
+      this.page++;
+      this.loadAuditLogs();
+    }
+  }
+
+  lastPage(): void {
+    this.page = this.getTotalPages() - 1;
+    this.loadAuditLogs();
+  }
+
+  onPageSizeChange(): void {
+    this.page = 0;
     this.loadAuditLogs();
   }
 
@@ -152,6 +181,14 @@ export class AuditLogsComponent implements OnInit {
     return 'secondary';
   }
 
+  getActionBadgeClass(action: string): string {
+    if (action.includes('approve') || action === 'login') return 'badge-success';
+    if (action.includes('ban') || action.includes('remove') || action.includes('flag')) return 'badge-error';
+    if (action.includes('view')) return 'badge-info';
+    if (action.includes('settings')) return 'badge-warning';
+    return 'badge-neutral';
+  }
+
   getTargetTypeSeverity(type: string): BadgeSeverity {
     switch (type) {
       case 'user': return 'info';
@@ -159,6 +196,16 @@ export class AuditLogsComponent implements OnInit {
       case 'comment': return 'warning';
       case 'system': return 'secondary';
       default: return 'secondary';
+    }
+  }
+
+  getTargetTypeBadgeClass(type: string): string {
+    switch (type) {
+      case 'user': return 'badge-info';
+      case 'post': return 'badge-success';
+      case 'comment': return 'badge-warning';
+      case 'system': return 'badge-neutral';
+      default: return 'badge-neutral';
     }
   }
 

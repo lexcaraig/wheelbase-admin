@@ -2,8 +2,8 @@
   <!-- Header -->
   <div class="flex justify-between items-center mb-4">
     <div>
-      <h1 class="text-3xl font-bold text-gray-900 mb-2">Review Reports</h1>
-      <p class="text-gray-600">Moderate reported service provider reviews</p>
+      <h1 class="text-3xl font-bold text-base-content mb-2">Review Reports</h1>
+      <p class="text-base-content/70">Moderate reported service provider reviews</p>
     </div>
   </div>
 
@@ -37,7 +37,7 @@
             <ng-container matColumnDef="reported">
               <th mat-header-cell *matHeaderCellDef class="!min-w-[100px]">Reported</th>
               <td mat-cell *matCellDef="let report">
-                <span class="text-sm text-gray-700">{{ report.created_at | relativeTime }}</span>
+                <span class="text-sm text-base-content/80">{{ report.created_at | relativeTime }}</span>
               </td>
             </ng-container>
 
@@ -48,12 +48,12 @@
                 <div class="max-w-md py-2">
                   <div class="flex items-center gap-2 mb-1">
                     <span class="font-medium text-yellow-500">{{ getRatingStars(report.review_rating) }}</span>
-                    <span class="text-xs text-gray-500">by &#64;{{ report.reviewer_username }}</span>
+                    <span class="text-xs text-base-content/60">by &#64;{{ report.reviewer_username }}</span>
                   </div>
-                  <p class="text-sm text-gray-700 line-clamp-2">
+                  <p class="text-sm text-base-content/80 line-clamp-2">
                     {{ report.review_text }}
                   </p>
-                  <p class="text-xs text-gray-500 mt-1">
+                  <p class="text-xs text-base-content/60 mt-1">
                     Posted {{ report.review_created_at | relativeTime }}
                   </p>
                 </div>
@@ -91,7 +91,7 @@
                   {{ report.reason }}
                 </app-status-badge>
                 @if (report.description) {
-                  <p class="text-xs text-gray-500 mt-1 max-w-xs line-clamp-2">
+                  <p class="text-xs text-base-content/60 mt-1 max-w-xs line-clamp-2">
                     {{ report.description }}
                   </p>
                 }
@@ -106,7 +106,7 @@
                   {{ report.status }}
                 </app-status-badge>
                 @if (report.action_taken) {
-                  <p class="text-xs text-gray-500 mt-1">
+                  <p class="text-xs text-base-content/60 mt-1">
                     Action: {{ report.action_taken }}
                   </p>
                 }
@@ -138,8 +138,8 @@
             <tr class="mat-row" *matNoDataRow>
               <td class="mat-cell text-center py-12" [attr.colspan]="displayedColumns.length">
                 <div class="flex flex-col items-center gap-3">
-                  <span class="material-symbols-outlined text-gray-400 text-6xl">inbox</span>
-                  <div class="text-gray-500 text-lg">No review reports found</div>
+                  <span class="material-symbols-outlined text-base-content/50 text-6xl">inbox</span>
+                  <div class="text-base-content/60 text-lg">No review reports found</div>
                 </div>
               </td>
             </tr>

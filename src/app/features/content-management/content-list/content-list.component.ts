@@ -164,19 +164,19 @@ export class ContentListComponent implements OnInit {
     switch (status) {
       case 'published': return 'badge-success';
       case 'draft': return 'badge-warning';
-      case 'archived': return 'badge-secondary';
-      default: return 'badge-default';
+      case 'archived': return 'badge-neutral';
+      default: return 'badge-neutral';
     }
   }
 
   getCategoryBadgeClass(category: string): string {
     switch (category) {
-      case 'legal': return 'badge-danger';
+      case 'legal': return 'badge-error';
       case 'updates': return 'badge-info';
       case 'help': return 'badge-primary';
       case 'announcements': return 'badge-warning';
-      case 'about': return 'badge-secondary';
-      default: return 'badge-default';
+      case 'about': return 'badge-neutral';
+      default: return 'badge-neutral';
     }
   }
 
