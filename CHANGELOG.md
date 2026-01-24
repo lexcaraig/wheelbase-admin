@@ -11,15 +11,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **OAuth Callback Route** - Added `/auth/callback` route to handle Google OAuth redirects. Created `AuthCallbackComponent` that processes Supabase PKCE flow completion, shows loading state during authentication, handles errors gracefully, and redirects to dashboard on success. Fixes 404 error when logging in via Google OAuth.
+- **OAuth Callback Route** (Jan 24, 2026) - Added `/auth/callback` route to handle Google OAuth redirects. Created `AuthCallbackComponent` that processes Supabase PKCE flow completion, shows loading state during authentication, handles errors gracefully, and redirects to dashboard on success.
 
 ### Changed
 
-- **Migrated from PrimeIcons to Material Icons** - Replaced all `pi pi-*` icon classes with Material Symbols Outlined (`material-symbols-outlined`) for better rendering and consistency. Updated icons in promotions-list, promotion-editor, and promotion-report components.
+- **Migrated from PrimeIcons to Material Icons** (Jan 24, 2026) - Replaced all `pi pi-*` icon classes with Material Symbols Outlined (`material-symbols-outlined`) for better rendering and consistency. Updated icons in promotions-list, promotion-editor, and promotion-report components.
+
+- **Angular Build Output Configuration** (Jan 24, 2026) - Updated `angular.json` to output browser files directly to `dist/wheelbase-admin` instead of the default `dist/wheelbase-admin/browser` subdirectory for proper Vercel deployment compatibility.
 
 ### Fixed
 
-- **Action Button Icon Contrast** - Fixed ghost button icons (`text-info`, `text-warning`, `text-error`, `text-success`, `text-primary`) blending into dark theme background in table action columns. Applied brighter color values (e.g., blue-400, amber-400, red-400) with enhanced hover states for better visibility across all admin tables (promotions, users, businesses, moderation, etc.)
+- **Google OAuth Login 404 Error** (Jan 24, 2026) - Fixed 404 error when Google OAuth redirects to `/auth/callback`. Root cause: missing route definition in Angular and incorrect Vercel SPA routing configuration. Solution: Added AuthCallbackComponent, flattened Angular build output, and simplified vercel.json rewrites.
+
+- **Vercel SPA Routing** (Jan 24, 2026) - Fixed all client-side routes returning 404 on Vercel. Simplified `vercel.json` configuration with proper rewrite rule to serve `index.html` for all routes, enabling Angular router to handle navigation.
+
+- **Action Button Icon Contrast** (Jan 24, 2026) - Fixed ghost button icons (`text-info`, `text-warning`, `text-error`, `text-success`, `text-primary`) blending into dark theme background in table action columns. Applied brighter color values (e.g., blue-400, amber-400, red-400) with enhanced hover states for better visibility across all admin tables.
 
 ---
 
