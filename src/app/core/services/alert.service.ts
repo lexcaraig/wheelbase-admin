@@ -37,22 +37,23 @@ export class AlertService {
 
   /**
    * Check for egress warnings based on current usage
+   * Note: Using Supabase Pro Plan limits ($25/month)
    */
   checkEgressWarnings(egressMb: number): CreateAlertParams | null {
-    const freeLimit = 5000; // 5 GB in MB
+    const proLimit = 256000; // 250 GB in MB (Pro Plan)
     const warningThreshold = 0.8; // 80%
     const criticalThreshold = 0.95; // 95%
 
-    const percentage = egressMb / freeLimit;
+    const percentage = egressMb / proLimit;
 
     if (percentage >= criticalThreshold) {
       return {
         alert_type: 'egress_critical',
         severity: 'critical',
-        message: `Egress usage at ${Math.round(percentage * 100)}% of free tier limit`,
+        message: `Egress usage at ${Math.round(percentage * 100)}% of Pro Plan limit`,
         details: {
           current_mb: egressMb,
-          limit_mb: freeLimit,
+          limit_mb: proLimit,
           percentage: Math.round(percentage * 100)
         }
       };
@@ -62,10 +63,10 @@ export class AlertService {
       return {
         alert_type: 'egress_warning',
         severity: 'high',
-        message: `Egress usage at ${Math.round(percentage * 100)}% of free tier limit`,
+        message: `Egress usage at ${Math.round(percentage * 100)}% of Pro Plan limit`,
         details: {
           current_mb: egressMb,
-          limit_mb: freeLimit,
+          limit_mb: proLimit,
           percentage: Math.round(percentage * 100)
         }
       };
@@ -76,21 +77,22 @@ export class AlertService {
 
   /**
    * Check for database size warnings
+   * Note: Using Supabase Pro Plan limits ($25/month)
    */
   checkDatabaseWarnings(sizeMb: number): CreateAlertParams | null {
-    const freeLimit = 500; // 500 MB
+    const proLimit = 8192; // 8 GB in MB (Pro Plan)
     const warningThreshold = 0.8; // 80%
 
-    const percentage = sizeMb / freeLimit;
+    const percentage = sizeMb / proLimit;
 
     if (percentage >= warningThreshold) {
       return {
         alert_type: 'database_full',
         severity: percentage >= 0.95 ? 'critical' : 'high',
-        message: `Database at ${Math.round(percentage * 100)}% capacity`,
+        message: `Database at ${Math.round(percentage * 100)}% of Pro Plan capacity`,
         details: {
           current_mb: sizeMb,
-          limit_mb: freeLimit,
+          limit_mb: proLimit,
           percentage: Math.round(percentage * 100)
         }
       };
