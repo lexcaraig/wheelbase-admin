@@ -13,11 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **OAuth Callback Route** (Jan 24, 2026) - Added `/auth/callback` route to handle Google OAuth redirects. Created `AuthCallbackComponent` that processes Supabase PKCE flow completion, shows loading state during authentication, handles errors gracefully, and redirects to dashboard on success.
 
+- **Core Team Admin Access SQL Script** (Jan 24, 2026) - Created `add_core_team_as_admins.sql` migration script to grant admin role (not super_admin) to 4 core team members. Script handles both new inserts and updates to existing entries, with proper permissions structure for users/content/analytics access.
+
 ### Changed
 
 - **Migrated from PrimeIcons to Material Icons** (Jan 24, 2026) - Replaced all `pi pi-*` icon classes with Material Symbols Outlined (`material-symbols-outlined`) for better rendering and consistency. Updated icons in promotions-list, promotion-editor, and promotion-report components.
 
 - **Angular Build Output Configuration** (Jan 24, 2026) - Updated `angular.json` to output browser files directly to `dist/wheelbase-admin` instead of the default `dist/wheelbase-admin/browser` subdirectory for proper Vercel deployment compatibility.
+
+- **Create Admin Dialog DaisyUI Conversion** (Jan 24, 2026) - Converted Create Admin User dialog from Material Design form fields to DaisyUI components while maintaining MatDialogRef for modal functionality. Updated form inputs to use `input input-bordered`, select to `select select-bordered`, buttons to `btn btn-ghost/btn-primary`, and added `loading loading-spinner` for processing state. Added global `.daisyui-dialog` styles to `styles.scss` for transparent Material overlay integration.
 
 ### Fixed
 
