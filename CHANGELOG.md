@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **OAuth Callback Route** - Added `/auth/callback` route to handle Google OAuth redirects. Created `AuthCallbackComponent` that processes Supabase PKCE flow completion, shows loading state during authentication, handles errors gracefully, and redirects to dashboard on success. Fixes 404 error when logging in via Google OAuth.
+
 ### Changed
 
 - **Migrated from PrimeIcons to Material Icons** - Replaced all `pi pi-*` icon classes with Material Symbols Outlined (`material-symbols-outlined`) for better rendering and consistency. Updated icons in promotions-list, promotion-editor, and promotion-report components.
