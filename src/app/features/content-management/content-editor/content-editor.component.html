@@ -163,12 +163,19 @@
       <!-- Effective Date (for legal) -->
       <div class="form-group" *ngIf="formData.category === 'legal'">
         <label for="effectiveDate">Effective Date</label>
-        <input
-          id="effectiveDate"
-          type="date"
-          [(ngModel)]="formData.effectiveDate"
-          class="form-control"
-        />
+        <div class="daisyui-datepicker-wrapper">
+          <input
+            id="effectiveDate"
+            class="input input-bordered w-full"
+            [matDatepicker]="effectivePicker"
+            [ngModel]="effectiveDateAsDate"
+            (dateChange)="onEffectiveDateChange($event.value)"
+            placeholder="Select effective date"
+            readonly
+          />
+          <mat-datepicker-toggle [for]="effectivePicker"></mat-datepicker-toggle>
+          <mat-datepicker #effectivePicker></mat-datepicker>
+        </div>
         <small class="form-help">When this legal document takes effect</small>
       </div>
 

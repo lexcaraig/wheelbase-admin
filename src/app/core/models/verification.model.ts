@@ -11,10 +11,10 @@ export interface VerificationRequest {
   contact_number: string;
   email: string;
   business_registration_number: string | null;
-  tax_id: string | null;
+  tax_id: string | null;  // Also used to store BIR Certificate URL
   business_permit_url: string | null;
-  tax_id_document_url: string | null;
-  proof_of_ownership_url: string | null;
+  tax_id_document_url: string | null;  // Used for DTI Registration
+  proof_of_ownership_url: string | null;  // Used for Government ID
   status: ClaimStatus;
   submitted_at: string;
   reviewed_at: string | null;

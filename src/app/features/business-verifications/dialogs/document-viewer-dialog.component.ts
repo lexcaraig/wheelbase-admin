@@ -14,6 +14,21 @@ export interface DocumentViewerDialogData {
     CommonModule,
     MatDialogModule
   ],
+  styles: [`
+    :host {
+      display: block;
+    }
+    /* Override Material dialog container with daisyUI theme */
+    ::ng-deep .mat-mdc-dialog-container .mat-mdc-dialog-surface {
+      background-color: oklch(var(--b2)) !important;
+      color: oklch(var(--bc)) !important;
+      border-radius: var(--rounded-box, 1rem) !important;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    }
+    ::ng-deep .cdk-overlay-dark-backdrop {
+      background-color: rgba(0, 0, 0, 0.7) !important;
+    }
+  `],
   template: `
     <div class="p-4">
       <!-- Header -->

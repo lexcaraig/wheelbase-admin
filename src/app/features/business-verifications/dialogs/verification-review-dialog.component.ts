@@ -23,6 +23,21 @@ export interface VerificationReviewDialogData {
     FormsModule,
     MatDialogModule
   ],
+  styles: [`
+    :host {
+      display: block;
+    }
+    /* Override Material dialog container with daisyUI theme */
+    ::ng-deep .mat-mdc-dialog-container .mat-mdc-dialog-surface {
+      background-color: oklch(var(--b2)) !important;
+      color: oklch(var(--bc)) !important;
+      border-radius: var(--rounded-box, 1rem) !important;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    }
+    ::ng-deep .cdk-overlay-dark-backdrop {
+      background-color: rgba(0, 0, 0, 0.7) !important;
+    }
+  `],
   template: `
     <div class="p-6 max-h-[85vh] overflow-y-auto">
       <!-- Header -->
@@ -83,12 +98,8 @@ export interface VerificationReviewDialogData {
                 <div class="text-base-content mt-1">{{ data.request.email }}</div>
               </div>
               <div>
-                <label class="text-sm font-medium text-base-content/70">Business Reg #</label>
-                <div class="text-base-content mt-1">{{ data.request.business_registration_number || 'Not provided' }}</div>
-              </div>
-              <div>
-                <label class="text-sm font-medium text-base-content/70">Tax ID</label>
-                <div class="text-base-content mt-1">{{ data.request.tax_id || 'Not provided' }}</div>
+                <label class="text-sm font-medium text-base-content/70">Role</label>
+                <div class="text-base-content mt-1">Business Owner</div>
               </div>
             </div>
           </div>
@@ -101,7 +112,33 @@ export interface VerificationReviewDialogData {
               <span class="material-symbols-outlined text-primary">folder_open</span>
               Verification Documents
             </h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Government ID -->
+              <div class="card bg-base-200 shadow-sm">
+                <div class="card-body p-4">
+                  <div class="flex items-center gap-2 mb-3">
+                    <span class="material-symbols-outlined text-info">badge</span>
+                    <span class="font-medium text-base-content">Government ID</span>
+                  </div>
+                  @if (data.request.proof_of_ownership_url) {
+                    <button
+                      class="btn btn-outline btn-sm w-full mb-2"
+                      (click)="viewDocument(data.request.proof_of_ownership_url, 'Government ID')"
+                    >
+                      <span class="material-symbols-outlined text-sm">visibility</span>
+                      View Document
+                    </button>
+                    <div class="flex items-center gap-1 text-success text-sm">
+                      <span class="material-symbols-outlined text-sm">check_circle</span> Uploaded
+                    </div>
+                  } @else {
+                    <div class="flex items-center gap-1 text-base-content/50 text-sm">
+                      <span class="material-symbols-outlined text-sm">cancel</span> Not uploaded
+                    </div>
+                  }
+                </div>
+              </div>
+
               <!-- Business Permit -->
               <div class="card bg-base-200 shadow-sm">
                 <div class="card-body p-4">
@@ -128,17 +165,17 @@ export interface VerificationReviewDialogData {
                 </div>
               </div>
 
-              <!-- Tax ID Document -->
+              <!-- DTI/SEC Registration -->
               <div class="card bg-base-200 shadow-sm">
                 <div class="card-body p-4">
                   <div class="flex items-center gap-2 mb-3">
-                    <span class="material-symbols-outlined text-info">description</span>
-                    <span class="font-medium text-base-content">Tax ID Document</span>
+                    <span class="material-symbols-outlined text-info">apartment</span>
+                    <span class="font-medium text-base-content">DTI/SEC Registration</span>
                   </div>
                   @if (data.request.tax_id_document_url) {
                     <button
                       class="btn btn-outline btn-sm w-full mb-2"
-                      (click)="viewDocument(data.request.tax_id_document_url, 'Tax ID Document')"
+                      (click)="viewDocument(data.request.tax_id_document_url, 'DTI/SEC Registration')"
                     >
                       <span class="material-symbols-outlined text-sm">visibility</span>
                       View Document
@@ -154,17 +191,17 @@ export interface VerificationReviewDialogData {
                 </div>
               </div>
 
-              <!-- Proof of Ownership -->
+              <!-- BIR Certificate -->
               <div class="card bg-base-200 shadow-sm">
                 <div class="card-body p-4">
                   <div class="flex items-center gap-2 mb-3">
-                    <span class="material-symbols-outlined text-info">description</span>
-                    <span class="font-medium text-base-content">Proof of Ownership</span>
+                    <span class="material-symbols-outlined text-info">receipt_long</span>
+                    <span class="font-medium text-base-content">BIR Certificate</span>
                   </div>
-                  @if (data.request.proof_of_ownership_url) {
+                  @if (data.request.tax_id) {
                     <button
                       class="btn btn-outline btn-sm w-full mb-2"
-                      (click)="viewDocument(data.request.proof_of_ownership_url, 'Proof of Ownership')"
+                      (click)="viewDocument(data.request.tax_id, 'BIR Certificate')"
                     >
                       <span class="material-symbols-outlined text-sm">visibility</span>
                       View Document

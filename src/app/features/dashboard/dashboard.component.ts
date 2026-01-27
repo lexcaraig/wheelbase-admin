@@ -12,7 +12,9 @@ import {
 } from '../../core/models/analytics.model';
 import { AppUser } from '../../core/models/user.model';
 
-// Angular Material imports removed - now using DaisyUI
+// Angular Material Datepicker
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 
 // Shared components
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
@@ -29,6 +31,9 @@ Chart.register(...registerables);
   imports: [
     CommonModule,
     FormsModule,
+    // Material Datepicker
+    MatDatepickerModule,
+    MatNativeDateModule,
     // Shared components
     StatusBadgeComponent,
     AvatarComponent,
@@ -246,12 +251,24 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  onStartDateChange(dateString: string) {
-    this.customDateRange.start = dateString ? new Date(dateString) : null;
+  onStartDateChange(date: Date | string | null) {
+    if (date instanceof Date) {
+      this.customDateRange.start = date;
+    } else if (typeof date === 'string' && date) {
+      this.customDateRange.start = new Date(date);
+    } else {
+      this.customDateRange.start = null;
+    }
   }
 
-  onEndDateChange(dateString: string) {
-    this.customDateRange.end = dateString ? new Date(dateString) : null;
+  onEndDateChange(date: Date | string | null) {
+    if (date instanceof Date) {
+      this.customDateRange.end = date;
+    } else if (typeof date === 'string' && date) {
+      this.customDateRange.end = new Date(date);
+    } else {
+      this.customDateRange.end = null;
+    }
     this.onCustomDateRangeChange();
   }
 

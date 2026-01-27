@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { SidebarService } from '../../core/services/sidebar.service';
 import { filter } from 'rxjs/operators';
 
 // Route to title mapping
@@ -13,6 +14,7 @@ const ROUTE_TITLES: Record<string, string> = {
   'analytics': 'Analytics',
   'verification': 'Business Verification',
   'business-verifications': 'Business Verification',
+  'verifications': 'Business Verification',
   'content': 'Content Management',
   'content/new': 'Create Content',
   'content/edit': 'Edit Content',
@@ -20,6 +22,9 @@ const ROUTE_TITLES: Record<string, string> = {
   'audit-logs': 'Audit Logs',
   'system-settings': 'System Settings',
   'settings': 'Settings',
+  'monitoring': 'Growth Monitoring',
+  'promotions': 'Promotions',
+  'announcements': 'Announcements',
 };
 
 @Component({
@@ -28,7 +33,18 @@ const ROUTE_TITLES: Record<string, string> = {
   imports: [CommonModule],
   template: `
     <header class="bg-base-100 border-b border-base-300 px-6 py-4 flex items-center justify-between">
-      <div>
+      <div class="flex items-center gap-4">
+        <!-- Sidebar Toggle Button -->
+        <button
+          class="btn btn-ghost btn-sm btn-square"
+          (click)="toggleSidebar()"
+          title="Toggle sidebar"
+        >
+          <span class="material-symbols-outlined text-xl">
+            {{ sidebarService.isCollapsed() ? 'menu' : 'menu_open' }}
+          </span>
+        </button>
+
         <h2 class="text-xl font-semibold text-base-content">{{ pageTitle() }}</h2>
       </div>
 
@@ -44,6 +60,7 @@ const ROUTE_TITLES: Record<string, string> = {
 export class HeaderComponent {
   private router = inject(Router);
   private authService = inject(AuthService);
+  sidebarService = inject(SidebarService);
 
   pageTitle = signal('Admin Panel');
 
@@ -92,6 +109,10 @@ export class HeaderComponent {
 
     // Default fallback
     this.pageTitle.set('Admin Panel');
+  }
+
+  toggleSidebar(): void {
+    this.sidebarService.toggle();
   }
 
   async logout(): Promise<void> {

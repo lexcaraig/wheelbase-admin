@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { CmsService, ContentPage } from '../../../core/services/cms.service';
 import * as marked from 'marked';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -9,7 +11,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 @Component({
   selector: 'app-content-editor',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatDatepickerModule, MatNativeDateModule],
   templateUrl: './content-editor.component.html',
   styleUrls: ['./content-editor.component.scss']
 })
@@ -127,6 +129,22 @@ export class ContentEditorComponent implements OnInit {
       return `${year}-${month}-${day}`;
     } catch (e) {
       return '';
+    }
+  }
+
+  // Helper for Material datepicker
+  get effectiveDateAsDate(): Date | null {
+    return this.formData.effectiveDate ? new Date(this.formData.effectiveDate) : null;
+  }
+
+  onEffectiveDateChange(date: Date | null): void {
+    if (date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      this.formData.effectiveDate = `${year}-${month}-${day}`;
+    } else {
+      this.formData.effectiveDate = '';
     }
   }
 

@@ -53,12 +53,18 @@
             <div class="label">
               <span class="label-text text-base-content/70">Start Date</span>
             </div>
-            <input
-              type="date"
-              class="input input-bordered w-full"
-              [ngModel]="startDateString"
-              (ngModelChange)="onStartDateChange($event)"
-            />
+            <div class="daisyui-datepicker-wrapper">
+              <input
+                class="input input-bordered w-full"
+                [matDatepicker]="startPicker"
+                [ngModel]="startDate"
+                (dateChange)="onStartDateChange($event.value)"
+                placeholder="Select date"
+                readonly
+              />
+              <mat-datepicker-toggle [for]="startPicker"></mat-datepicker-toggle>
+              <mat-datepicker #startPicker></mat-datepicker>
+            </div>
           </label>
         </div>
 
@@ -68,12 +74,18 @@
             <div class="label">
               <span class="label-text text-base-content/70">End Date</span>
             </div>
-            <input
-              type="date"
-              class="input input-bordered w-full"
-              [ngModel]="endDateString"
-              (ngModelChange)="onEndDateChange($event)"
-            />
+            <div class="daisyui-datepicker-wrapper">
+              <input
+                class="input input-bordered w-full"
+                [matDatepicker]="endPicker"
+                [ngModel]="endDate"
+                (dateChange)="onEndDateChange($event.value)"
+                placeholder="Select date"
+                readonly
+              />
+              <mat-datepicker-toggle [for]="endPicker"></mat-datepicker-toggle>
+              <mat-datepicker #endPicker></mat-datepicker>
+            </div>
           </label>
         </div>
       </div>

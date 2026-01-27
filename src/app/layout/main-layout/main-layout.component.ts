@@ -13,7 +13,7 @@ import { HeaderComponent } from '../../shared/components/header.component';
       <app-sidebar></app-sidebar>
 
       <!-- Main Content -->
-      <div class="flex-1 flex flex-col overflow-hidden">
+      <div class="flex-1 flex flex-col overflow-hidden transition-all duration-300">
         <!-- Header -->
         <app-header></app-header>
 

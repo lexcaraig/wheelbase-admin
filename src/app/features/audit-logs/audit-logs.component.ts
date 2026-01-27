@@ -1,6 +1,8 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { BadgeSeverity } from '../../shared/components/status-badge/status-badge.component';
@@ -27,7 +29,9 @@ interface AuditLog {
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule
+    FormsModule,
+    MatDatepickerModule,
+    MatNativeDateModule
   ],
   templateUrl: './audit-logs.component.html',
   styleUrl: './audit-logs.component.scss'
@@ -112,13 +116,25 @@ export class AuditLogsComponent implements OnInit {
     return this.endDate ? this.endDate.toISOString().split('T')[0] : '';
   }
 
-  onStartDateChange(dateString: string) {
-    this.startDate = dateString ? new Date(dateString) : null;
+  onStartDateChange(date: Date | string | null) {
+    if (date instanceof Date) {
+      this.startDate = date;
+    } else if (typeof date === 'string' && date) {
+      this.startDate = new Date(date);
+    } else {
+      this.startDate = null;
+    }
     this.onDateRangeChange();
   }
 
-  onEndDateChange(dateString: string) {
-    this.endDate = dateString ? new Date(dateString) : null;
+  onEndDateChange(date: Date | string | null) {
+    if (date instanceof Date) {
+      this.endDate = date;
+    } else if (typeof date === 'string' && date) {
+      this.endDate = new Date(date);
+    } else {
+      this.endDate = null;
+    }
     this.onDateRangeChange();
   }
 
