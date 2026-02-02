@@ -2,9 +2,6 @@ import { Component, Inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { AppUser } from '../../../../core/models/user.model';
 import { UsersService } from '../../../../core/services/users.service';
 import { NotificationService } from '../../../../core/services/notification.service';
@@ -21,17 +18,26 @@ export interface ForceDeleteDialogData {
     CommonModule,
     FormsModule,
     MatDialogModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
     AvatarComponent
   ],
   template: `
-    <h2 mat-dialog-title>Permanently Delete User</h2>
-    <mat-dialog-content>
-      <div class="space-y-4">
+    <div class="bg-base-100 rounded-lg w-full max-w-md">
+      <!-- Header -->
+      <div class="flex items-center justify-between p-4 border-b border-base-300">
+        <h3 class="text-lg font-semibold text-error">Permanently Delete User</h3>
+        <button
+          class="btn btn-ghost btn-sm btn-circle"
+          [disabled]="isDeleting()"
+          (click)="onCancel()"
+        >
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+      </div>
+
+      <!-- Content -->
+      <div class="p-4 space-y-4">
         <!-- User Info -->
-        <div class="p-4 bg-base-100 rounded-lg">
+        <div class="p-4 bg-base-200 rounded-lg">
           <div class="flex items-center gap-3">
             <app-avatar
               [image]="data.user.avatar_url"
@@ -47,12 +53,12 @@ export interface ForceDeleteDialogData {
         </div>
 
         <!-- Warning Message -->
-        <div class="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <span class="material-symbols-outlined text-red-600 text-xl mt-1">warning</span>
-          <div class="text-sm text-red-800">
-            <p class="font-semibold mb-2">⚠️ THIS ACTION IS IRREVERSIBLE</p>
+        <div class="alert alert-error">
+          <span class="material-symbols-outlined">warning</span>
+          <div class="text-sm">
+            <p class="font-semibold mb-2">THIS ACTION IS IRREVERSIBLE</p>
             <p class="mb-2">Permanently deleting this user will remove:</p>
-            <ul class="list-disc list-inside space-y-1 text-red-700">
+            <ul class="list-disc list-inside space-y-1 ml-2">
               <li>All rides and GPS data</li>
               <li>All posts, comments, and likes</li>
               <li>All motorcycles and maintenance records</li>
@@ -67,32 +73,52 @@ export interface ForceDeleteDialogData {
         </div>
 
         <!-- Confirmation Input -->
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Type PERMANENTLY DELETE to confirm</mat-label>
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text font-medium">Type PERMANENTLY DELETE to confirm</span>
+          </label>
           <input
-            matInput
+            type="text"
             [(ngModel)]="confirmText"
             placeholder="Type PERMANENTLY DELETE"
-            class="font-mono"
+            class="input input-bordered w-full font-mono"
+            [class.input-error]="confirmText && confirmText !== 'PERMANENTLY DELETE'"
           />
-        </mat-form-field>
+          @if (confirmText && confirmText !== 'PERMANENTLY DELETE') {
+            <label class="label">
+              <span class="label-text-alt text-error">Text must match exactly: PERMANENTLY DELETE</span>
+            </label>
+          }
+        </div>
       </div>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button [disabled]="isDeleting()" (click)="onCancel()">Cancel</button>
-      <button
-        mat-raised-button
-        color="warn"
-        [disabled]="confirmText !== 'PERMANENTLY DELETE' || isDeleting()"
-        (click)="onForceDelete()"
-      >
-        @if (isDeleting()) {
-          <span class="material-symbols-outlined animate-spin mr-2">progress_activity</span>
-        }
-        Permanently Delete
-      </button>
-    </mat-dialog-actions>
-  `
+
+      <!-- Footer -->
+      <div class="flex justify-end gap-2 p-4 border-t border-base-300">
+        <button
+          class="btn btn-ghost"
+          [disabled]="isDeleting()"
+          (click)="onCancel()"
+        >
+          Cancel
+        </button>
+        <button
+          class="btn btn-error"
+          [disabled]="confirmText !== 'PERMANENTLY DELETE' || isDeleting()"
+          (click)="onForceDelete()"
+        >
+          @if (isDeleting()) {
+            <span class="loading loading-spinner loading-sm"></span>
+          }
+          Permanently Delete
+        </button>
+      </div>
+    </div>
+  `,
+  styles: [`
+    :host {
+      display: block;
+    }
+  `]
 })
 export class ForceDeleteDialogComponent {
   confirmText = '';

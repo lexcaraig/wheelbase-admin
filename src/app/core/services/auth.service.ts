@@ -86,6 +86,24 @@ export class AuthService {
         throw new Error('Invalid or inactive admin account');
       }
 
+      // Transform nested JSONB permissions object into flat string array
+      // DB stores: {"users": {"view": true, "ban": false}, "content": {"moderate": true}}
+      // Frontend expects: ["users.view", "content.moderate"]
+      if (adminUser.permissions && !Array.isArray(adminUser.permissions)) {
+        const permsObj = adminUser.permissions as unknown as Record<string, Record<string, boolean>>;
+        const flatPermissions: string[] = [];
+        for (const [category, actions] of Object.entries(permsObj)) {
+          if (actions && typeof actions === 'object') {
+            for (const [action, enabled] of Object.entries(actions)) {
+              if (enabled) {
+                flatPermissions.push(`${category}.${action}`);
+              }
+            }
+          }
+        }
+        adminUser.permissions = flatPermissions;
+      }
+
       this.currentUserSubject.next(adminUser);
       this.isAuthenticated.set(true);
     } catch (error: any) {
