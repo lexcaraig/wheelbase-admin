@@ -101,6 +101,7 @@ export class SidebarComponent {
     { label: 'Dashboard', icon: 'home', route: '/dashboard' },
     { label: 'Growth Monitoring', icon: 'show_chart', route: '/monitoring', permission: 'analytics.view' },
     { label: 'Users', icon: 'group', route: '/users', permission: 'users.view' },
+    { label: 'Subscriptions', icon: 'card_membership', route: '/subscriptions', permission: 'users.view' },
     { label: 'Content Management', icon: 'edit_document', route: '/content', permission: 'content.moderate' },
     { label: 'Promotions', icon: 'campaign', route: '/promotions', permission: 'content.moderate' },
     { label: 'Business Verifications', icon: 'verified', route: '/verifications', permission: 'content.moderate' },

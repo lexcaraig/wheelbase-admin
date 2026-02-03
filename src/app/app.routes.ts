@@ -24,6 +24,7 @@ import { AnnouncementsComponent } from './features/announcements/announcements.c
 import { BusinessListComponent } from './features/businesses/business-list.component';
 import { EmergencyDashboardComponent } from './features/emergency/emergency-dashboard.component';
 import { AuthCallbackComponent } from './features/auth/callback/auth-callback.component';
+import { SubscriptionsComponent } from './features/subscriptions/subscriptions.component';
 
 export const routes: Routes = [
   // Root redirect to dashboard (will trigger AuthGuard if not authenticated)
@@ -176,6 +177,13 @@ export const routes: Routes = [
         component: PromotionReportComponent,
         canActivate: [AdminRoleGuard],
         data: { permission: 'content.moderate' }
+      },
+      // Subscription Management
+      {
+        path: 'subscriptions',
+        component: SubscriptionsComponent,
+        canActivate: [AdminRoleGuard],
+        data: { permission: 'users.view' }
       },
       // Business Portal Management
       {

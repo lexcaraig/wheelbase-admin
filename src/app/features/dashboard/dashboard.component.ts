@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AnalyticsService } from '../../core/services/analytics.service';
 import { UsersService } from '../../core/services/users.service';
@@ -37,8 +37,7 @@ Chart.register(...registerables);
     // Shared components
     StatusBadgeComponent,
     AvatarComponent,
-    RelativeTimePipe,
-    DatePipe
+    RelativeTimePipe
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'

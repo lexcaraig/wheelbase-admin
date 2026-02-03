@@ -1,0 +1,302 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div>
+    <h1 class="text-3xl font-bold text-base-content">Subscription Management</h1>
+    <p class="text-base-content/70 mt-1">Monitor subscriptions, manage tiers, and configure feature flags</p>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    <div class="card bg-base-200 shadow p-4 text-center">
+      @if (isLoadingStats()) {
+        <div class="h-8 bg-base-300 rounded animate-pulse"></div>
+      } @else {
+        <p class="text-2xl font-bold">{{ stats()?.total_users | number }}</p>
+      }
+      <p class="text-sm text-base-content/70">Total Users</p>
+    </div>
+    <div class="card bg-base-200 shadow p-4 text-center">
+      @if (isLoadingStats()) {
+        <div class="h-8 bg-base-300 rounded animate-pulse"></div>
+      } @else {
+        <p class="text-2xl font-bold text-base-content/60">{{ stats()?.free_users | number }}</p>
+      }
+      <p class="text-sm text-base-content/70">Free</p>
+    </div>
+    <div class="card bg-base-200 shadow p-4 text-center">
+      @if (isLoadingStats()) {
+        <div class="h-8 bg-base-300 rounded animate-pulse"></div>
+      } @else {
+        <p class="text-2xl font-bold text-blue-500">{{ stats()?.pro_users | number }}</p>
+      }
+      <p class="text-sm text-base-content/70">Pro</p>
+    </div>
+    <div class="card bg-base-200 shadow p-4 text-center">
+      @if (isLoadingStats()) {
+        <div class="h-8 bg-base-300 rounded animate-pulse"></div>
+      } @else {
+        <p class="text-2xl font-bold text-yellow-500">{{ stats()?.premium_users | number }}</p>
+      }
+      <p class="text-sm text-base-content/70">Premium</p>
+    </div>
+    <div class="card bg-base-200 shadow p-4 text-center">
+      @if (isLoadingStats()) {
+        <div class="h-8 bg-base-300 rounded animate-pulse"></div>
+      } @else {
+        <p class="text-2xl font-bold text-green-500">{{ stats()?.conversion_rate }}%</p>
+      }
+      <p class="text-sm text-base-content/70">Conversion</p>
+    </div>
+    <div class="card bg-base-200 shadow p-4 text-center">
+      @if (isLoadingStats()) {
+        <div class="h-8 bg-base-300 rounded animate-pulse"></div>
+      } @else {
+        <p class="text-2xl font-bold text-purple-500">{{ getMrrEstimate() }}</p>
+      }
+      <p class="text-sm text-base-content/70">MRR Est.</p>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <mat-tab-group (selectedIndexChange)="onTabChange($event)">
+    <!-- Transaction History Tab -->
+    <mat-tab label="Transaction History">
+      <div class="pt-4 space-y-4">
+        <!-- Filters -->
+        <div class="card bg-base-200 shadow">
+          <div class="card-body p-4">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+              <div class="md:col-span-3">
+                <select
+                  class="select select-bordered w-full"
+                  [(ngModel)]="platformFilter"
+                  (ngModelChange)="onTransactionFilterChange()"
+                >
+                  <option value="all">All Platforms</option>
+                  <option value="apple">Apple</option>
+                  <option value="google">Google</option>
+                </select>
+              </div>
+              <div class="md:col-span-3">
+                <select
+                  class="select select-bordered w-full"
+                  [(ngModel)]="typeFilter"
+                  (ngModelChange)="onTransactionFilterChange()"
+                >
+                  <option value="all">All Types</option>
+                  <option value="purchase">Purchase</option>
+                  <option value="renewal">Renewal</option>
+                  <option value="upgrade">Upgrade</option>
+                  <option value="downgrade">Downgrade</option>
+                  <option value="cancellation">Cancellation</option>
+                  <option value="refund">Refund</option>
+                  <option value="restore">Restore</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="card bg-base-200 shadow">
+          <div class="card-body p-4">
+            @if (isLoadingTransactions()) {
+              <div class="flex justify-center py-8">
+                <span class="loading loading-spinner loading-lg"></span>
+              </div>
+            } @else {
+              <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Platform</th>
+                      <th>Product</th>
+                      <th>Type</th>
+                      <th>Valid</th>
+                      <th>Purchase Date</th>
+                      <th>Expires</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (tx of transactions(); track tx.id) {
+                      <tr class="cursor-pointer hover" (click)="viewUser(tx.user_id)">
+                        <td>
+                          <div>
+                            <p class="font-medium">{{ tx.username || 'Unknown' }}</p>
+                            <p class="text-xs text-base-content/60">{{ tx.email }}</p>
+                          </div>
+                        </td>
+                        <td>
+                          <span class="badge badge-sm" [class.badge-neutral]="tx.platform === 'apple'" [class.badge-accent]="tx.platform === 'google'">
+                            {{ tx.platform }}
+                          </span>
+                        </td>
+                        <td class="text-sm font-mono">{{ tx.product_id }}</td>
+                        <td>
+                          <app-status-badge [severity]="getTransactionTypeSeverity(tx.transaction_type)">
+                            {{ tx.transaction_type | uppercase }}
+                          </app-status-badge>
+                        </td>
+                        <td>
+                          @if (tx.is_valid) {
+                            <span class="material-symbols-outlined text-green-500">check_circle</span>
+                          } @else {
+                            <span class="material-symbols-outlined text-red-500">cancel</span>
+                          }
+                        </td>
+                        <td class="text-sm">{{ tx.purchase_date | relativeTime }}</td>
+                        <td class="text-sm">
+                          @if (tx.expires_date) {
+                            {{ tx.expires_date | relativeTime }}
+                          } @else {
+                            <span class="text-base-content/40">-</span>
+                          }
+                        </td>
+                      </tr>
+                    } @empty {
+                      <tr>
+                        <td colspan="7" class="text-center py-8 text-base-content/60">
+                          No transactions found
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination -->
+              @if (transactionsTotal() > 0) {
+                <div class="flex items-center justify-between mt-4">
+                  <span class="text-sm text-base-content/70">{{ getTransactionsPageRange() }}</span>
+                  <div class="join">
+                    <button
+                      class="join-item btn btn-sm"
+                      [disabled]="transactionsPage() === 1"
+                      (click)="transactionsPrevPage()"
+                    >Prev</button>
+                    <button class="join-item btn btn-sm btn-disabled">
+                      Page {{ transactionsPage() }}
+                    </button>
+                    <button
+                      class="join-item btn btn-sm"
+                      [disabled]="transactionsPage() >= getTransactionsTotalPages()"
+                      (click)="transactionsNextPage()"
+                    >Next</button>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Feature Flags Tab -->
+    <mat-tab label="Feature Flags">
+      <div class="pt-4">
+        <div class="card bg-base-200 shadow">
+          <div class="card-body p-4">
+            @if (isLoadingFlags()) {
+              <div class="flex justify-center py-8">
+                <span class="loading loading-spinner loading-lg"></span>
+              </div>
+            } @else {
+              <div class="space-y-3">
+                @for (flag of featureFlags(); track flag.id) {
+                  <div class="flex items-center justify-between p-4 border border-base-300 rounded-lg">
+                    <div class="flex-1">
+                      <p class="font-medium font-mono text-base-content">{{ flag.key }}</p>
+                      @if (flag.description) {
+                        <p class="text-sm text-base-content/60 mt-1">{{ flag.description }}</p>
+                      }
+                      <p class="text-xs text-base-content/40 mt-1">
+                        Updated {{ flag.updated_at | relativeTime }}
+                      </p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <app-status-badge [severity]="flag.value ? 'success' : 'secondary'">
+                        {{ flag.value ? 'ENABLED' : 'DISABLED' }}
+                      </app-status-badge>
+                      <input
+                        type="checkbox"
+                        class="toggle toggle-primary"
+                        [checked]="flag.value"
+                        [disabled]="togglingFlagId() === flag.id"
+                        (change)="toggleFeatureFlag(flag)"
+                      />
+                    </div>
+                  </div>
+                } @empty {
+                  <p class="text-center text-base-content/60 py-8">No feature flags configured</p>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Expiring Subscriptions Tab -->
+    <mat-tab label="Expiring Soon">
+      <div class="pt-4">
+        <div class="card bg-base-200 shadow">
+          <div class="card-body p-4">
+            @if (isLoadingExpiring()) {
+              <div class="flex justify-center py-8">
+                <span class="loading loading-spinner loading-lg"></span>
+              </div>
+            } @else {
+              <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Tier</th>
+                      <th>Source</th>
+                      <th>Expires</th>
+                      <th>Days Left</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (user of expiringUsers(); track user.id) {
+                      <tr class="cursor-pointer hover" (click)="viewUser(user.id)">
+                        <td>
+                          <div class="flex items-center gap-3">
+                            <app-avatar [image]="user.avatar_url" [label]="user.username"></app-avatar>
+                            <div>
+                              <p class="font-medium">{{ user.username }}</p>
+                              <p class="text-xs text-base-content/60">{{ user.email }}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <app-status-badge [severity]="getTierSeverity(user.subscription_tier)">
+                            {{ user.subscription_tier | uppercase }}
+                          </app-status-badge>
+                        </td>
+                        <td class="text-sm capitalize">{{ user.subscription_source }}</td>
+                        <td class="text-sm">{{ user.subscription_expires_at | relativeTime }}</td>
+                        <td>
+                          <app-status-badge [severity]="getExpiryUrgency(user.subscription_expires_at)">
+                            {{ getDaysUntilExpiry(user.subscription_expires_at) }}d
+                          </app-status-badge>
+                        </td>
+                      </tr>
+                    } @empty {
+                      <tr>
+                        <td colspan="5" class="text-center py-8 text-base-content/60">
+                          No subscriptions expiring in the next 7 days
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

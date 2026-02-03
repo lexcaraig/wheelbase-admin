@@ -18,6 +18,7 @@ import { getSubscriptionTierSeverity } from '../../../shared/utils/severity.util
 import { BadgeSeverity } from '../../../shared/components/status-badge/status-badge.component';
 import { UserDetailBanDialogComponent } from './dialogs/user-detail-ban-dialog.component';
 import { UserDetailHardDeleteDialogComponent } from './dialogs/user-detail-hard-delete-dialog.component';
+import { ChangeTierDialogComponent } from '../../subscriptions/dialogs/change-tier-dialog.component';
 
 @Component({
   selector: 'app-user-detail',
@@ -112,6 +113,28 @@ export class UserDetailComponent implements OnInit {
       if (result) {
         // Navigate back to users list
         setTimeout(() => this.router.navigate(['/users']), 1500);
+      }
+    });
+  }
+
+  openChangeTierDialog() {
+    const userData = this.user();
+    if (!userData) return;
+
+    const dialogRef = this.dialog.open(ChangeTierDialogComponent, {
+      width: '500px',
+      data: {
+        userId: userData.id,
+        username: userData.username,
+        email: userData.email,
+        avatarUrl: userData.avatar_url,
+        currentTier: userData.subscription_tier
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadUserDetail();
       }
     });
   }
