@@ -143,8 +143,8 @@ export class AuthService {
     const user = this.getCurrentUser();
     if (!user) return false;
 
-    // Super admin has all permissions
-    if (user.role === 'super_admin') return true;
+    // Super admin and admin have all permissions
+    if (user.role === 'super_admin' || user.role === 'admin') return true;
 
     return user.permissions.includes(permission);
   }
