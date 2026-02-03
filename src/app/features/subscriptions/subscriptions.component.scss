@@ -1,3 +1,21 @@
 :host {
   display: block;
 }
+
+::ng-deep .mat-mdc-tab-group {
+  .mat-mdc-tab-header {
+    border-bottom: 1px solid oklch(var(--bc) / 0.2);
+  }
+
+  .mat-mdc-tab .mdc-tab__text-label {
+    color: oklch(var(--bc) / 0.7);
+  }
+
+  .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
+    color: oklch(var(--bc));
+  }
+
+  .mdc-tab-indicator__content--underline {
+    border-color: oklch(var(--p));
+  }
+}
