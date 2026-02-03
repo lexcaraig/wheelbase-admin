@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { environment } from '../../../environments/environment';
+import { SupabaseService } from './supabase.service';
 import {
   SubscriptionStats,
   IapTransaction,
@@ -12,17 +11,10 @@ import {
   providedIn: 'root'
 })
 export class SubscriptionService {
-  private supabase: SupabaseClient;
-
-  constructor() {
-    this.supabase = createClient(
-      environment.supabaseUrl,
-      environment.supabaseAnonKey
-    );
-  }
+  constructor(private supabase: SupabaseService) {}
 
   async getSubscriptionStats(): Promise<SubscriptionStats> {
-    const { data, error } = await this.supabase.rpc('get_subscription_stats');
+    const { data, error } = await this.supabase.client.rpc('get_subscription_stats');
     if (error) throw new Error(error.message);
     const stats = Array.isArray(data) ? data[0] : data;
     return stats as SubscriptionStats;
@@ -40,7 +32,7 @@ export class SubscriptionService {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
-    let query = this.supabase
+    let query = this.supabase.client
       .from('iap_transactions')
       .select(`
         id, user_id, platform, product_id, transaction_id,
@@ -76,7 +68,7 @@ export class SubscriptionService {
   }
 
   async getFeatureFlags(): Promise<FeatureFlag[]> {
-    const { data, error } = await this.supabase
+    const { data, error } = await this.supabase.client
       .from('feature_flags')
       .select('id, key, value, description, updated_at, updated_by')
       .order('key');
@@ -85,7 +77,7 @@ export class SubscriptionService {
   }
 
   async updateFeatureFlag(id: string, value: boolean): Promise<void> {
-    const { error } = await this.supabase
+    const { error } = await this.supabase.client
       .from('feature_flags')
       .update({ value, updated_at: new Date().toISOString() })
       .eq('id', id);
@@ -96,7 +88,7 @@ export class SubscriptionService {
     const now = new Date().toISOString();
     const sevenDaysLater = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    const { data, error } = await this.supabase
+    const { data, error } = await this.supabase.client
       .from('users')
       .select('id, username, email, avatar_url, subscription_tier, subscription_expires_at, subscription_source')
       .neq('subscription_tier', 'free')
@@ -117,7 +109,7 @@ export class SubscriptionService {
       updateData.subscription_source = 'promotional';
     }
 
-    const { error } = await this.supabase
+    const { error } = await this.supabase.client
       .from('users')
       .update(updateData)
       .eq('id', userId);
