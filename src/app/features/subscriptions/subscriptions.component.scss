@@ -15,6 +15,15 @@
     color: oklch(var(--bc));
   }
 
+  .mat-mdc-tab:hover .mdc-tab__text-label {
+    color: oklch(var(--bc));
+  }
+
+  .mat-mdc-tab .mat-ripple-element,
+  .mat-mdc-tab .mdc-tab__ripple::before {
+    background-color: oklch(var(--bc) / 0.1) !important;
+  }
+
   .mdc-tab-indicator__content--underline {
     border-color: oklch(var(--p));
   }
