@@ -25,6 +25,7 @@ import { BusinessListComponent } from './features/businesses/business-list.compo
 import { EmergencyDashboardComponent } from './features/emergency/emergency-dashboard.component';
 import { AuthCallbackComponent } from './features/auth/callback/auth-callback.component';
 import { SubscriptionsComponent } from './features/subscriptions/subscriptions.component';
+import { DeletionFeedbackComponent } from './features/deletion-feedback/deletion-feedback.component';
 
 export const routes: Routes = [
   // Root redirect to dashboard (will trigger AuthGuard if not authenticated)
@@ -182,6 +183,13 @@ export const routes: Routes = [
       {
         path: 'subscriptions',
         component: SubscriptionsComponent,
+        canActivate: [AdminRoleGuard],
+        data: { permission: 'users.view' }
+      },
+      // Deletion Feedback - FEATURE-049
+      {
+        path: 'deletion-feedback',
+        component: DeletionFeedbackComponent,
         canActivate: [AdminRoleGuard],
         data: { permission: 'users.view' }
       },
