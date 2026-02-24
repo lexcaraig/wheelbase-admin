@@ -1,0 +1,182 @@
+<div class="page-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="text-2xl font-bold text-base-content">Deleted Users Log</h1>
+      <p class="text-sm text-base-content/60 mt-1">Permanent deletions (auto after 30 days or manual by admin)</p>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  @if (isLoading() && !entries().length) {
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      @for (i of [1,2,3]; track i) {
+        <div class="card bg-base-100 shadow-sm border border-base-300 animate-pulse">
+          <div class="card-body p-4">
+            <div class="h-4 bg-base-300 rounded w-24 mb-2"></div>
+            <div class="h-8 bg-base-300 rounded w-16"></div>
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (stats()) {
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div class="card bg-base-100 shadow-sm border border-base-300">
+        <div class="card-body p-4">
+          <div class="flex items-center gap-3">
+            <div class="p-2 rounded-lg bg-error/10">
+              <span class="material-symbols-outlined text-error">delete_forever</span>
+            </div>
+            <div>
+              <p class="text-sm text-base-content/60">Total Permanent Deletions</p>
+              <p class="text-2xl font-bold text-base-content">{{ stats()!.total }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card bg-base-100 shadow-sm border border-base-300">
+        <div class="card-body p-4">
+          <div class="flex items-center gap-3">
+            <div class="p-2 rounded-lg bg-warning/10">
+              <span class="material-symbols-outlined text-warning">schedule</span>
+            </div>
+            <div>
+              <p class="text-sm text-base-content/60">Auto-Deleted (Cron)</p>
+              <p class="text-2xl font-bold text-base-content">{{ stats()!.auto_count }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card bg-base-100 shadow-sm border border-base-300">
+        <div class="card-body p-4">
+          <div class="flex items-center gap-3">
+            <div class="p-2 rounded-lg bg-info/10">
+              <span class="material-symbols-outlined text-info">admin_panel_settings</span>
+            </div>
+            <div>
+              <p class="text-sm text-base-content/60">Admin-Deleted (Manual)</p>
+              <p class="text-2xl font-bold text-base-content">{{ stats()!.admin_count }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Filters -->
+  <div class="card bg-base-100 shadow-sm border border-base-300 mb-4">
+    <div class="card-body p-4">
+      <div class="flex flex-wrap items-center gap-4">
+        <div class="form-control w-40">
+          <select
+            class="select select-bordered select-sm"
+            [(ngModel)]="deletedByFilter"
+            (ngModelChange)="onFilterChange()"
+          >
+            <option value="all">All Sources</option>
+            <option value="auto">Auto (Cron)</option>
+            <option value="admin">Admin (Manual)</option>
+          </select>
+        </div>
+        <div class="form-control flex-1 max-w-xs">
+          <input
+            type="text"
+            class="input input-bordered input-sm"
+            placeholder="Search by username or email..."
+            [(ngModel)]="searchQuery"
+            (keyup.enter)="onFilterChange()"
+          />
+        </div>
+        <button class="btn btn-sm btn-ghost" (click)="onFilterChange()">
+          <span class="material-symbols-outlined text-sm">search</span>
+          Search
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <div class="card bg-base-100 shadow-sm border border-base-300">
+    <div class="card-body p-0">
+      @if (isLoading()) {
+        <div class="flex items-center justify-center p-12">
+          <span class="loading loading-spinner loading-lg text-primary"></span>
+        </div>
+      } @else if (entries().length === 0) {
+        <div class="flex flex-col items-center justify-center p-12 text-base-content/60">
+          <span class="material-symbols-outlined text-4xl mb-2">inbox</span>
+          <p>No permanently deleted users found</p>
+        </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="table table-sm">
+            <thead>
+              <tr class="bg-base-200">
+                <th>Username</th>
+                <th>Email</th>
+                <th>Reason</th>
+                <th>Soft Deleted</th>
+                <th>Hard Deleted</th>
+                <th>Deleted By</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (entry of entries(); track entry.id) {
+                <tr class="hover">
+                  <td class="font-medium">{{ entry.username || '-' }}</td>
+                  <td class="text-base-content/70">{{ entry.email || '-' }}</td>
+                  <td class="max-w-xs">
+                    @if (entry.deletion_reason) {
+                      <span
+                        class="text-sm text-base-content/70 truncate block max-w-xs cursor-help"
+                        [title]="entry.deletion_details || ''"
+                      >{{ entry.deletion_reason }}</span>
+                    } @else {
+                      <span class="text-base-content/40">-</span>
+                    }
+                  </td>
+                  <td class="text-base-content/70">{{ entry.soft_deleted_at | relativeTime }}</td>
+                  <td class="text-base-content/70">{{ entry.hard_deleted_at | relativeTime }}</td>
+                  <td>
+                    <span
+                      class="badge badge-sm"
+                      [ngClass]="entry.deleted_by === 'auto' ? 'badge-warning' : 'badge-info'"
+                    >
+                      {{ entry.deleted_by === 'auto' ? 'Auto' : 'Admin' }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex items-center justify-between p-4 border-t border-base-300">
+          <span class="text-sm text-base-content/60">{{ getPageRange() }}</span>
+          <div class="join">
+            <button
+              class="join-item btn btn-sm"
+              [disabled]="currentPage() <= 1"
+              (click)="prevPage()"
+            >
+              <span class="material-symbols-outlined text-sm">chevron_left</span>
+            </button>
+            <button class="join-item btn btn-sm no-animation">
+              Page {{ currentPage() }} of {{ getTotalPages() }}
+            </button>
+            <button
+              class="join-item btn btn-sm"
+              [disabled]="currentPage() >= getTotalPages()"
+              (click)="nextPage()"
+            >
+              <span class="material-symbols-outlined text-sm">chevron_right</span>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

@@ -103,6 +103,7 @@ export class SidebarComponent {
     { label: 'Users', icon: 'group', route: '/users', permission: 'users.view' },
     { label: 'Subscriptions', icon: 'card_membership', route: '/subscriptions', permission: 'users.view' },
     { label: 'Deletion Feedback', icon: 'feedback', route: '/deletion-feedback', permission: 'users.view' },
+    { label: 'Deleted Users', icon: 'delete_forever', route: '/deleted-users-log', permission: 'users.view' },
     { label: 'Content Management', icon: 'edit_document', route: '/content', permission: 'content.moderate' },
     { label: 'Promotions', icon: 'campaign', route: '/promotions', permission: 'content.moderate' },
     { label: 'Business Verifications', icon: 'verified', route: '/verifications', permission: 'content.moderate' },

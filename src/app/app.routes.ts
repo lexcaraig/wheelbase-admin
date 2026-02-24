@@ -26,6 +26,7 @@ import { EmergencyDashboardComponent } from './features/emergency/emergency-dash
 import { AuthCallbackComponent } from './features/auth/callback/auth-callback.component';
 import { SubscriptionsComponent } from './features/subscriptions/subscriptions.component';
 import { DeletionFeedbackComponent } from './features/deletion-feedback/deletion-feedback.component';
+import { DeletedUsersLogComponent } from './features/deleted-users-log/deleted-users-log.component';
 
 export const routes: Routes = [
   // Root redirect to dashboard (will trigger AuthGuard if not authenticated)
@@ -190,6 +191,13 @@ export const routes: Routes = [
       {
         path: 'deletion-feedback',
         component: DeletionFeedbackComponent,
+        canActivate: [AdminRoleGuard],
+        data: { permission: 'users.view' }
+      },
+      // Deleted Users Log - permanent deletion audit trail
+      {
+        path: 'deleted-users-log',
+        component: DeletedUsersLogComponent,
         canActivate: [AdminRoleGuard],
         data: { permission: 'users.view' }
       },

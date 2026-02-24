@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { ApiService } from './api.service';
 import { AppUser, UserDetail, UsersListResponse } from '../models/user.model';
+import { DeletedUsersLogResponse } from '../models/deleted-user-log.model';
 import { environment } from '../../../environments/environment';
 
 export interface UserStats {
@@ -11,7 +12,7 @@ export interface UserStats {
   verified_users: number;
   pro_users: number;
   premium_users: number;
-  pending_deletion: number; // Users within 7-day grace period before permanent deletion
+  pending_deletion: number; // Users within 30-day grace period before permanent deletion
 }
 
 @Injectable({
@@ -108,11 +109,25 @@ export class UsersService {
   }
 
   /**
-   * Restore a soft-deleted user account (within 7-day grace period)
+   * Restore a soft-deleted user account (within 30-day grace period)
    */
   async restoreUser(userId: string): Promise<void> {
     await this.api.call('restore-user', {
       user_id: userId
     });
+  }
+
+  /**
+   * Get permanently deleted users log with pagination and filters
+   */
+  async getDeletedUsersLog(params: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    deleted_by?: 'all' | 'auto' | 'admin';
+    date_from?: string;
+    date_to?: string;
+  }): Promise<DeletedUsersLogResponse> {
+    return await this.api.call<DeletedUsersLogResponse>('get-deleted-users-log', params);
   }
 }

@@ -287,7 +287,7 @@ ${infra.database.table_sizes.slice(0, 10).map(t => `| ${t.table_name} | ${t.size
 ${infra.upstash.is_configured ? `### Upstash Redis (Rate Limiting)
 | Metric | Value |
 |--------|-------|
-| Estimated Commands | ${infra.upstash.total_commands.toLocaleString()} (~2x audit logs) |
+| Estimated Commands | ${infra.upstash.total_commands.toLocaleString()} |
 | Active Keys | ${infra.upstash.total_keys.toLocaleString()} |
 | Storage | ${infra.upstash.memory_used_mb > 0 ? '~1 KB' : '0 KB'} (minimal, ephemeral keys) |
 

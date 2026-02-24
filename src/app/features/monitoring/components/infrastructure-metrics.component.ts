@@ -108,7 +108,7 @@ import { InfrastructureMetrics } from '../../../core/services/monitoring.service
             <div class="bg-primary/10 rounded-lg p-4 border border-primary/20">
               <p class="text-xs text-primary font-medium">Estimated Commands</p>
               <p class="text-2xl font-bold text-base-content mt-1">{{ metrics.upstash.total_commands | number }}</p>
-              <p class="text-xs text-base-content/60 mt-1">Based on API usage (~2x audit logs)</p>
+              <p class="text-xs text-base-content/60 mt-1">Estimated from active rate limit keys</p>
             </div>
 
             <!-- Total Keys -->
