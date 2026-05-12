@@ -15,6 +15,7 @@ import { BadgeSeverity } from '../../shared/components/status-badge/status-badge
 import { ViewBusinessDialogComponent } from './dialogs/view-business-dialog.component';
 import { RejectBusinessDialogComponent } from './dialogs/reject-business-dialog.component';
 import { SuspendBusinessDialogComponent } from './dialogs/suspend-business-dialog.component';
+import { ProvisionSubscriptionDialogComponent } from './dialogs/provision-subscription-dialog.component';
 
 @Component({
   selector: 'app-business-list',
@@ -196,6 +197,52 @@ export class BusinessListComponent implements OnInit {
         this.loadBusinesses();
       }
     });
+  }
+
+  openProvisionSubscriptionDialog(business: Business) {
+    const dialogRef = this.dialog.open(ProvisionSubscriptionDialogComponent, {
+      width: '720px',
+      maxWidth: '95vw',
+      disableClose: true,
+      data: { business }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadBusinesses();
+      }
+    });
+  }
+
+  async confirmCancelSubscription(business: Business) {
+    const confirmed = await this.confirmService.confirm({
+      title: 'Cancel Subscription',
+      message: `Cancel the active subscription for "${business.business_name}"? Access continues until ${business.subscription_expires_at ? new Date(business.subscription_expires_at).toLocaleDateString() : 'period end'}. Auto-renew will be disabled.`,
+      confirmText: 'Cancel Subscription',
+      confirmColor: 'warn'
+    });
+
+    if (!confirmed) return;
+
+    try {
+      this.isProcessing.set(true);
+      await this.businessService.cancelSubscription(business.id);
+      this.notificationService.success(
+        'Subscription cancelled',
+        `${business.business_name} auto-renew disabled. Access remains until expiry.`
+      );
+      this.loadBusinesses();
+    } catch (error: any) {
+      this.notificationService.error('Error', error?.message || 'Failed to cancel subscription');
+    } finally {
+      this.isProcessing.set(false);
+    }
+  }
+
+  hasActiveSubscription(business: Business): boolean {
+    if (business.subscription_tier === 'free' || !business.subscription_tier) return false;
+    if (!business.subscription_expires_at) return false;
+    return new Date(business.subscription_expires_at) > new Date();
   }
 
   getBusinessTypeLabel(type: string): string {

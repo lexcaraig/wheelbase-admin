@@ -48,14 +48,56 @@ export interface BusinessListResponse {
   };
 }
 
+export type BillingPeriod = 'monthly' | 'quarterly' | 'annual';
+export type BusinessSubscriptionStatus = 'active' | 'cancelled' | 'expired' | 'pending';
+
+export interface ProvisionSubscriptionPayload {
+  tier: SubscriptionTier;
+  billingPeriod: BillingPeriod;
+  amountCents: number;
+  currency?: string;
+  paymentMethod?: string;
+  autoRenew?: boolean;
+  startedAt?: string;
+  expiresAt?: string;
+  notes?: string;
+}
+
+export interface BusinessSubscriptionRecord {
+  id: string;
+  business_id: string;
+  tier: SubscriptionTier;
+  payment_method: string;
+  amount_cents: number;
+  currency: string;
+  started_at: string;
+  expires_at: string;
+  auto_renew: boolean;
+  status: BusinessSubscriptionStatus;
+  created_at: string;
+}
+
+export interface BusinessSubscriptionResult {
+  business: Business;
+  subscription: BusinessSubscriptionRecord;
+}
+
 export interface BusinessManageRequest {
-  action: 'list' | 'get' | 'approve' | 'reject' | 'suspend';
+  action:
+    | 'list'
+    | 'get'
+    | 'approve'
+    | 'reject'
+    | 'suspend'
+    | 'provision_subscription'
+    | 'cancel_subscription';
   businessId?: string;
   reason?: string;
   status?: BusinessVerificationStatus | 'all';
   limit?: number;
   offset?: number;
   search?: string;
+  subscription?: ProvisionSubscriptionPayload;
 }
 
 export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {

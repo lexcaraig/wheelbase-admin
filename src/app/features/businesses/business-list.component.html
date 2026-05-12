@@ -95,8 +95,9 @@
                 <th style="min-width: 120px">Type</th>
                 <th style="min-width: 150px">Contact</th>
                 <th style="min-width: 100px">Status</th>
+                <th style="min-width: 140px">Subscription</th>
                 <th style="min-width: 120px">Created</th>
-                <th style="min-width: 150px" class="text-center">Actions</th>
+                <th style="min-width: 220px" class="text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -140,6 +141,25 @@
                     </span>
                   </td>
                   <td>
+                    <div class="flex flex-col gap-1">
+                      <span
+                        class="badge badge-sm"
+                        [ngClass]="{
+                          'badge-neutral': business.subscription_tier === 'free' || !business.subscription_tier,
+                          'badge-primary': business.subscription_tier === 'pro',
+                          'badge-secondary': business.subscription_tier === 'enterprise'
+                        }"
+                      >
+                        {{ (business.subscription_tier || 'free') | uppercase }}
+                      </span>
+                      @if (business.subscription_expires_at && hasActiveSubscription(business)) {
+                        <span class="text-xs text-base-content/60">
+                          until {{ formatDate(business.subscription_expires_at) }}
+                        </span>
+                      }
+                    </div>
+                  </td>
+                  <td>
                     <span class="text-sm text-base-content/80">{{ formatDate(business.created_at) }}</span>
                   </td>
                   <td>
@@ -169,6 +189,22 @@
                       }
                       @if (business.verification_status === 'approved') {
                         <button
+                          class="btn btn-ghost btn-sm btn-square tooltip text-primary"
+                          data-tip="Provision Subscription"
+                          (click)="openProvisionSubscriptionDialog(business)"
+                        >
+                          <span class="material-symbols-outlined">card_membership</span>
+                        </button>
+                        @if (hasActiveSubscription(business)) {
+                          <button
+                            class="btn btn-ghost btn-sm btn-square tooltip text-warning"
+                            data-tip="Cancel Subscription (keep access until expiry)"
+                            (click)="confirmCancelSubscription(business)"
+                          >
+                            <span class="material-symbols-outlined">credit_card_off</span>
+                          </button>
+                        }
+                        <button
                           class="btn btn-ghost btn-sm btn-square tooltip text-error"
                           data-tip="Suspend"
                           (click)="openSuspendDialog(business)"
@@ -182,7 +218,7 @@
               }
               @empty {
                 <tr>
-                  <td colspan="6" class="text-center py-12">
+                  <td colspan="7" class="text-center py-12">
                     <div class="flex flex-col items-center gap-3">
                       <span class="material-symbols-outlined text-base-content/50 text-6xl">business</span>
                       <div class="text-base-content/60 text-lg">No businesses found</div>
