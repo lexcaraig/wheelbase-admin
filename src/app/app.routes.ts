@@ -27,6 +27,7 @@ import { AuthCallbackComponent } from './features/auth/callback/auth-callback.co
 import { SubscriptionsComponent } from './features/subscriptions/subscriptions.component';
 import { DeletionFeedbackComponent } from './features/deletion-feedback/deletion-feedback.component';
 import { DeletedUsersLogComponent } from './features/deleted-users-log/deleted-users-log.component';
+import { PricingComponent } from './features/pricing/pricing.component';
 
 export const routes: Routes = [
   // Root redirect to dashboard (will trigger AuthGuard if not authenticated)
@@ -207,6 +208,13 @@ export const routes: Routes = [
         component: BusinessListComponent,
         canActivate: [AdminRoleGuard],
         data: { permission: 'content.moderate' }
+      },
+      // Pricing Catalog (read-only review page) — mirrors wheelbase-docs/partnerships/PRICING_GUIDE.md
+      {
+        path: 'pricing',
+        component: PricingComponent,
+        canActivate: [AdminRoleGuard],
+        data: { permission: 'users.view' }
       }
     ]
   },
