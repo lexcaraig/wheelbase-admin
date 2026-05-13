@@ -20,6 +20,7 @@ import {
   BUNDLE_PACKAGES,
   BUSINESS_ACCOUNT_PRICING,
 } from '../../../core/models/pricing.model';
+import { InvoiceGeneratorService } from '../../../core/services/invoice-generator.service';
 
 type PackageMode =
   | 'business_only'
@@ -480,6 +481,17 @@ export interface VerificationReviewDialogData {
       <!-- Footer Actions -->
       <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-base-300">
         <button class="btn btn-ghost" [disabled]="isProcessing()" (click)="onClose()">Cancel</button>
+        @if (canDownloadInvoice()) {
+          <button
+            class="btn btn-outline btn-info"
+            [disabled]="isProcessing()"
+            (click)="downloadInvoice()"
+            title="Generate a PDF invoice for this subscription"
+          >
+            <span class="material-symbols-outlined text-sm">receipt_long</span>
+            Download Invoice
+          </button>
+        }
         @if (data.request.status === 'pending') {
           <button
             class="btn btn-primary"
@@ -542,7 +554,8 @@ export class VerificationReviewDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: VerificationReviewDialogData,
     private notificationService: NotificationService,
     private confirmService: ConfirmService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private invoiceGenerator: InvoiceGeneratorService
   ) {
     // Pre-fill from requested plan if merchant chose one at signup
     const requested = getRequestedSummary(this.data.request);
@@ -583,6 +596,69 @@ export class VerificationReviewDialogComponent {
   onProvisionToggle() {
     if (!this.provisionEnabled()) return;
     if (this.packageMode() === 'business_only') this.recomputeAmount();
+  }
+
+  canDownloadInvoice(): boolean {
+    // Show the button whenever the admin has dialed in a non-free subscription
+    // (either prefilled from the merchant's request, or set manually).
+    if (this.reviewAction === 'reject') return false;
+    if (!this.provisionEnabled()) return false;
+    if (this.subTier() === 'free') return false;
+    return this.subAmountPhp() > 0;
+  }
+
+  downloadInvoice(): void {
+    if (!this.canDownloadInvoice()) return;
+
+    const tierLabel = this.subTier() === 'enterprise' ? 'Enterprise' : 'Pro';
+    const periodLabel = this.subPeriod();
+    const months = this.periodMonths();
+
+    const start = new Date();
+    const end = new Date(start);
+    end.setUTCMonth(end.getUTCMonth() + months);
+
+    const description = this.packageDescription();
+
+    try {
+      const { invoiceNumber, filename } = this.invoiceGenerator.download({
+        billTo: {
+          businessName: this.data.request.business_name,
+          contactName: this.data.request.owner_name,
+          email: this.data.request.email,
+        },
+        lineItems: [
+          {
+            description: `${description} — ${tierLabel} tier`,
+            periodLabel: `${this.formatDate(start.toISOString())} → ${this.formatDate(end.toISOString())} (${periodLabel})`,
+            quantity: 1,
+            amountPhp: this.subAmountPhp(),
+          },
+        ],
+        internalNotes: this.adminNotes || undefined,
+      });
+      this.notificationService.success('Invoice generated', `${filename} (${invoiceNumber})`);
+    } catch (error: any) {
+      this.notificationService.error('Invoice failed', error?.message || 'Could not generate PDF');
+      console.error('[invoice] error', error);
+    }
+  }
+
+  private packageDescription(): string {
+    const mode = this.packageMode();
+    if (mode === 'business_only') return 'Business Account';
+    if (mode === 'custom') return 'Custom Plan';
+    if (mode.startsWith('bundle_')) {
+      const key = mode.replace('bundle_', '');
+      const pkg = this.bundles.find((b) => b.key === key);
+      return pkg ? `${pkg.label} — ${pkg.includes}` : 'Bundle';
+    }
+    if (mode.startsWith('ads_')) {
+      const key = mode.replace('ads_', '');
+      const pkg = this.adPackages.find((a) => a.key === key);
+      return pkg ? `Ads — ${pkg.label} (${pkg.placementsLabel})` : 'Ads';
+    }
+    return 'Subscription';
   }
 
   onPackageChange(key: PackageMode) {

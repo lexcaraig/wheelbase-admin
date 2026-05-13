@@ -5,6 +5,7 @@ import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/materia
 import { MatButtonModule } from '@angular/material/button';
 import { BusinessService } from '../../../core/services/business.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { InvoiceGeneratorService } from '../../../core/services/invoice-generator.service';
 import {
   Business,
   BillingPeriod,
@@ -207,6 +208,16 @@ export interface ProvisionSubscriptionDialogData {
     <mat-dialog-actions align="end" class="!px-6 !pb-4">
       <button mat-button [disabled]="isProcessing()" (click)="onCancel()">Cancel</button>
       <button
+        mat-stroked-button
+        color="accent"
+        [disabled]="amountPhp() <= 0 || tier() === 'free' || isProcessing()"
+        (click)="downloadInvoice()"
+        title="Generate a PDF invoice for this subscription"
+      >
+        <span class="material-symbols-outlined text-sm">receipt_long</span>
+        Download Invoice
+      </button>
+      <button
         mat-raised-button
         color="primary"
         [disabled]="amountPhp() < 0 || isProcessing()"
@@ -298,8 +309,46 @@ export class ProvisionSubscriptionDialogComponent {
     public dialogRef: MatDialogRef<ProvisionSubscriptionDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ProvisionSubscriptionDialogData,
     private businessService: BusinessService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private invoiceGenerator: InvoiceGeneratorService
   ) {}
+
+  downloadInvoice(): void {
+    if (this.amountPhp() <= 0 || this.tier() === 'free') return;
+    const pkg = this.packages.find((p) => p.key === this.packageMode());
+    const months = this.periodMonths();
+    const start = new Date(this.startedAtLocal() || new Date().toISOString().slice(0, 10));
+    const end = new Date(start);
+    end.setUTCMonth(end.getUTCMonth() + months);
+
+    const tierLabel = this.tier() === 'enterprise' ? 'Enterprise' : 'Pro';
+    const description = pkg ? pkg.label : 'Subscription';
+    const fmt = (d: Date) => d.toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    try {
+      const { invoiceNumber, filename } = this.invoiceGenerator.download({
+        billTo: {
+          businessName: this.data.business.business_name,
+          contactName: undefined,
+          email: this.data.business.owner_email,
+        },
+        lineItems: [
+          {
+            description: `${description} — ${tierLabel} tier`,
+            periodLabel: `${fmt(start)} → ${fmt(end)} (${this.billingPeriod()})`,
+            quantity: 1,
+            amountPhp: this.amountPhp(),
+          },
+        ],
+        internalNotes: this.notes() || undefined,
+        issuedAt: start,
+      });
+      this.notificationService.success('Invoice generated', `${filename} (${invoiceNumber})`);
+    } catch (error: any) {
+      this.notificationService.error('Invoice failed', error?.message || 'Could not generate PDF');
+      console.error('[invoice] error', error);
+    }
+  }
 
   onPackageChange(key: PackageMode): void {
     this.packageMode.set(key);
