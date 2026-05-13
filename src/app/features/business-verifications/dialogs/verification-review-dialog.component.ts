@@ -21,6 +21,7 @@ import {
   BUSINESS_ACCOUNT_PRICING,
 } from '../../../core/models/pricing.model';
 import { InvoiceGeneratorService } from '../../../core/services/invoice-generator.service';
+import { ContractGeneratorService } from '../../../core/services/contract-generator.service';
 
 type PackageMode =
   | 'business_only'
@@ -573,6 +574,15 @@ export interface VerificationReviewDialogData {
             <span class="material-symbols-outlined text-sm">receipt_long</span>
             Download Invoice
           </button>
+          <button
+            class="btn btn-outline"
+            [disabled]="isProcessing()"
+            (click)="downloadContract()"
+            title="Generate a PDF service agreement for the merchant to sign"
+          >
+            <span class="material-symbols-outlined text-sm">handshake</span>
+            Download Contract
+          </button>
         }
         @if (data.request.status === 'pending') {
           <button
@@ -637,7 +647,8 @@ export class VerificationReviewDialogComponent {
     private notificationService: NotificationService,
     private confirmService: ConfirmService,
     private dialog: MatDialog,
-    private invoiceGenerator: InvoiceGeneratorService
+    private invoiceGenerator: InvoiceGeneratorService,
+    private contractGenerator: ContractGeneratorService
   ) {
     // Pre-fill from requested plan if merchant chose one at signup
     const requested = getRequestedSummary(this.data.request);
@@ -707,6 +718,9 @@ export class VerificationReviewDialogComponent {
 
     const description = this.packageDescription();
 
+    const fmtDateOnly = (d: Date) =>
+      d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
     try {
       const { invoiceNumber, filename } = this.invoiceGenerator.download({
         billTo: {
@@ -716,8 +730,8 @@ export class VerificationReviewDialogComponent {
         },
         lineItems: [
           {
-            description: `${description} — ${tierLabel} tier`,
-            periodLabel: `${this.formatDate(start.toISOString())} → ${this.formatDate(end.toISOString())} (${periodLabel})`,
+            description: `${description} - ${tierLabel} tier`,
+            periodLabel: `${fmtDateOnly(start)} - ${fmtDateOnly(end)} (${periodLabel})`,
             quantity: 1,
             amountPhp: this.subAmountPhp(),
           },
@@ -728,6 +742,34 @@ export class VerificationReviewDialogComponent {
     } catch (error: any) {
       this.notificationService.error('Invoice failed', error?.message || 'Could not generate PDF');
       console.error('[invoice] error', error);
+    }
+  }
+
+  downloadContract(): void {
+    if (!this.canDownloadInvoice()) return;
+
+    const months = this.periodMonths();
+    const start = new Date();
+    const end = new Date(start);
+    end.setUTCMonth(end.getUTCMonth() + months);
+
+    try {
+      const { filename } = this.contractGenerator.download({
+        businessName: this.data.request.business_name,
+        contactName: this.data.request.owner_name,
+        email: this.data.request.email,
+        address: this.data.request.service_provider?.address,
+        planDescription: this.packageDescription(),
+        tierLabel: this.subTier() === 'enterprise' ? 'Enterprise' : 'Pro',
+        billingPeriod: this.subPeriod(),
+        amountPhp: this.subAmountPhp(),
+        startDate: start,
+        endDate: end,
+      });
+      this.notificationService.success('Contract generated', filename);
+    } catch (error: any) {
+      this.notificationService.error('Contract failed', error?.message || 'Could not generate PDF');
+      console.error('[contract] error', error);
     }
   }
 

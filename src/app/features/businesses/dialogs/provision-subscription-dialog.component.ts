@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { BusinessService } from '../../../core/services/business.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { InvoiceGeneratorService } from '../../../core/services/invoice-generator.service';
+import { ContractGeneratorService } from '../../../core/services/contract-generator.service';
 import {
   Business,
   BillingPeriod,
@@ -218,6 +219,15 @@ export interface ProvisionSubscriptionDialogData {
         Download Invoice
       </button>
       <button
+        mat-stroked-button
+        [disabled]="amountPhp() <= 0 || tier() === 'free' || isProcessing()"
+        (click)="downloadContract()"
+        title="Generate a PDF service agreement for the merchant to sign"
+      >
+        <span class="material-symbols-outlined text-sm">handshake</span>
+        Download Contract
+      </button>
+      <button
         mat-raised-button
         color="primary"
         [disabled]="amountPhp() < 0 || isProcessing()"
@@ -310,7 +320,8 @@ export class ProvisionSubscriptionDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: ProvisionSubscriptionDialogData,
     private businessService: BusinessService,
     private notificationService: NotificationService,
-    private invoiceGenerator: InvoiceGeneratorService
+    private invoiceGenerator: InvoiceGeneratorService,
+    private contractGenerator: ContractGeneratorService
   ) {}
 
   downloadInvoice(): void {
@@ -323,7 +334,7 @@ export class ProvisionSubscriptionDialogComponent {
 
     const tierLabel = this.tier() === 'enterprise' ? 'Enterprise' : 'Pro';
     const description = pkg ? pkg.label : 'Subscription';
-    const fmt = (d: Date) => d.toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+    const fmt = (d: Date) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
     try {
       const { invoiceNumber, filename } = this.invoiceGenerator.download({
@@ -334,8 +345,8 @@ export class ProvisionSubscriptionDialogComponent {
         },
         lineItems: [
           {
-            description: `${description} — ${tierLabel} tier`,
-            periodLabel: `${fmt(start)} → ${fmt(end)} (${this.billingPeriod()})`,
+            description: `${description} - ${tierLabel} tier`,
+            periodLabel: `${fmt(start)} - ${fmt(end)} (${this.billingPeriod()})`,
             quantity: 1,
             amountPhp: this.amountPhp(),
           },
@@ -347,6 +358,33 @@ export class ProvisionSubscriptionDialogComponent {
     } catch (error: any) {
       this.notificationService.error('Invoice failed', error?.message || 'Could not generate PDF');
       console.error('[invoice] error', error);
+    }
+  }
+
+  downloadContract(): void {
+    if (this.amountPhp() <= 0 || this.tier() === 'free') return;
+
+    const pkg = this.packages.find((p) => p.key === this.packageMode());
+    const months = this.periodMonths();
+    const start = new Date(this.startedAtLocal() || new Date().toISOString().slice(0, 10));
+    const end = new Date(start);
+    end.setUTCMonth(end.getUTCMonth() + months);
+
+    try {
+      const { filename } = this.contractGenerator.download({
+        businessName: this.data.business.business_name,
+        email: this.data.business.owner_email,
+        planDescription: pkg ? pkg.label : 'Subscription',
+        tierLabel: this.tier() === 'enterprise' ? 'Enterprise' : 'Pro',
+        billingPeriod: this.billingPeriod(),
+        amountPhp: this.amountPhp(),
+        startDate: start,
+        endDate: end,
+      });
+      this.notificationService.success('Contract generated', filename);
+    } catch (error: any) {
+      this.notificationService.error('Contract failed', error?.message || 'Could not generate PDF');
+      console.error('[contract] error', error);
     }
   }
 

@@ -304,10 +304,18 @@ export class InvoiceGeneratorService {
   }
 
   private fmtPhp(value: number): string {
-    return value.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 2 });
+    // jsPDF's default Helvetica encoding doesn't include the peso glyph (renders as "±"),
+    // so we spell out "PHP" instead.
+    const amount = value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return `PHP ${amount}`;
   }
 
   private formatDescription(item: InvoiceLineItem): string {
-    return item.periodLabel ? `${item.description}\n${item.periodLabel}` : item.description;
+    // Strip any characters not present in WinAnsi (jsPDF default encoding) — they
+    // render as garbage glyphs. Em-dash and basic ASCII are safe.
+    const safe = (s: string) => s.replace(/→/g, '-').replace(/₱/g, 'PHP ');
+    return item.periodLabel
+      ? `${safe(item.description)}\n${safe(item.periodLabel)}`
+      : safe(item.description);
   }
 }

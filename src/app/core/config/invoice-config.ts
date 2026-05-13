@@ -1,17 +1,13 @@
 /**
- * Invoice configuration — appears on every generated PDF invoice.
- *
- * 👉 EDIT THIS FILE with your real banking details before sending an
- *    invoice to a real customer. The placeholders below WILL appear
- *    on the PDF if left unchanged.
+ * Invoice configuration — appears on every generated PDF invoice/contract.
  *
  * Single source of truth so we don't drift across templates.
  */
 
 export interface InvoicePaymentMethod {
-  label: string;            // e.g. "Bank Transfer" | "GCash"
-  details: string;          // e.g. "BPI · 1234-5678-90"
-  accountName: string;      // e.g. "Co+Lab Digital Solutions"
+  label: string;            // e.g. "GoTyme"
+  details: string;          // e.g. "Account 017235060671"
+  accountName: string;      // e.g. "MIGUEL LORENZO SANTOS"
 }
 
 export interface InvoiceConfig {
@@ -38,33 +34,22 @@ export const INVOICE_CONFIG: InvoiceConfig = {
   issuer: {
     name: 'Wheelbase',
     legalName: 'Co+Lab Digital Solutions',
-    address: '[FILL IN: Co+Lab Digital Solutions registered address]',
-    email: 'partnerships@ridewheelbase.app',
+    address: 'Axis Residences, Pioneer St., Brgy. Barangka Ilaya, Mandaluyong City, 1550',
+    email: 'ridewheelbase@gmail.com',
     website: 'https://www.ridewheelbase.app',
-    tin: undefined, // Add when you register for VAT
+    tin: undefined,
   },
 
-  // 👉 REPLACE THESE PLACEHOLDERS BEFORE SENDING A REAL INVOICE 👈
   paymentMethods: [
     {
-      label: 'Bank Transfer',
-      details: '[FILL IN: BANK NAME] · Account [FILL IN: ACCOUNT NUMBER]',
-      accountName: '[FILL IN: ACCOUNT HOLDER NAME]',
-    },
-    {
-      label: 'GCash',
-      details: '[FILL IN: 09XX-XXX-XXXX]',
-      accountName: '[FILL IN: ACCOUNT HOLDER NAME]',
-    },
-    {
-      label: 'PayMaya',
-      details: '[FILL IN: 09XX-XXX-XXXX]',
-      accountName: '[FILL IN: ACCOUNT HOLDER NAME]',
+      label: 'GoTyme',
+      details: 'Account 017235060671',
+      accountName: 'MIGUEL LORENZO SANTOS',
     },
   ],
 
   paymentProofEmail: 'ridewheelbase@gmail.com',
-  contactEmail: 'partnerships@ridewheelbase.app',
+  contactEmail: 'ridewheelbase@gmail.com',
   paymentTermDays: 7,
   brandColor: '#FFD535',
 };
