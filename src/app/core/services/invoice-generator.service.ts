@@ -127,12 +127,16 @@ export class InvoiceGeneratorService {
     doc.setFontSize(11);
     doc.text(INVOICE_CONFIG.issuer.legalName || INVOICE_CONFIG.issuer.name, margin, issuerY + 14);
 
+    // Column widths so each side stays in its lane.
+    const columnGutter = 30;
+    const halfWidth = pageWidth / 2 - margin - columnGutter / 2;
+    const billToX = pageWidth / 2 + columnGutter / 2;
+
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     let line = issuerY + 28;
     if (INVOICE_CONFIG.issuer.address) {
-      doc.text(INVOICE_CONFIG.issuer.address, margin, line);
-      line += 12;
+      line = this.drawWrapped(doc, INVOICE_CONFIG.issuer.address, margin, line, halfWidth);
     }
     doc.text(INVOICE_CONFIG.issuer.email, margin, line);
     if (INVOICE_CONFIG.issuer.website) {
@@ -145,7 +149,6 @@ export class InvoiceGeneratorService {
     }
 
     // Bill To (right column)
-    const billToX = pageWidth / 2 + 30;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
     doc.setTextColor(120, 120, 120);
@@ -168,8 +171,25 @@ export class InvoiceGeneratorService {
       billLine += 12;
     }
     if (payload.billTo.address) {
-      doc.text(payload.billTo.address, billToX, billLine);
+      this.drawWrapped(doc, payload.billTo.address, billToX, billLine, halfWidth);
     }
+  }
+
+  /** Render text wrapped to a max width; returns the y position after the last line. */
+  private drawWrapped(
+    doc: jsPDF,
+    text: string,
+    x: number,
+    y: number,
+    maxWidth: number,
+    lineHeight: number = 12
+  ): number {
+    const lines = doc.splitTextToSize(text, maxWidth) as string[];
+    for (const line of lines) {
+      doc.text(line, x, y);
+      y += lineHeight;
+    }
+    return y;
   }
 
   private drawLineItemsTable(doc: jsPDF, payload: InvoicePayload, margin: number, pageWidth: number): number {
