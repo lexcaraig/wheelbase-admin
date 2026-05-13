@@ -475,6 +475,88 @@ export interface VerificationReviewDialogData {
               </div>
             </div>
           </div>
+
+          <!-- Invoice Generator (post-approval) -->
+          @if (data.request.status === 'approved') {
+            <div class="card bg-base-100 shadow-sm">
+              <div class="card-body p-4">
+                <h3 class="text-lg font-semibold text-base-content mb-2 flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary">receipt_long</span>
+                  Generate Invoice
+                </h3>
+                <p class="text-sm text-base-content/70 mb-4">
+                  Pick the package the merchant agreed to and download a PDF invoice they can pay against.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <label class="form-control">
+                    <div class="label py-1"><span class="label-text font-medium text-sm">Package</span></div>
+                    <select
+                      class="select select-bordered select-sm"
+                      [ngModel]="packageMode()"
+                      (ngModelChange)="onPackageChange($event)"
+                    >
+                      <option value="business_only">Business Account</option>
+                      @for (b of bundles; track b.key) {
+                        <option [value]="'bundle_' + b.key">{{ b.label }} — {{ b.includes }}</option>
+                      }
+                      @for (a of adPackages; track a.key) {
+                        <option [value]="'ads_' + a.key">Ads — {{ a.label }} ({{ a.placementsLabel }})</option>
+                      }
+                      <option value="custom">Custom (manual amount + tier)</option>
+                    </select>
+                  </label>
+
+                  <label class="form-control">
+                    <div class="label py-1"><span class="label-text font-medium text-sm">Tier</span></div>
+                    <select
+                      class="select select-bordered select-sm"
+                      [(ngModel)]="subTier"
+                      [disabled]="packageMode() !== 'custom'"
+                    >
+                      <option value="pro">Pro</option>
+                      <option value="enterprise">Enterprise</option>
+                    </select>
+                  </label>
+
+                  <label class="form-control">
+                    <div class="label py-1"><span class="label-text font-medium text-sm">Billing Period</span></div>
+                    <select
+                      class="select select-bordered select-sm"
+                      [(ngModel)]="subPeriod"
+                      (ngModelChange)="recomputeAmount()"
+                    >
+                      <option value="monthly">Monthly</option>
+                      <option value="quarterly">Quarterly (10% off)</option>
+                      <option value="annual">Annual (15% off)</option>
+                    </select>
+                  </label>
+
+                  <label class="form-control">
+                    <div class="label py-1"><span class="label-text font-medium text-sm">Amount (PHP)</span></div>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      class="input input-bordered input-sm"
+                      [(ngModel)]="subAmountPhp"
+                      [disabled]="packageMode() !== 'custom'"
+                    />
+                  </label>
+                </div>
+
+                <div class="bg-base-200 p-3 rounded-lg mt-3 text-sm flex justify-between items-center flex-wrap gap-2">
+                  <div>
+                    <strong class="text-primary text-lg">{{ subAmountPhp() | currency:'PHP':'symbol-narrow':'1.0-0' }}</strong>
+                    <span class="text-base-content/60 ml-2">{{ subPeriod() }} · {{ subTier() | uppercase }}</span>
+                  </div>
+                  <div class="text-xs text-base-content/60">
+                    Coverage: <strong>{{ computedExpires() | date:'mediumDate' }}</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
         }
       </div>
 
@@ -599,12 +681,17 @@ export class VerificationReviewDialogComponent {
   }
 
   canDownloadInvoice(): boolean {
-    // Show the button whenever the admin has dialed in a non-free subscription
-    // (either prefilled from the merchant's request, or set manually).
+    // Need a non-free, non-zero subscription dialed in.
     if (this.reviewAction === 'reject') return false;
-    if (!this.provisionEnabled()) return false;
     if (this.subTier() === 'free') return false;
-    return this.subAmountPhp() > 0;
+    if (this.subAmountPhp() <= 0) return false;
+
+    // Pending: only during the approve-and-provision flow.
+    if (this.data.request.status === 'pending') {
+      return this.reviewAction === 'approve' && this.provisionEnabled();
+    }
+    // Already approved: always available — admin may be issuing a late invoice.
+    return this.data.request.status === 'approved';
   }
 
   downloadInvoice(): void {
