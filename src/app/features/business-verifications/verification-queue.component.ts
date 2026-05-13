@@ -216,7 +216,12 @@ export class VerificationQueueComponent implements OnInit {
     const r = getRequestedSummary(request);
     if (!r) return null;
     const tier = r.tier === 'pro' ? 'Pro' : 'Enterprise';
-    const periodAbbr = r.billingPeriod === 'monthly' ? 'mo' : r.billingPeriod === 'quarterly' ? 'qtr' : 'yr';
+    let periodAbbr: string;
+    switch (r.billingPeriod) {
+      case 'monthly': periodAbbr = 'mo'; break;
+      case 'quarterly': periodAbbr = 'qtr'; break;
+      default: periodAbbr = 'yr';
+    }
     const amount = (r.amountCents / 100).toLocaleString('en-PH', { maximumFractionDigits: 0 });
     return `Requested: ${tier} (${r.billingPeriod}) ₱${amount}/${periodAbbr}`;
   }

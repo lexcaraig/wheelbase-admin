@@ -518,8 +518,11 @@ export class VerificationReviewDialogComponent {
   requestedSummary = signal<ReturnType<typeof getRequestedSummary> | null>(null);
 
   periodMonths = computed(() => {
-    const p = this.subPeriod();
-    return p === 'monthly' ? 1 : p === 'quarterly' ? 3 : 12;
+    switch (this.subPeriod()) {
+      case 'monthly': return 1;
+      case 'quarterly': return 3;
+      default: return 12;
+    }
   });
 
   computedExpires = computed(() => {
@@ -530,11 +533,8 @@ export class VerificationReviewDialogComponent {
 
   submitButtonLabel = computed(() => {
     if (this.reviewAction === 'reject') return 'Reject Claim';
-    if (this.reviewAction === 'approve' && this.provisionEnabled()) {
-      return 'Approve + Provision';
-    }
-    if (this.reviewAction === 'approve') return 'Approve';
-    return 'Submit Review';
+    if (this.reviewAction !== 'approve') return 'Submit Review';
+    return this.provisionEnabled() ? 'Approve + Provision' : 'Approve';
   });
 
   constructor(
@@ -591,43 +591,45 @@ export class VerificationReviewDialogComponent {
     this.recomputeAmount();
   }
 
+  private perMonthFor(
+    period: BillingPeriod,
+    rates: { monthly: number; quarterlyPerMonth: number; annualPerMonth: number }
+  ): number {
+    switch (period) {
+      case 'monthly': return rates.monthly;
+      case 'quarterly': return rates.quarterlyPerMonth;
+      default: return rates.annualPerMonth;
+    }
+  }
+
   recomputeAmount() {
     const mode = this.packageMode();
     const months = this.periodMonths();
     const period = this.subPeriod();
 
     if (mode === 'business_only') {
-      const perMonth = period === 'monthly' ? this.business.monthly
-        : period === 'quarterly' ? this.business.quarterlyPerMonth
-        : this.business.annualPerMonth;
+      const perMonth = this.perMonthFor(period, this.business);
       this.subAmountPhp.set(perMonth * months);
       this.subTier.set('pro');
       return;
     }
 
     if (mode.startsWith('bundle_')) {
-      const key = mode.replace('bundle_', '');
-      const pkg = this.bundles.find(b => b.key === key);
+      const pkg = this.bundles.find(b => b.key === mode.replace('bundle_', ''));
       if (!pkg) return;
-      const perMonth = period === 'monthly' ? pkg.monthlyBundle
-        : period === 'quarterly' ? pkg.quarterlyPerMonth
-        : pkg.annualPerMonth;
+      const perMonth = this.perMonthFor(period, { monthly: pkg.monthlyBundle, quarterlyPerMonth: pkg.quarterlyPerMonth, annualPerMonth: pkg.annualPerMonth });
       this.subAmountPhp.set(perMonth * months);
       this.subTier.set('pro');
       return;
     }
 
     if (mode.startsWith('ads_')) {
-      const key = mode.replace('ads_', '');
-      const pkg = this.adPackages.find(a => a.key === key);
+      const pkg = this.adPackages.find(a => a.key === mode.replace('ads_', ''));
       if (!pkg) return;
-      const perMonth = period === 'monthly' ? pkg.monthly
-        : period === 'quarterly' ? pkg.quarterlyPerMonth
-        : pkg.annualPerMonth;
+      const perMonth = this.perMonthFor(period, pkg);
       this.subAmountPhp.set(perMonth * months);
       // Ads-only packages don't grant a paid Business tier
       this.subTier.set('free');
-      return;
     }
   }
 
@@ -655,21 +657,31 @@ export class VerificationReviewDialogComponent {
 
     const subscription = this.buildSubscriptionPayload();
     const willProvision = !!subscription;
+    const isApprove = this.reviewAction === 'approve';
+    const businessName = this.data.request.business_name;
 
-    const confirmTitle = this.reviewAction === 'approve'
-      ? (willProvision ? 'Approve + Provision Subscription' : 'Approve Claim')
-      : 'Reject Claim';
-    const confirmMessage = this.reviewAction === 'approve'
-      ? (willProvision
-          ? `Approve "${this.data.request.business_name}" and provision ${subscription!.tier.toUpperCase()} (${subscription!.billingPeriod}) for ₱${this.subAmountPhp().toLocaleString()}?`
-          : `Approve "${this.data.request.business_name}" without provisioning a subscription? They'll stay on the free tier.`)
-      : `Are you sure you want to reject this claim for "${this.data.request.business_name}"?`;
+    let confirmTitle: string;
+    let confirmMessage: string;
+    let confirmText: string;
+    if (!isApprove) {
+      confirmTitle = 'Reject Claim';
+      confirmMessage = `Are you sure you want to reject this claim for "${businessName}"?`;
+      confirmText = 'Reject';
+    } else if (willProvision) {
+      confirmTitle = 'Approve + Provision Subscription';
+      confirmMessage = `Approve "${businessName}" and provision ${subscription!.tier.toUpperCase()} (${subscription!.billingPeriod}) for ₱${this.subAmountPhp().toLocaleString()}?`;
+      confirmText = 'Approve + Provision';
+    } else {
+      confirmTitle = 'Approve Claim';
+      confirmMessage = `Approve "${businessName}" without provisioning a subscription? They'll stay on the free tier.`;
+      confirmText = 'Approve';
+    }
 
     const confirmed = await this.confirmService.confirm({
       title: confirmTitle,
       message: confirmMessage,
-      confirmText: this.reviewAction === 'approve' ? (willProvision ? 'Approve + Provision' : 'Approve') : 'Reject',
-      confirmColor: this.reviewAction === 'approve' ? 'primary' : 'warn'
+      confirmText,
+      confirmColor: isApprove ? 'primary' : 'warn'
     });
 
     if (!confirmed) return;
@@ -684,11 +696,14 @@ export class VerificationReviewDialogComponent {
         subscription,
       });
 
-      const successMessage = this.reviewAction === 'approve'
-        ? (result?.subscription
-            ? `Claim approved and ${result.subscription.tier.toUpperCase()} subscription provisioned`
-            : 'Claim approved successfully')
-        : 'Claim rejected successfully';
+      let successMessage: string;
+      if (this.reviewAction !== 'approve') {
+        successMessage = 'Claim rejected successfully';
+      } else if (result?.subscription) {
+        successMessage = `Claim approved and ${result.subscription.tier.toUpperCase()} subscription provisioned`;
+      } else {
+        successMessage = 'Claim approved successfully';
+      }
 
       this.notificationService.success('Success', successMessage);
       this.dialogRef.close(true);
