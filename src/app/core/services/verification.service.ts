@@ -3,6 +3,7 @@ import { SupabaseService } from './supabase.service';
 import {
   VerificationRequest,
   ReviewClaimRequest,
+  ReviewClaimResponse,
   VerificationQueueFilters,
   VerificationQueueResponse,
   ClaimStatus
@@ -69,7 +70,13 @@ export class VerificationService {
             category,
             address,
             city,
-            state_province
+            state_province,
+            subscription_tier,
+            subscription_expires_at,
+            requested_tier,
+            requested_billing_period,
+            requested_amount_cents,
+            requested_at
           )
         `)
         .eq('id', requestId)
@@ -86,10 +93,11 @@ export class VerificationService {
   }
 
   /**
-   * Review a claim (approve or reject) via Edge Function
-   * Uses authenticated admin session - requires user to be logged in with admin access
+   * Review a claim (approve or reject) via Edge Function.
+   * Optionally provisions a subscription in the same transaction when
+   * `request.subscription` is provided and `action === 'approve'`.
    */
-  async reviewClaim(request: ReviewClaimRequest): Promise<void> {
+  async reviewClaim(request: ReviewClaimRequest): Promise<ReviewClaimResponse> {
     try {
       const session = await this.supabase.getSession();
 
@@ -108,7 +116,8 @@ export class VerificationService {
           requestId: request.requestId,
           action: request.action,
           rejectionReason: request.rejectionReason,
-          adminNotes: request.adminNotes
+          adminNotes: request.adminNotes,
+          subscription: request.action === 'approve' ? request.subscription : undefined
         })
       });
 
@@ -122,6 +131,7 @@ export class VerificationService {
         throw new Error(responseData.error?.message || 'Failed to review claim');
       }
 
+      return responseData.data as ReviewClaimResponse;
     } catch (error: any) {
       console.error('Error reviewing claim:', error);
       throw new Error(error.message || 'Failed to review claim');

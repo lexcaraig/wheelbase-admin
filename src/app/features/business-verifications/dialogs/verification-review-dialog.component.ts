@@ -1,14 +1,31 @@
-import { Component, Inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Inject, computed, signal } from '@angular/core';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule, MatDialog } from '@angular/material/dialog';
-import { VerificationRequest } from '../../../core/models/verification.model';
+import {
+  VerificationRequest,
+  SubscriptionTier,
+  BillingPeriod,
+  ProvisionSubscriptionPayload,
+  getRequestedSummary
+} from '../../../core/models/verification.model';
 import { VerificationService } from '../../../core/services/verification.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ConfirmService } from '../../../core/services/confirm.service';
 import { BadgeSeverity } from '../../../shared/components/status-badge/status-badge.component';
 import { formatDateTime } from '../../../shared/utils';
 import { DocumentViewerDialogComponent } from './document-viewer-dialog.component';
+import {
+  AD_PLACEMENT_PACKAGES,
+  BUNDLE_PACKAGES,
+  BUSINESS_ACCOUNT_PRICING,
+} from '../../../core/models/pricing.model';
+
+type PackageMode =
+  | 'business_only'
+  | 'bundle_starter' | 'bundle_basic' | 'bundle_standard' | 'bundle_premium'
+  | 'ads_starter' | 'ads_basic' | 'ads_standard' | 'ads_premium'
+  | 'custom';
 
 export interface VerificationReviewDialogData {
   request: VerificationRequest;
@@ -21,7 +38,8 @@ export interface VerificationReviewDialogData {
   imports: [
     CommonModule,
     FormsModule,
-    MatDialogModule
+    MatDialogModule,
+    CurrencyPipe
   ],
   styles: [`
     :host {
@@ -287,7 +305,7 @@ export interface VerificationReviewDialogData {
                   class="textarea textarea-bordered w-full"
                   [(ngModel)]="adminNotes"
                   rows="2"
-                  placeholder="e.g., Verified with DTI database"
+                  placeholder="e.g., Verified with DTI database / Invoice INV-2026-0001"
                 ></textarea>
                 <label class="label">
                   <span class="label-text-alt text-base-content/60">Internal notes, not visible to user</span>
@@ -295,6 +313,127 @@ export interface VerificationReviewDialogData {
               </div>
             </div>
           </div>
+
+          <!-- Subscription Provisioning (only when approving) -->
+          @if (reviewAction === 'approve') {
+            <div class="card bg-base-100 shadow-sm">
+              <div class="card-body p-4">
+                <div class="flex items-start justify-between gap-4 mb-3 flex-wrap">
+                  <h3 class="text-lg font-semibold text-base-content flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">card_membership</span>
+                    Subscription Provisioning
+                  </h3>
+                  <label class="cursor-pointer label justify-start gap-3 m-0 p-0">
+                    <input
+                      type="checkbox"
+                      class="toggle toggle-primary"
+                      [(ngModel)]="provisionEnabled"
+                      (ngModelChange)="onProvisionToggle()"
+                    />
+                    <span class="label-text font-medium">{{ provisionEnabled() ? 'Will be provisioned' : 'Skip (free tier)' }}</span>
+                  </label>
+                </div>
+
+                @if (requestedSummary(); as r) {
+                  <div class="alert alert-warning mb-3 text-sm">
+                    <span class="material-symbols-outlined">info</span>
+                    <span>
+                      Merchant requested at signup:
+                      <strong>{{ r.tier === 'pro' ? 'Pro' : 'Enterprise' }}</strong>
+                      ({{ r.billingPeriod }}) ·
+                      <strong>{{ r.amountCents / 100 | currency:'PHP':'symbol-narrow':'1.0-0' }}</strong>
+                      total — prefilled below. Edit if you negotiated different terms.
+                    </span>
+                  </div>
+                }
+
+                @if (provisionEnabled()) {
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <label class="form-control">
+                      <div class="label py-1"><span class="label-text font-medium text-sm">Package</span></div>
+                      <select
+                        class="select select-bordered select-sm"
+                        [ngModel]="packageMode()"
+                        (ngModelChange)="onPackageChange($event)"
+                      >
+                        <option value="business_only">Business Account</option>
+                        @for (b of bundles; track b.key) {
+                          <option [value]="'bundle_' + b.key">{{ b.label }} — {{ b.includes }}</option>
+                        }
+                        @for (a of adPackages; track a.key) {
+                          <option [value]="'ads_' + a.key">Ads — {{ a.label }} ({{ a.placementsLabel }})</option>
+                        }
+                        <option value="custom">Custom (manual amount + tier)</option>
+                      </select>
+                    </label>
+
+                    <label class="form-control">
+                      <div class="label py-1"><span class="label-text font-medium text-sm">Tier</span></div>
+                      <select
+                        class="select select-bordered select-sm"
+                        [(ngModel)]="subTier"
+                        [disabled]="packageMode() !== 'custom'"
+                      >
+                        <option value="pro">Pro</option>
+                        <option value="enterprise">Enterprise</option>
+                      </select>
+                    </label>
+
+                    <label class="form-control">
+                      <div class="label py-1"><span class="label-text font-medium text-sm">Billing Period</span></div>
+                      <select
+                        class="select select-bordered select-sm"
+                        [(ngModel)]="subPeriod"
+                        (ngModelChange)="recomputeAmount()"
+                      >
+                        <option value="monthly">Monthly</option>
+                        <option value="quarterly">Quarterly (10% off)</option>
+                        <option value="annual">Annual (15% off)</option>
+                      </select>
+                    </label>
+
+                    <label class="form-control">
+                      <div class="label py-1"><span class="label-text font-medium text-sm">Amount (PHP)</span></div>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        class="input input-bordered input-sm"
+                        [(ngModel)]="subAmountPhp"
+                        [disabled]="packageMode() !== 'custom'"
+                      />
+                    </label>
+
+                    <label class="form-control">
+                      <div class="label py-1"><span class="label-text font-medium text-sm">Payment Method</span></div>
+                      <select class="select select-bordered select-sm" [(ngModel)]="subPaymentMethod">
+                        <option value="bank_transfer">Bank Transfer</option>
+                        <option value="gcash">GCash</option>
+                        <option value="paymaya">PayMaya</option>
+                        <option value="hitpay">HitPay</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </label>
+
+                    <label class="cursor-pointer label justify-start gap-3 col-span-1 md:col-span-2">
+                      <input type="checkbox" class="checkbox checkbox-sm checkbox-primary" [(ngModel)]="subAutoRenew" />
+                      <span class="label-text text-sm">Auto-renew at period end</span>
+                    </label>
+                  </div>
+
+                  <div class="bg-base-200 p-3 rounded-lg mt-3 text-sm flex justify-between items-center flex-wrap gap-2">
+                    <div>
+                      <strong class="text-primary text-lg">{{ subAmountPhp() | currency:'PHP':'symbol-narrow':'1.0-0' }}</strong>
+                      <span class="text-base-content/60 ml-2">{{ subPeriod() }} · {{ subTier() | uppercase }}</span>
+                    </div>
+                    <div class="text-xs text-base-content/60">
+                      Access until: <strong>{{ computedExpires() | date:'mediumDate' }}</strong>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
         }
 
         <!-- Already Reviewed Section -->
@@ -350,7 +489,7 @@ export interface VerificationReviewDialogData {
             @if (isProcessing()) {
               <span class="loading loading-spinner loading-sm"></span>
             }
-            Submit Review
+            {{ submitButtonLabel() }}
           </button>
         }
       </div>
@@ -363,13 +502,59 @@ export class VerificationReviewDialogComponent {
   rejectionReason = '';
   adminNotes = '';
 
+  // Subscription provisioning state
+  provisionEnabled = signal<boolean>(false);
+  packageMode = signal<PackageMode>('business_only');
+  subTier = signal<SubscriptionTier>('pro');
+  subPeriod = signal<BillingPeriod>('monthly');
+  subAmountPhp = signal<number>(BUSINESS_ACCOUNT_PRICING.monthly);
+  subPaymentMethod = signal<string>('bank_transfer');
+  subAutoRenew = signal<boolean>(false);
+
+  bundles = BUNDLE_PACKAGES;
+  adPackages = AD_PLACEMENT_PACKAGES;
+  business = BUSINESS_ACCOUNT_PRICING;
+
+  requestedSummary = signal<ReturnType<typeof getRequestedSummary> | null>(null);
+
+  periodMonths = computed(() => {
+    const p = this.subPeriod();
+    return p === 'monthly' ? 1 : p === 'quarterly' ? 3 : 12;
+  });
+
+  computedExpires = computed(() => {
+    const d = new Date();
+    d.setUTCMonth(d.getUTCMonth() + this.periodMonths());
+    return d;
+  });
+
+  submitButtonLabel = computed(() => {
+    if (this.reviewAction === 'reject') return 'Reject Claim';
+    if (this.reviewAction === 'approve' && this.provisionEnabled()) {
+      return 'Approve + Provision';
+    }
+    if (this.reviewAction === 'approve') return 'Approve';
+    return 'Submit Review';
+  });
+
   constructor(
     public dialogRef: MatDialogRef<VerificationReviewDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: VerificationReviewDialogData,
     private notificationService: NotificationService,
     private confirmService: ConfirmService,
     private dialog: MatDialog
-  ) {}
+  ) {
+    // Pre-fill from requested plan if merchant chose one at signup
+    const requested = getRequestedSummary(this.data.request);
+    this.requestedSummary.set(requested);
+    if (requested) {
+      this.provisionEnabled.set(true);
+      this.subTier.set(requested.tier);
+      this.subPeriod.set(requested.billingPeriod);
+      this.subAmountPhp.set(Math.round(requested.amountCents / 100));
+      this.packageMode.set('custom'); // requested amount may not match a preset cleanly
+    }
+  }
 
   onClose(): void {
     this.dialogRef.close(false);
@@ -395,6 +580,71 @@ export class VerificationReviewDialogComponent {
     });
   }
 
+  onProvisionToggle() {
+    if (!this.provisionEnabled()) return;
+    if (this.packageMode() === 'business_only') this.recomputeAmount();
+  }
+
+  onPackageChange(key: PackageMode) {
+    this.packageMode.set(key);
+    if (key === 'custom') return;
+    this.recomputeAmount();
+  }
+
+  recomputeAmount() {
+    const mode = this.packageMode();
+    const months = this.periodMonths();
+    const period = this.subPeriod();
+
+    if (mode === 'business_only') {
+      const perMonth = period === 'monthly' ? this.business.monthly
+        : period === 'quarterly' ? this.business.quarterlyPerMonth
+        : this.business.annualPerMonth;
+      this.subAmountPhp.set(perMonth * months);
+      this.subTier.set('pro');
+      return;
+    }
+
+    if (mode.startsWith('bundle_')) {
+      const key = mode.replace('bundle_', '');
+      const pkg = this.bundles.find(b => b.key === key);
+      if (!pkg) return;
+      const perMonth = period === 'monthly' ? pkg.monthlyBundle
+        : period === 'quarterly' ? pkg.quarterlyPerMonth
+        : pkg.annualPerMonth;
+      this.subAmountPhp.set(perMonth * months);
+      this.subTier.set('pro');
+      return;
+    }
+
+    if (mode.startsWith('ads_')) {
+      const key = mode.replace('ads_', '');
+      const pkg = this.adPackages.find(a => a.key === key);
+      if (!pkg) return;
+      const perMonth = period === 'monthly' ? pkg.monthly
+        : period === 'quarterly' ? pkg.quarterlyPerMonth
+        : pkg.annualPerMonth;
+      this.subAmountPhp.set(perMonth * months);
+      // Ads-only packages don't grant a paid Business tier
+      this.subTier.set('free');
+      return;
+    }
+  }
+
+  private buildSubscriptionPayload(): ProvisionSubscriptionPayload | undefined {
+    if (!this.provisionEnabled() || this.reviewAction !== 'approve') return undefined;
+    if (this.subTier() === 'free') return undefined; // ads-only — no Business tier change
+    return {
+      tier: this.subTier(),
+      billingPeriod: this.subPeriod(),
+      amountCents: Math.round(this.subAmountPhp() * 100),
+      currency: 'PHP',
+      paymentMethod: this.subPaymentMethod(),
+      autoRenew: this.subAutoRenew(),
+      notes: this.adminNotes || undefined,
+    };
+  }
+
   async submitReview() {
     if (!this.reviewAction) return;
 
@@ -403,10 +653,22 @@ export class VerificationReviewDialogComponent {
       return;
     }
 
+    const subscription = this.buildSubscriptionPayload();
+    const willProvision = !!subscription;
+
+    const confirmTitle = this.reviewAction === 'approve'
+      ? (willProvision ? 'Approve + Provision Subscription' : 'Approve Claim')
+      : 'Reject Claim';
+    const confirmMessage = this.reviewAction === 'approve'
+      ? (willProvision
+          ? `Approve "${this.data.request.business_name}" and provision ${subscription!.tier.toUpperCase()} (${subscription!.billingPeriod}) for ₱${this.subAmountPhp().toLocaleString()}?`
+          : `Approve "${this.data.request.business_name}" without provisioning a subscription? They'll stay on the free tier.`)
+      : `Are you sure you want to reject this claim for "${this.data.request.business_name}"?`;
+
     const confirmed = await this.confirmService.confirm({
-      title: `Confirm ${this.reviewAction === 'approve' ? 'Approval' : 'Rejection'}`,
-      message: `Are you sure you want to ${this.reviewAction} this claim for "${this.data.request.business_name}"?`,
-      confirmText: this.reviewAction === 'approve' ? 'Approve' : 'Reject',
+      title: confirmTitle,
+      message: confirmMessage,
+      confirmText: this.reviewAction === 'approve' ? (willProvision ? 'Approve + Provision' : 'Approve') : 'Reject',
       confirmColor: this.reviewAction === 'approve' ? 'primary' : 'warn'
     });
 
@@ -414,18 +676,21 @@ export class VerificationReviewDialogComponent {
 
     try {
       this.isProcessing.set(true);
-      await this.data.verificationService.reviewClaim({
+      const result = await this.data.verificationService.reviewClaim({
         requestId: this.data.request.id,
         action: this.reviewAction,
         rejectionReason: this.reviewAction === 'reject' ? this.rejectionReason : undefined,
-        adminNotes: this.adminNotes || undefined
+        adminNotes: this.adminNotes || undefined,
+        subscription,
       });
 
-      this.notificationService.success(
-        'Success',
-        `Claim ${this.reviewAction === 'approve' ? 'approved' : 'rejected'} successfully`
-      );
+      const successMessage = this.reviewAction === 'approve'
+        ? (result?.subscription
+            ? `Claim approved and ${result.subscription.tier.toUpperCase()} subscription provisioned`
+            : 'Claim approved successfully')
+        : 'Claim rejected successfully';
 
+      this.notificationService.success('Success', successMessage);
       this.dialogRef.close(true);
     } catch (error: any) {
       this.notificationService.error('Error', error.message || 'Failed to review claim');

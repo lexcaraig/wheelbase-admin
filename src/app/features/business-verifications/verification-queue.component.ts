@@ -5,7 +5,8 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { VerificationService } from '../../core/services/verification.service';
 import {
   VerificationRequest,
-  ClaimStatus
+  ClaimStatus,
+  getRequestedSummary
 } from '../../core/models/verification.model';
 import { NotificationService } from '../../core/services/notification.service';
 import { BadgeSeverity } from '../../shared/components/status-badge/status-badge.component';
@@ -205,5 +206,18 @@ export class VerificationQueueComponent implements OnInit {
 
   formatDate(dateString: string | null): string {
     return formatDateTime(dateString);
+  }
+
+  /**
+   * Returns a short display label for the merchant's requested plan, or null
+   * if no request was made at signup. Used by the "Requested" chip in the queue.
+   */
+  getRequestedLabel(request: VerificationRequest): string | null {
+    const r = getRequestedSummary(request);
+    if (!r) return null;
+    const tier = r.tier === 'pro' ? 'Pro' : 'Enterprise';
+    const periodAbbr = r.billingPeriod === 'monthly' ? 'mo' : r.billingPeriod === 'quarterly' ? 'qtr' : 'yr';
+    const amount = (r.amountCents / 100).toLocaleString('en-PH', { maximumFractionDigits: 0 });
+    return `Requested: ${tier} (${r.billingPeriod}) ₱${amount}/${periodAbbr}`;
   }
 }

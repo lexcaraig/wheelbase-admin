@@ -94,9 +94,19 @@
                 <tr>
                   <!-- Business Name -->
                   <td>
-                    <div class="flex flex-col">
+                    <div class="flex flex-col gap-1">
                       <span class="font-semibold text-base-content">{{ request.business_name }}</span>
                       <span class="text-sm text-base-content/60">{{ request.service_provider?.category || 'N/A' }}</span>
+                      @if (getRequestedLabel(request); as plan) {
+                        <span
+                          class="badge badge-warning badge-sm gap-1 w-fit"
+                          [attr.data-tip]="'Merchant requested this plan at signup'"
+                          title="Merchant requested this plan at signup"
+                        >
+                          <span class="material-symbols-outlined text-xs">card_membership</span>
+                          {{ plan }}
+                        </span>
+                      }
                     </div>
                   </td>
                   <!-- Owner -->
